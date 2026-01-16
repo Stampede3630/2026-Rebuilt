@@ -1,4 +1,4 @@
-package frc.robot.subsystems.outtake;
+package frc.robot.subsystems.turret;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -12,9 +12,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
-public class OuttakeIOTalonFX implements OuttakeIO {
-  private final TalonFX shooterMotorLeader;
-  private final TalonFX shooterMotorFollower;
+public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
   private final TalonFX hoodMotor;
   // private final CANcoder cancoder;
@@ -31,26 +29,6 @@ public class OuttakeIOTalonFX implements OuttakeIO {
   private final StatusSignal<Current> turretSupplyCurrent;
   private final StatusSignal<Temperature> turretTemp;
 
-  // shooterLeader motor
-  private final TalonFXConfiguration shooterLeaderConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> shooterLeaderPosition;
-  private final StatusSignal<AngularVelocity> shooterLeaderVelocity;
-  private final StatusSignal<Current> shooterLeaderTorqueCurrent;
-  private final StatusSignal<Voltage> shooterLeaderVoltage;
-  private final StatusSignal<Current> shooterLeaderStatorCurrent;
-  private final StatusSignal<Current> shooterLeaderSupplyCurrent;
-  private final StatusSignal<Temperature> shooterLeaderTemp;
-
-  // shooterFollower motor
-  private final TalonFXConfiguration shooterFollowerConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> shooterFollowerPosition;
-  private final StatusSignal<AngularVelocity> shooterFollowerVelocity;
-  private final StatusSignal<Current> shooterFollowerTorqueCurrent;
-  private final StatusSignal<Voltage> shooterFollowerVoltage;
-  private final StatusSignal<Current> shooterFollowerStatorCurrent;
-  private final StatusSignal<Current> shooterFollowerSupplyCurrent;
-  private final StatusSignal<Temperature> shooterFollowerTemp;
-
   // hood motor
   private final TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
   private final StatusSignal<Angle> hoodPosition;
@@ -64,7 +42,7 @@ public class OuttakeIOTalonFX implements OuttakeIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
-  public OuttakeIOTalonFX() {
+  public TurretIOTalonFX() {
     // init turret motor
     turretMotor = new TalonFX(30);
     turretPosition = turretMotor.getPosition();
@@ -75,28 +53,6 @@ public class OuttakeIOTalonFX implements OuttakeIO {
     turretSupplyCurrent = turretMotor.getSupplyCurrent();
     turretTemp = turretMotor.getDeviceTemp();
     // add turretConfig here
-
-    // init shooterLeader motor
-    shooterMotorLeader = new TalonFX(31);
-    shooterLeaderPosition = shooterMotorLeader.getPosition();
-    shooterLeaderVelocity = shooterMotorLeader.getVelocity();
-    shooterLeaderTorqueCurrent = shooterMotorLeader.getTorqueCurrent();
-    shooterLeaderVoltage = shooterMotorLeader.getMotorVoltage();
-    shooterLeaderStatorCurrent = shooterMotorLeader.getStatorCurrent();
-    shooterLeaderSupplyCurrent = shooterMotorLeader.getSupplyCurrent();
-    shooterLeaderTemp = shooterMotorLeader.getDeviceTemp();
-    // add shooterLeaderConfig here
-
-    // init shooterFollower motor
-    shooterMotorFollower = new TalonFX(31);
-    shooterFollowerPosition = shooterMotorFollower.getPosition();
-    shooterFollowerVelocity = shooterMotorFollower.getVelocity();
-    shooterFollowerTorqueCurrent = shooterMotorFollower.getTorqueCurrent();
-    shooterFollowerVoltage = shooterMotorFollower.getMotorVoltage();
-    shooterFollowerStatorCurrent = shooterMotorFollower.getStatorCurrent();
-    shooterFollowerSupplyCurrent = shooterMotorFollower.getSupplyCurrent();
-    shooterFollowerTemp = shooterMotorFollower.getDeviceTemp();
-    // add shooterFollowerConfig here
 
     // init hood motor
     hoodMotor = new TalonFX(32);
@@ -124,13 +80,6 @@ public class OuttakeIOTalonFX implements OuttakeIO {
   public void updateInputs(OuttakeIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
-                shooterLeaderPosition,
-                shooterLeaderVelocity,
-                shooterLeaderTorqueCurrent,
-                shooterLeaderVoltage,
-                shooterLeaderStatorCurrent,
-                shooterLeaderSupplyCurrent,
-                shooterLeaderTemp,
                 turretPosition,
                 turretVelocity,
                 turretTorqueCurrent,
@@ -148,24 +97,6 @@ public class OuttakeIOTalonFX implements OuttakeIO {
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
-
-    // shooterMotorLeader
-    inputs.shooterLeaderPosition = shooterLeaderPosition.getValueAsDouble();
-    inputs.shooterLeaderVelocity = shooterLeaderVelocity.getValueAsDouble();
-    inputs.shooterLeaderTorqueCurrent = shooterLeaderTorqueCurrent.getValueAsDouble();
-    inputs.shooterLeaderVoltage = shooterLeaderVoltage.getValueAsDouble();
-    inputs.shooterLeaderStatorCurrent = shooterLeaderStatorCurrent.getValueAsDouble();
-    inputs.shooterLeaderSupplyCurrent = shooterLeaderSupplyCurrent.getValueAsDouble();
-    inputs.shooterLeaderTemp = shooterLeaderTemp.getValueAsDouble();
-
-    // shooterMotorFollower
-    inputs.shooterFollowerPosition = shooterFollowerPosition.getValueAsDouble();
-    inputs.shooterFollowerVelocity = shooterFollowerVelocity.getValueAsDouble();
-    inputs.shooterFollowerTorqueCurrent = shooterFollowerTorqueCurrent.getValueAsDouble();
-    inputs.shooterFollowerVoltage = shooterFollowerVoltage.getValueAsDouble();
-    inputs.shooterFollowerStatorCurrent = shooterFollowerStatorCurrent.getValueAsDouble();
-    inputs.shooterFollowerSupplyCurrent = shooterFollowerSupplyCurrent.getValueAsDouble();
-    inputs.shooterFollowerTemp = shooterFollowerTemp.getValueAsDouble();
 
     // turretMotor
     inputs.turretPosition = turretPosition.getValueAsDouble();
@@ -192,11 +123,6 @@ public class OuttakeIOTalonFX implements OuttakeIO {
   // }
 
   @Override
-  public void runVelocity(double vel) {
-    shooterMotorLeader.setControl(velocityRequest.withVelocity(vel));
-  }
-
-  @Override
   public void setAngle(Angle angle) {
     turretMotor.setPosition(angle);
   }
@@ -209,10 +135,5 @@ public class OuttakeIOTalonFX implements OuttakeIO {
   @Override
   public double getTurretAngle() {
     return turretMotor.getPosition().getValueAsDouble();
-  }
-
-  @Override
-  public double getShooterSpeed() {
-    return shooterMotorLeader.getVelocity().getValueAsDouble() * Outtake.WHEEL_RADIUS_METERS;
   }
 }

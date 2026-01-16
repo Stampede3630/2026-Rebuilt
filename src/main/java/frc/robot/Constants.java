@@ -7,14 +7,11 @@
 
 package frc.robot;
 
-import java.util.TreeMap;
-import java.util.function.DoubleSupplier;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
+import java.util.TreeMap;
+import java.util.function.DoubleSupplier;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -28,26 +25,30 @@ public final class Constants {
   // add alliance flipping
   public static final Pose2d HUB_POSE = new Pose2d(1.0, 1.0, new Rotation2d());
 
+  public static final String CHASSIS_CAMERA = "camera_0";
+  public static final String TURRET_CAMERA = "camera_1";
+
   // temp
   // represents multiple pairs of distances from the hub and angles of the turret hood motor
   public static final TreeMap<Double, Double> ANGLE_DATA = new TreeMap<>();
 
   public DoubleSupplier getValue(DoubleSupplier dist) {
-      // lerp table
-      // precondition: data has at least two KV pairs
-      Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
-      Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
-      if (high == null) {
-          high = low; // low == data.lastKey()
-          low = ANGLE_DATA.lowerKey(low);
-      } else if (low == null) {
-          low = high; // high == data.firstKey()
-          high = ANGLE_DATA.higherKey(high);
-      }
-      final Double high2 = high;
-      final Double low2 = high;
-      return () -> (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
+    // lerp table
+    // precondition: data has at least two KV pairs
+    Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
+    Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
+    if (high == null) {
+      high = low; // low == data.lastKey()
+      low = ANGLE_DATA.lowerKey(low);
+    } else if (low == null) {
+      low = high; // high == data.firstKey()
+      high = ANGLE_DATA.higherKey(high);
     }
+    final Double high2 = high;
+    final Double low2 = high;
+    return () ->
+        (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
+  }
 
   // temp
   /***

@@ -1,11 +1,9 @@
-package frc.robot.subsystems.outtake;
+package frc.robot.subsystems.turret;
 
 import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.AutoLog;
 
-public interface OuttakeIO {
-  default void runVelocity(double perc) {}
-
+public interface TurretIO {
   default void updateInputs(OuttakeIOInputs inputs) {}
 
   default void stop() {}
@@ -17,10 +15,6 @@ public interface OuttakeIO {
   }
 
   default double getTurretAngle() {
-    return 0.0;
-  }
-
-  default double getShooterSpeed() {
     return 0.0;
   }
 
@@ -38,24 +32,6 @@ public interface OuttakeIO {
     public double turretStatorCurrent = 0.0;
     public double turretSupplyCurrent = 0.0;
     public double turretTemp = 0.0;
-
-    // shooterLeader motor
-    public double shooterLeaderPosition = 0.0;
-    public double shooterLeaderVelocity = 0.0;
-    public double shooterLeaderTorqueCurrent = 0.0;
-    public double shooterLeaderVoltage = 0.0;
-    public double shooterLeaderStatorCurrent = 0.0;
-    public double shooterLeaderSupplyCurrent = 0.0;
-    public double shooterLeaderTemp = 0.0;
-
-    // shooterFollower motor
-    public double shooterFollowerPosition = 0.0;
-    public double shooterFollowerVelocity = 0.0;
-    public double shooterFollowerTorqueCurrent = 0.0;
-    public double shooterFollowerVoltage = 0.0;
-    public double shooterFollowerStatorCurrent = 0.0;
-    public double shooterFollowerSupplyCurrent = 0.0;
-    public double shooterFollowerTemp = 0.0;
 
     // hood motor
     public double hoodPosition = 0.0;

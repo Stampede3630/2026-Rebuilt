@@ -10,6 +10,8 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -25,9 +27,14 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.outtake.Outtake;
-import frc.robot.subsystems.outtake.OuttakeIOTalonFX;
-
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIOTalonFX;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.util.Transform3dSupplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -39,7 +46,14 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Outtake outtake;
+  //   private final Outtake outtake;
+  private final Vision vision;
+  private final Shooter shooter;
+  private final Turret turret;
+
+  // create a second Vision object to avoid making significant changes to the open ended-ness of
+  // Vision's constructor
+  //   private final Vision turretVision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -49,6 +63,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -62,7 +77,23 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
 
-        outtake = new Outtake(new OuttakeIOTalonFX());
+        // outtake = new Outtake(new OuttakeIOTalonFX());
+        shooter = new Shooter(new ShooterIOTalonFX());
+        turret = new Turret(new TurretIOTalonFX());
+
+        VisionIO[] visionIOs = {
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+        };
+        Transform3dSupplier[] offsets = {
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+        };
+
+        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets);
+
+        // turretVision = new Vision(null, new VisionIOLimelight(Constants.TURRET_CAMERA,
+        // outtake::getTurretRotation));
 
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
@@ -93,7 +124,20 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
 
-        outtake = new Outtake(new OuttakeIOTalonFX());
+        // outtake = new Outtake(new OuttakeIOTalonFX());
+        shooter = new Shooter(new ShooterIOTalonFX());
+        turret = new Turret(new TurretIOTalonFX());
+
+        VisionIO[] visionIOsSim = {
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+        };
+        Transform3dSupplier[] offsetsSim = {
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+        };
+
+        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim);
         break;
 
       default:
@@ -105,7 +149,20 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        outtake = new Outtake(new OuttakeIOTalonFX());
+        // outtake = new Outtake(new OuttakeIOTalonFX());
+        shooter = new Shooter(new ShooterIOTalonFX());
+        turret = new Turret(new TurretIOTalonFX());
+
+        VisionIO[] visionIOsDef = {
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+        };
+        Transform3dSupplier[] offsetsDef = {
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+        };
+
+        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef);
         break;
     }
 
@@ -170,7 +227,16 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
-    controller.rightTrigger().whileTrue(new RepeatCommand(Commands.either(outtake.outtakeWithPose(drive.getPose()), outtake.setAngleWithPose(drive.getPose()), outtake.isFacingHub(drive.getPose(), () -> 0.1))));
+    controller
+        .rightTrigger()
+        .whileTrue(
+            new RepeatCommand(
+                Commands.either(
+                    shooter.outtakeWithVector(
+                        turret.getTargetVector(drive.getPose(), drive.getChassisSpeeds())),
+                    turret.setAngleWithVel(drive.getPose(), drive.getChassisSpeeds()),
+                    turret.isFacingRightWay(
+                        drive.getPose(), drive.getChassisSpeeds(), () -> 0.1))));
   }
 
   /**

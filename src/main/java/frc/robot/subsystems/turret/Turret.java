@@ -1,4 +1,4 @@
-package frc.robot.subsystems.outtake;
+package frc.robot.subsystems.turret;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,18 +11,16 @@ import frc.robot.Constants;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-public class Outtake extends SubsystemBase {
+public class Turret extends SubsystemBase {
   // temp
   // change
+
+  private final TurretIO io;
+
   public static final double WHEEL_RADIUS_METERS = 0.06;
-  private final OuttakeIO io;
 
-  public Outtake(OuttakeIO io) {
+  public Turret(TurretIO io) {
     this.io = io;
-  }
-
-  public Command runVelocity(DoubleSupplier velocity) {
-    return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   }
 
   // public Command outtakeWithDist(DoubleSupplier dist) {
@@ -46,6 +44,7 @@ public class Outtake extends SubsystemBase {
     return runOnce(() -> io.setAngle(angle));
   }
 
+  @Deprecated
   public Command setAngleWithPose(Pose2d pose) {
     double x = pose.getX();
     double y = pose.getY();
@@ -89,12 +88,12 @@ public class Outtake extends SubsystemBase {
     return runOnce(() -> io.setAngle(goal.getAngle().getMeasure()));
   }
 
-  public Command shootWithVel(Pose2d pose, ChassisSpeeds vel) {
-    Translation2d goal = getTargetVector(pose, vel);
-    double x = goal.getX();
-    double y = goal.getY();
-    return runVelocity(() -> Math.hypot(x, y));
-  }
+  // public Command shootWithVel(Pose2d pose, ChassisSpeeds vel) {
+  //     Translation2d goal = getTargetVector(pose, vel);
+  //     double x = goal.getX();
+  //     double y = goal.getY();
+  //     return runVelocity(() -> Math.hypot(x, y));
+  // }
 
   public BooleanSupplier isFacingRightWay(
       Pose2d pose, ChassisSpeeds vel, DoubleSupplier tolerance) {
@@ -103,24 +102,24 @@ public class Outtake extends SubsystemBase {
     return () -> Math.abs(targetAngle - currAngle) < tolerance.getAsDouble();
   }
 
-  @Deprecated
-  public BooleanSupplier isFacingHub(Pose2d pose, DoubleSupplier tolerance) {
-    double x = pose.getX();
-    double y = pose.getY();
-    x -= Constants.HUB_POSE.getX();
-    y -= Constants.HUB_POSE.getX();
+  //   @Deprecated
+  //   public BooleanSupplier isFacingHub(Pose2d pose, DoubleSupplier tolerance) {
+  //     double x = pose.getX();
+  //     double y = pose.getY();
+  //     x -= Constants.HUB_POSE.getX();
+  //     y -= Constants.HUB_POSE.getX();
 
-    double ratio = y / x;
-    double targetAngle = Math.atan(ratio);
+  //     double ratio = y / x;
+  //     double targetAngle = Math.atan(ratio);
 
-    double currAngle = io.getTurretAngle();
+  //     double currAngle = io.getTurretAngle();
 
-    return () ->
-        targetAngle - currAngle > -tolerance.getAsDouble()
-            && targetAngle - currAngle < tolerance.getAsDouble();
-  }
+  //     return () ->
+  //         targetAngle - currAngle > -tolerance.getAsDouble()
+  //             && targetAngle - currAngle < tolerance.getAsDouble();
+  //   }
 
-  public Rotation2d getTurretRotation() {
+  public Rotation2d getRotation() {
     return new Rotation2d(io.getTurretAngle());
   }
 }
