@@ -8,10 +8,12 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -61,6 +63,10 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
+  private final SlewRateLimiter xSlewRateLimiter = new SlewRateLimiter(10);
+  private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
+  private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
@@ -87,10 +93,19 @@ public class RobotContainer {
         };
         Transform3dSupplier[] offsets = {
           () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+          // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
+          // */).plus()
+          () ->
+              new Transform3d(
+                  new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                      .rotateAround(
+                          new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
+                  new Rotation3d(turret.getRotation()))
         };
+        // new Transform3d()
+        // Rotation3d turretRot = turret.getRotation();
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets);
+        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret);
 
         // turretVision = new Vision(null, new VisionIOLimelight(Constants.TURRET_CAMERA,
         // outtake::getTurretRotation));
@@ -137,7 +152,7 @@ public class RobotContainer {
           () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
         };
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim);
+        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret);
         break;
 
       default:
@@ -162,7 +177,7 @@ public class RobotContainer {
           () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
         };
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef);
+        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret);
         break;
     }
 
@@ -200,9 +215,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> xSlewRateLimiter.calculate(-controller.getLeftY()),
+            () -> ySlewRateLimiter.calculate(-controller.getLeftX()),
+            () -> angularSlewRateLimiter.calculate(-controller.getRightX())));
 
     // Lock to 0° when A button is held
     controller

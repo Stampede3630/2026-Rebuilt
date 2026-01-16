@@ -28,6 +28,8 @@ public final class Constants {
   public static final String CHASSIS_CAMERA = "camera_0";
   public static final String TURRET_CAMERA = "camera_1";
 
+  public static final double TURRET_CAMERA_RADIUS = 0.1; // wrong
+
   // temp
   // represents multiple pairs of distances from the hub and angles of the turret hood motor
   public static final TreeMap<Double, Double> ANGLE_DATA = new TreeMap<>();

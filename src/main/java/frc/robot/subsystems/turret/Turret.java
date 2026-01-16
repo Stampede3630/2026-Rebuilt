@@ -18,27 +18,11 @@ public class Turret extends SubsystemBase {
   private final TurretIO io;
 
   public static final double WHEEL_RADIUS_METERS = 0.06;
+  public static final int CAMERA_INDEX = 1;
 
   public Turret(TurretIO io) {
     this.io = io;
   }
-
-  // public Command outtakeWithDist(DoubleSupplier dist) {
-  //     return startEnd(() -> io.runWithDist(dist), io::stop);
-  // }
-
-  // @Deprecated
-  // // does not take velocity into account
-  // public Command outtakeWithPose(Pose2d pose) {
-  //     double x = pose.getX();
-  //     double y = pose.getY();
-  //     x -= Constants.HUB_POSE.getX();
-  //     y -= Constants.HUB_POSE.getX();
-
-  //     double dist = Math.hypot(x, y);
-
-  //      return outtakeWithDist(() -> dist);
-  // }
 
   public Command setAngle(Angle angle) {
     return runOnce(() -> io.setAngle(angle));
@@ -54,6 +38,10 @@ public class Turret extends SubsystemBase {
     double ratio = y / x;
     double angle = Math.atan(ratio);
     return setAngle(new Rotation2d(angle).getMeasure());
+  }
+
+  public boolean isInitSet() {
+    return io.isInitSet();
   }
 
   /**
@@ -88,13 +76,6 @@ public class Turret extends SubsystemBase {
     return runOnce(() -> io.setAngle(goal.getAngle().getMeasure()));
   }
 
-  // public Command shootWithVel(Pose2d pose, ChassisSpeeds vel) {
-  //     Translation2d goal = getTargetVector(pose, vel);
-  //     double x = goal.getX();
-  //     double y = goal.getY();
-  //     return runVelocity(() -> Math.hypot(x, y));
-  // }
-
   public BooleanSupplier isFacingRightWay(
       Pose2d pose, ChassisSpeeds vel, DoubleSupplier tolerance) {
     double targetAngle = getTargetVector(pose, vel).getAngle().getMeasure().magnitude();
@@ -102,24 +83,12 @@ public class Turret extends SubsystemBase {
     return () -> Math.abs(targetAngle - currAngle) < tolerance.getAsDouble();
   }
 
-  //   @Deprecated
-  //   public BooleanSupplier isFacingHub(Pose2d pose, DoubleSupplier tolerance) {
-  //     double x = pose.getX();
-  //     double y = pose.getY();
-  //     x -= Constants.HUB_POSE.getX();
-  //     y -= Constants.HUB_POSE.getX();
-
-  //     double ratio = y / x;
-  //     double targetAngle = Math.atan(ratio);
-
-  //     double currAngle = io.getTurretAngle();
-
-  //     return () ->
-  //         targetAngle - currAngle > -tolerance.getAsDouble()
-  //             && targetAngle - currAngle < tolerance.getAsDouble();
-  //   }
-
   public Rotation2d getRotation() {
     return new Rotation2d(io.getTurretAngle());
+  }
+
+  public void setAngleInit(double newAngle) {
+    io.setAngleInit(newAngle);
+    io.updateInitSet(true);
   }
 }

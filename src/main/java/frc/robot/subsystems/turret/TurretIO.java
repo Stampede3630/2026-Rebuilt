@@ -20,6 +20,14 @@ public interface TurretIO {
 
   default void setHoodAngle(Angle angle) {}
 
+  default void setAngleInit(double newAngle) {}
+
+  default boolean isInitSet() {
+    return false;
+  }
+
+  default void updateInitSet(boolean set) {}
+
   @AutoLog
   class OuttakeIOInputs {
     public boolean connected = false;

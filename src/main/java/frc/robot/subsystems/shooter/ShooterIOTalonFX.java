@@ -43,7 +43,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   public ShooterIOTalonFX() {
     // init shooterLeader motor
-    shooterMotorLeader = new TalonFX(31);
+    shooterMotorLeader = new TalonFX(32);
     shooterLeaderPosition = shooterMotorLeader.getPosition();
     shooterLeaderVelocity = shooterMotorLeader.getVelocity();
     shooterLeaderTorqueCurrent = shooterMotorLeader.getTorqueCurrent();
@@ -54,7 +54,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     // add shooterLeaderConfig here
 
     // init shooterFollower motor
-    shooterMotorFollower = new TalonFX(31);
+    shooterMotorFollower = new TalonFX(33);
     shooterFollowerPosition = shooterMotorFollower.getPosition();
     shooterFollowerVelocity = shooterMotorFollower.getVelocity();
     shooterFollowerTorqueCurrent = shooterMotorFollower.getTorqueCurrent();

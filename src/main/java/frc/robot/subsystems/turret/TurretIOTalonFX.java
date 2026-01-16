@@ -1,5 +1,7 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -39,6 +41,11 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<Current> hoodSupplyCurrent;
   private final StatusSignal<Temperature> hoodTemp;
 
+  // angle offset
+  private double angleInitRad = 0.0;
+  // whether the angle offset has been set since the robot's code last booted
+  private boolean initSet = false;
+
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
@@ -55,7 +62,7 @@ public class TurretIOTalonFX implements TurretIO {
     // add turretConfig here
 
     // init hood motor
-    hoodMotor = new TalonFX(32);
+    hoodMotor = new TalonFX(31);
     hoodPosition = hoodMotor.getPosition();
     hoodVelocity = hoodMotor.getVelocity();
     hoodTorqueCurrent = hoodMotor.getTorqueCurrent();
@@ -64,16 +71,6 @@ public class TurretIOTalonFX implements TurretIO {
     hoodSupplyCurrent = hoodMotor.getSupplyCurrent();
     hoodTemp = hoodMotor.getDeviceTemp();
     // add hoodConfig here
-
-    // represents data emperically derived from the optimal speed to use given a certain distance
-    // from the hub
-    // data = new TreeMap<>();
-    // // fake data
-    // data.put(2.0, 0.2);
-    // data.put(4.0, 0.4);
-    // data.put(6.0, 0.7);
-    // cancoder = new CANcoder(32);
-
   }
 
   @Override
@@ -122,9 +119,18 @@ public class TurretIOTalonFX implements TurretIO {
   //     runVelocity(getValue(dist));
   // }
 
+  /**
+   * @param newAngle The angle to set the turret motors adjustment to, in radians
+   */
+  @Override
+  public void setAngleInit(double newAngle) {
+    angleInitRad = newAngle;
+  }
+
   @Override
   public void setAngle(Angle angle) {
-    turretMotor.setPosition(angle);
+    // need to subtract angleInitRad here
+    turretMotor.setPosition(angle.minus(Radians.of(angleInitRad)));
   }
 
   @Override
@@ -135,5 +141,15 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public double getTurretAngle() {
     return turretMotor.getPosition().getValueAsDouble();
+  }
+
+  @Override
+  public boolean isInitSet() {
+    return initSet;
+  }
+
+  @Override
+  public void updateInitSet(boolean set) {
+    initSet = set;
   }
 }

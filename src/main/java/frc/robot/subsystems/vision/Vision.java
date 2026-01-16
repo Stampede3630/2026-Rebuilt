@@ -19,6 +19,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.util.Transform3dSupplier;
 import java.util.LinkedList;
@@ -31,14 +32,17 @@ public class Vision extends SubsystemBase {
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private final Transform3dSupplier[] offsets;
+  private final Turret turret;
 
-  public Vision(VisionConsumer consumer, VisionIO[] io, Transform3dSupplier[] offsets) {
+  public Vision(
+      VisionConsumer consumer, VisionIO[] io, Transform3dSupplier[] offsets, Turret turret) {
     this.consumer = consumer;
     this.io = io;
     this.offsets = offsets;
     if (io.length != offsets.length) {
       System.out.println("Array lengths don't match!");
     }
+    this.turret = turret;
 
     // Initialize inputs
     this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -146,6 +150,17 @@ public class Vision extends SubsystemBase {
             observation.pose().transformBy(offsets[cameraIndex].get()).toPose2d(),
             observation.timestamp(),
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
+
+        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
+          // might need to be converted to robot-relative coordinates
+          turret.setAngleInit(
+              observation
+                  .pose()
+                  .transformBy(offsets[cameraIndex].get())
+                  .toPose2d()
+                  .getRotation()
+                  .getRadians());
+        }
       }
 
       // Log camera metadata
