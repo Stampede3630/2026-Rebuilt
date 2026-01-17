@@ -1,10 +1,11 @@
 package frc.robot.subsystems.turret;
 
+import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
-  default void updateInputs(OuttakeIOInputs inputs) {}
+  default void updateInputs(TurretIOInputs inputs) {}
 
   default void stop() {}
 
@@ -28,8 +29,14 @@ public interface TurretIO {
 
   default void updateInitSet(boolean set) {}
 
+  default Angle getHoodAngle() {
+    return null;
+  }
+
+  default void setTurretMotorControl(VoltageOut volts) {}
+
   @AutoLog
-  class OuttakeIOInputs {
+  class TurretIOInputs {
     public boolean connected = false;
 
     // turret motor

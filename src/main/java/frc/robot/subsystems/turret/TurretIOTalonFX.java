@@ -1,11 +1,12 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -13,6 +14,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.Constants;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
@@ -46,12 +48,9 @@ public class TurretIOTalonFX implements TurretIO {
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
 
-  private final VelocityTorqueCurrentFOC velocityRequest =
-      new VelocityTorqueCurrentFOC(0).withSlot(0);
-
   public TurretIOTalonFX() {
     // init turret motor
-    turretMotor = new TalonFX(30);
+    turretMotor = new TalonFX(Constants.TURRET_ID);
     turretPosition = turretMotor.getPosition();
     turretVelocity = turretMotor.getVelocity();
     turretTorqueCurrent = turretMotor.getTorqueCurrent();
@@ -59,10 +58,21 @@ public class TurretIOTalonFX implements TurretIO {
     turretStatorCurrent = turretMotor.getStatorCurrent();
     turretSupplyCurrent = turretMotor.getSupplyCurrent();
     turretTemp = turretMotor.getDeviceTemp();
-    // add turretConfig here
+
+    turretConfig
+        .withMotorOutput(new MotorOutputConfigs())
+        .withSlot0(
+            new Slot0Configs()
+                .withKS(10)
+                .withKV(10)
+                .withKA(10)
+                .withKP(10)
+                .withKI(10)
+                .withKD(10)); /* set PID */
+    turretMotor.getConfigurator().apply(turretConfig);
 
     // init hood motor
-    hoodMotor = new TalonFX(31);
+    hoodMotor = new TalonFX(Constants.HOOD_ID);
     hoodPosition = hoodMotor.getPosition();
     hoodVelocity = hoodMotor.getVelocity();
     hoodTorqueCurrent = hoodMotor.getTorqueCurrent();
@@ -70,11 +80,13 @@ public class TurretIOTalonFX implements TurretIO {
     hoodStatorCurrent = hoodMotor.getStatorCurrent();
     hoodSupplyCurrent = hoodMotor.getSupplyCurrent();
     hoodTemp = hoodMotor.getDeviceTemp();
-    // add hoodConfig here
+
+    hoodConfig.withMotorOutput(new MotorOutputConfigs());
+    hoodMotor.getConfigurator().apply(hoodConfig);
   }
 
   @Override
-  public void updateInputs(OuttakeIOInputs inputs) {
+  public void updateInputs(TurretIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
                 turretPosition,
@@ -130,17 +142,25 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setAngle(Angle angle) {
     // need to subtract angleInitRad here
-    turretMotor.setPosition(angle.minus(Radians.of(angleInitRad)));
+    System.out.println("set to " + angle.magnitude());
+    turretMotor.set(1);
+    // turretMotor.setControl(
+    //     new PositionVoltage(
+    //         Rotations.of(angle.magnitude() / Math.PI / 2)
+    //             .minus(Rotations.of(angleInitRad / Math.PI / 2))));
   }
 
   @Override
   public void setHoodAngle(Angle angle) {
-    hoodMotor.setPosition(angle);
+    hoodMotor.setControl(new PositionDutyCycle(angle));
   }
 
+  /**
+   * @return The current angle of the turret, in radians
+   */
   @Override
   public double getTurretAngle() {
-    return turretMotor.getPosition().getValueAsDouble();
+    return turretMotor.getPosition().getValueAsDouble() * Math.PI * 2;
   }
 
   @Override
@@ -151,5 +171,18 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void updateInitSet(boolean set) {
     initSet = set;
+  }
+
+  /**
+   * @return The current angle of the hood, in rotations
+   */
+  @Override
+  public Angle getHoodAngle() {
+    return hoodMotor.getPosition().getValue();
+  }
+
+  @Override
+  public void setTurretMotorControl(VoltageOut volts) {
+    turretMotor.setControl(volts);
   }
 }

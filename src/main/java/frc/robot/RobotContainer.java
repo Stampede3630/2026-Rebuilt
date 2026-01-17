@@ -16,9 +16,9 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -32,11 +32,13 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.turret.TurretIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.Transform3dSupplier;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -67,6 +69,8 @@ public class RobotContainer {
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
+  private final DoubleSupplier tol = () -> 0.01;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
@@ -85,7 +89,9 @@ public class RobotContainer {
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX());
-        turret = new Turret(new TurretIOTalonFX());
+        turret =
+            new Turret(
+                new TurretIOTalonFX(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
 
         VisionIO[] visionIOs = {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
@@ -141,7 +147,9 @@ public class RobotContainer {
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX());
-        turret = new Turret(new TurretIOTalonFX());
+        turret =
+            new Turret(
+                new TurretIOSim(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
 
         VisionIO[] visionIOsSim = {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
@@ -166,7 +174,9 @@ public class RobotContainer {
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX());
-        turret = new Turret(new TurretIOTalonFX());
+        turret =
+            new Turret(
+                new TurretIOTalonFX(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
 
         VisionIO[] visionIOsDef = {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
@@ -200,6 +210,8 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    SmartDashboard.putData(turret);
+    SmartDashboard.putData(shooter);
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -234,7 +246,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .rightBumper()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -245,13 +257,16 @@ public class RobotContainer {
     controller
         .rightTrigger()
         .whileTrue(
-            new RepeatCommand(
-                Commands.either(
-                    shooter.outtakeWithVector(
-                        turret.getTargetVector(drive.getPose(), drive.getChassisSpeeds())),
-                    turret.setAngleWithVel(drive.getPose(), drive.getChassisSpeeds()),
-                    turret.isFacingRightWay(
-                        drive.getPose(), drive.getChassisSpeeds(), () -> 0.1))));
+            Commands.parallel(
+                turret.setAngleIf(() -> !turret.isFacingRightWay().getAsBoolean()),
+                shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())));
+    // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
+
+    // shooter.outtakeWithVector(
+    //       () -> turret.getTargetVector(drive.getPose(), drive.getChassisSpeeds())),
+    // Commands.none(), turret.isFacingRightWay(
+    //       () -> drive.getPose(), () -> drive.getChassisSpeeds(), () -> 0.01))
+
   }
 
   /**

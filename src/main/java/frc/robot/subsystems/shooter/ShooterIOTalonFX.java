@@ -3,107 +3,112 @@ package frc.robot.subsystems.shooter;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.Constants;
 
 public class ShooterIOTalonFX implements ShooterIO {
-  private final TalonFX shooterMotorLeader;
-  private final TalonFX shooterMotorFollower;
+  private final TalonFX leader;
+  private final TalonFX follower;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
-  // shooterLeader motor
-  private final TalonFXConfiguration shooterLeaderConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> shooterLeaderPosition;
-  private final StatusSignal<AngularVelocity> shooterLeaderVelocity;
-  private final StatusSignal<Current> shooterLeaderTorqueCurrent;
-  private final StatusSignal<Voltage> shooterLeaderVoltage;
-  private final StatusSignal<Current> shooterLeaderStatorCurrent;
-  private final StatusSignal<Current> shooterLeaderSupplyCurrent;
-  private final StatusSignal<Temperature> shooterLeaderTemp;
+  // leader motor
+  private final TalonFXConfiguration leaderConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> leaderPosition;
+  private final StatusSignal<AngularVelocity> leaderVelocity;
+  private final StatusSignal<Current> leaderTorqueCurrent;
+  private final StatusSignal<Voltage> leaderVoltage;
+  private final StatusSignal<Current> leaderStatorCurrent;
+  private final StatusSignal<Current> leaderSupplyCurrent;
+  private final StatusSignal<Temperature> leaderTemp;
 
-  // shooterFollower motor
-  private final TalonFXConfiguration shooterFollowerConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> shooterFollowerPosition;
-  private final StatusSignal<AngularVelocity> shooterFollowerVelocity;
-  private final StatusSignal<Current> shooterFollowerTorqueCurrent;
-  private final StatusSignal<Voltage> shooterFollowerVoltage;
-  private final StatusSignal<Current> shooterFollowerStatorCurrent;
-  private final StatusSignal<Current> shooterFollowerSupplyCurrent;
-  private final StatusSignal<Temperature> shooterFollowerTemp;
+  // follower motor
+  private final TalonFXConfiguration followerConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> followerPosition;
+  private final StatusSignal<AngularVelocity> followerVelocity;
+  private final StatusSignal<Current> followerTorqueCurrent;
+  private final StatusSignal<Voltage> followerVoltage;
+  private final StatusSignal<Current> followerStatorCurrent;
+  private final StatusSignal<Current> followerSupplyCurrent;
+  private final StatusSignal<Temperature> followerTemp;
 
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
   public ShooterIOTalonFX() {
-    // init shooterLeader motor
-    shooterMotorLeader = new TalonFX(32);
-    shooterLeaderPosition = shooterMotorLeader.getPosition();
-    shooterLeaderVelocity = shooterMotorLeader.getVelocity();
-    shooterLeaderTorqueCurrent = shooterMotorLeader.getTorqueCurrent();
-    shooterLeaderVoltage = shooterMotorLeader.getMotorVoltage();
-    shooterLeaderStatorCurrent = shooterMotorLeader.getStatorCurrent();
-    shooterLeaderSupplyCurrent = shooterMotorLeader.getSupplyCurrent();
-    shooterLeaderTemp = shooterMotorLeader.getDeviceTemp();
-    // add shooterLeaderConfig here
+    // init leader motor
+    leader = new TalonFX(Constants.SHOOTER_LEADER_ID);
+    leaderPosition = leader.getPosition();
+    leaderVelocity = leader.getVelocity();
+    leaderTorqueCurrent = leader.getTorqueCurrent();
+    leaderVoltage = leader.getMotorVoltage();
+    leaderStatorCurrent = leader.getStatorCurrent();
+    leaderSupplyCurrent = leader.getSupplyCurrent();
+    leaderTemp = leader.getDeviceTemp();
+    // add leaderConfig here
 
-    // init shooterFollower motor
-    shooterMotorFollower = new TalonFX(33);
-    shooterFollowerPosition = shooterMotorFollower.getPosition();
-    shooterFollowerVelocity = shooterMotorFollower.getVelocity();
-    shooterFollowerTorqueCurrent = shooterMotorFollower.getTorqueCurrent();
-    shooterFollowerVoltage = shooterMotorFollower.getMotorVoltage();
-    shooterFollowerStatorCurrent = shooterMotorFollower.getStatorCurrent();
-    shooterFollowerSupplyCurrent = shooterMotorFollower.getSupplyCurrent();
-    shooterFollowerTemp = shooterMotorFollower.getDeviceTemp();
-    // add shooterFollowerConfig here
+    // init follower motor
+    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID);
+    followerPosition = follower.getPosition();
+    followerVelocity = follower.getVelocity();
+    followerTorqueCurrent = follower.getTorqueCurrent();
+    followerVoltage = follower.getMotorVoltage();
+    followerStatorCurrent = follower.getStatorCurrent();
+    followerSupplyCurrent = follower.getSupplyCurrent();
+    followerTemp = follower.getDeviceTemp();
+    // add followerConfig here
+
+    follower.setControl(new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
   }
 
   @Override
-  public void updateInputs(OuttakeIOInputs inputs) {
+  public void updateInputs(ShooterIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
-                shooterLeaderPosition,
-                shooterLeaderVelocity,
-                shooterLeaderTorqueCurrent,
-                shooterLeaderVoltage,
-                shooterLeaderStatorCurrent,
-                shooterLeaderSupplyCurrent,
-                shooterLeaderTemp,
-                shooterFollowerPosition,
-                shooterFollowerVelocity,
-                shooterFollowerTorqueCurrent,
-                shooterFollowerVoltage,
-                shooterFollowerStatorCurrent,
-                shooterFollowerSupplyCurrent,
-                shooterFollowerTemp)
+                leaderPosition,
+                leaderVelocity,
+                leaderTorqueCurrent,
+                leaderVoltage,
+                leaderStatorCurrent,
+                leaderSupplyCurrent,
+                leaderTemp,
+                followerPosition,
+                followerVelocity,
+                followerTorqueCurrent,
+                followerVoltage,
+                followerStatorCurrent,
+                followerSupplyCurrent,
+                followerTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
 
-    // shooterMotorLeader
-    inputs.shooterLeaderPosition = shooterLeaderPosition.getValueAsDouble();
-    inputs.shooterLeaderVelocity = shooterLeaderVelocity.getValueAsDouble();
-    inputs.shooterLeaderTorqueCurrent = shooterLeaderTorqueCurrent.getValueAsDouble();
-    inputs.shooterLeaderVoltage = shooterLeaderVoltage.getValueAsDouble();
-    inputs.shooterLeaderStatorCurrent = shooterLeaderStatorCurrent.getValueAsDouble();
-    inputs.shooterLeaderSupplyCurrent = shooterLeaderSupplyCurrent.getValueAsDouble();
-    inputs.shooterLeaderTemp = shooterLeaderTemp.getValueAsDouble();
+    // leader
+    inputs.leaderPosition = leaderPosition.getValueAsDouble();
+    inputs.leaderVelocity = leaderVelocity.getValueAsDouble();
+    inputs.leaderTorqueCurrent = leaderTorqueCurrent.getValueAsDouble();
+    inputs.leaderVoltage = leaderVoltage.getValueAsDouble();
+    inputs.leaderStatorCurrent = leaderStatorCurrent.getValueAsDouble();
+    inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValueAsDouble();
+    inputs.leaderTemp = leaderTemp.getValueAsDouble();
 
-    // shooterMotorFollower
-    inputs.shooterFollowerPosition = shooterFollowerPosition.getValueAsDouble();
-    inputs.shooterFollowerVelocity = shooterFollowerVelocity.getValueAsDouble();
-    inputs.shooterFollowerTorqueCurrent = shooterFollowerTorqueCurrent.getValueAsDouble();
-    inputs.shooterFollowerVoltage = shooterFollowerVoltage.getValueAsDouble();
-    inputs.shooterFollowerStatorCurrent = shooterFollowerStatorCurrent.getValueAsDouble();
-    inputs.shooterFollowerSupplyCurrent = shooterFollowerSupplyCurrent.getValueAsDouble();
-    inputs.shooterFollowerTemp = shooterFollowerTemp.getValueAsDouble();
+    // follower
+    inputs.followerPosition = followerPosition.getValueAsDouble();
+    inputs.followerVelocity = followerVelocity.getValueAsDouble();
+    inputs.followerTorqueCurrent = followerTorqueCurrent.getValueAsDouble();
+    inputs.followerVoltage = followerVoltage.getValueAsDouble();
+    inputs.followerStatorCurrent = followerStatorCurrent.getValueAsDouble();
+    inputs.followerSupplyCurrent = followerSupplyCurrent.getValueAsDouble();
+    inputs.followerTemp = followerTemp.getValueAsDouble();
   }
 
   // @Override
@@ -113,11 +118,11 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   @Override
   public void runVelocity(double vel) {
-    shooterMotorLeader.setControl(velocityRequest.withVelocity(vel));
+    leader.setControl(velocityRequest.withVelocity(vel));
   }
 
   @Override
   public double getShooterSpeed() {
-    return shooterMotorLeader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
+    return leader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
   }
 }

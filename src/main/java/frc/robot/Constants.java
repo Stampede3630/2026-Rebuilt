@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.RobotBase;
 import java.util.TreeMap;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
  * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
@@ -21,14 +23,27 @@ import java.util.function.DoubleSupplier;
 public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
-  // temp
-  // add alliance flipping
-  public static final Pose2d HUB_POSE = new Pose2d(1.0, 1.0, new Rotation2d());
+
+  // add alliance flipping4
+  /* middle: from DS: 182.11in (4.625594m) from side: 158.85in (4.03479m) */
+  public static final Pose2d HUB_POSE = new Pose2d(4.625594, 4.03479, new Rotation2d());
 
   public static final String CHASSIS_CAMERA = "camera_0";
   public static final String TURRET_CAMERA = "camera_1";
 
   public static final double TURRET_CAMERA_RADIUS = 0.1; // wrong
+
+  // CAN IDs
+  // Swerve IDs are located in frc.robot.generated.TunerConstants.java
+  public static final int TURRET_ID = 30;
+  public static final int HOOD_ID = 31;
+  public static final int SHOOTER_LEADER_ID = 32;
+  public static final int SHOOTER_FOLLOWER_ID = 33;
+  public static final int INTAKE_LEADER_ID = 34;
+  public static final int INTAKE_FOLLOWER_ID = 35;
+
+  // follower-leader alignments
+  public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Aligned;
 
   // temp
   // represents multiple pairs of distances from the hub and angles of the turret hood motor

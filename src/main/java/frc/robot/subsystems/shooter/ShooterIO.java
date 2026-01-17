@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface ShooterIO {
   default void runVelocity(double perc) {}
 
-  default void updateInputs(OuttakeIOInputs inputs) {}
+  default void updateInputs(ShooterIOInputs inputs) {}
 
   default void stop() {}
 
@@ -18,25 +18,25 @@ public interface ShooterIO {
   }
 
   @AutoLog
-  class OuttakeIOInputs {
+  class ShooterIOInputs {
     public boolean connected = false;
 
-    // shooterLeader motor
-    public double shooterLeaderPosition = 0.0;
-    public double shooterLeaderVelocity = 0.0;
-    public double shooterLeaderTorqueCurrent = 0.0;
-    public double shooterLeaderVoltage = 0.0;
-    public double shooterLeaderStatorCurrent = 0.0;
-    public double shooterLeaderSupplyCurrent = 0.0;
-    public double shooterLeaderTemp = 0.0;
+    // leader motor
+    public double leaderPosition = 0.0;
+    public double leaderVelocity = 0.0;
+    public double leaderTorqueCurrent = 0.0;
+    public double leaderVoltage = 0.0;
+    public double leaderStatorCurrent = 0.0;
+    public double leaderSupplyCurrent = 0.0;
+    public double leaderTemp = 0.0;
 
-    // shooterFollower motor
-    public double shooterFollowerPosition = 0.0;
-    public double shooterFollowerVelocity = 0.0;
-    public double shooterFollowerTorqueCurrent = 0.0;
-    public double shooterFollowerVoltage = 0.0;
-    public double shooterFollowerStatorCurrent = 0.0;
-    public double shooterFollowerSupplyCurrent = 0.0;
-    public double shooterFollowerTemp = 0.0;
+    // follower motor
+    public double followerPosition = 0.0;
+    public double followerVelocity = 0.0;
+    public double followerTorqueCurrent = 0.0;
+    public double followerVoltage = 0.0;
+    public double followerStatorCurrent = 0.0;
+    public double followerSupplyCurrent = 0.0;
+    public double followerTemp = 0.0;
   }
 }
