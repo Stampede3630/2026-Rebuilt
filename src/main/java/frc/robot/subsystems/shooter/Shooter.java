@@ -35,7 +35,7 @@ public class Shooter extends SubsystemBase {
 
   public void runOuttakeWithVector(Supplier<Translation2d> vector) {
     io.runVelocity(Math.hypot(vector.get().getX(), vector.get().getY()));
-    // System.out.println("shoot");
+    System.out.println("shoot");
   }
 
   public Command shootIf(Supplier<Translation2d> vector, BooleanSupplier cond) {

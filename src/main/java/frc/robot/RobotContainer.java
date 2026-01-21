@@ -69,7 +69,7 @@ public class RobotContainer {
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
-  private final DoubleSupplier tol = () -> 0.01;
+  private final DoubleSupplier tol = () -> 0.10;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -260,6 +260,8 @@ public class RobotContainer {
             Commands.parallel(
                 turret.setAngleIf(() -> !turret.isFacingRightWay().getAsBoolean()),
                 shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())));
+    controller.rightTrigger().onFalse(turret.stopTurret());
+
     // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
 
     // shooter.outtakeWithVector(

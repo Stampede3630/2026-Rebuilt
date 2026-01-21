@@ -7,13 +7,10 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.TreeMap;
 import java.util.function.DoubleSupplier;
-
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -26,7 +23,6 @@ public final class Constants {
 
   // add alliance flipping4
   /* middle: from DS: 182.11in (4.625594m) from side: 158.85in (4.03479m) */
-  public static final Pose2d HUB_POSE = new Pose2d(4.625594, 4.03479, new Rotation2d());
 
   public static final String CHASSIS_CAMERA = "camera_0";
   public static final String TURRET_CAMERA = "camera_1";
@@ -41,6 +37,9 @@ public final class Constants {
   public static final int SHOOTER_FOLLOWER_ID = 33;
   public static final int INTAKE_LEADER_ID = 34;
   public static final int INTAKE_FOLLOWER_ID = 35;
+  public static final int INDEXER_1_ID = 36;
+  public static final int INDEXER_2_ID = 37;
+  public static final int INDEXER_3_ID = 38;
 
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Aligned;

@@ -7,7 +7,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface TurretIO {
   default void updateInputs(TurretIOInputs inputs) {}
 
-  default void stop() {}
+  default void stopTurret() {}
 
   default void setAngle(Angle angle) {}
 
@@ -38,6 +38,10 @@ public interface TurretIO {
   @AutoLog
   class TurretIOInputs {
     public boolean connected = false;
+    // public boolean shootReady = false;
+
+    // public MotorInputs turret = new MotorInputs();
+    // public MotorInputs hood = new MotorInputs();
 
     // turret motor
     public double turretPosition = 0.0;
@@ -47,6 +51,7 @@ public interface TurretIO {
     public double turretStatorCurrent = 0.0;
     public double turretSupplyCurrent = 0.0;
     public double turretTemp = 0.0;
+    public double turretSetpoint = 0.0;
 
     // hood motor
     public double hoodPosition = 0.0;

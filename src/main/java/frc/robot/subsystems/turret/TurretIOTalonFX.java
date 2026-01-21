@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -22,6 +23,9 @@ public class TurretIOTalonFX implements TurretIO {
   // private final CANcoder cancoder;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
+
+  // need to log and incorporate
+  private final PIDController controller = new PIDController(1, 1, 1);
 
   // turret motor
   private final TalonFXConfiguration turretConfig = new TalonFXConfiguration();
@@ -124,6 +128,24 @@ public class TurretIOTalonFX implements TurretIO {
     inputs.hoodStatorCurrent = hoodStatorCurrent.getValueAsDouble();
     inputs.hoodSupplyCurrent = hoodSupplyCurrent.getValueAsDouble();
     inputs.hoodTemp = hoodTemp.getValueAsDouble();
+
+    // // turretMotor
+    // inputs.turret.position = turretPosition.getValueAsDouble();
+    // inputs.turret.velocity = turretVelocity.getValueAsDouble();
+    // inputs.turret.torqueCurrent = turretTorqueCurrent.getValueAsDouble();
+    // inputs.turret.voltage = turretVoltage.getValueAsDouble();
+    // inputs.turret.statorCurrent = turretStatorCurrent.getValueAsDouble();
+    // inputs.turret.statorCurrent = turretSupplyCurrent.getValueAsDouble();
+    // inputs.turret.temp = turretTemp.getValueAsDouble();
+
+    // // hoodMotor
+    // inputs.hood.position = hoodPosition.getValueAsDouble();
+    // inputs.hood.velocity = hoodVelocity.getValueAsDouble();
+    // inputs.hood.torqueCurrent = hoodTorqueCurrent.getValueAsDouble();
+    // inputs.hood.voltage = hoodVoltage.getValueAsDouble();
+    // inputs.hood.statorCurrent = hoodStatorCurrent.getValueAsDouble();
+    // inputs.hood.supplyCurrent = hoodSupplyCurrent.getValueAsDouble();
+    // inputs.hood.temp = hoodTemp.getValueAsDouble();
   }
 
   // @Override
@@ -184,5 +206,10 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void setTurretMotorControl(VoltageOut volts) {
     turretMotor.setControl(volts);
+  }
+
+  @Override
+  public void stopTurret() {
+    turretMotor.stopMotor();
   }
 }
