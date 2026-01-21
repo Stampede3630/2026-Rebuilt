@@ -1,11 +1,16 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Radian;
+import static edu.wpi.first.units.Units.Radians;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.PIDController;
@@ -67,12 +72,12 @@ public class TurretIOTalonFX implements TurretIO {
         .withMotorOutput(new MotorOutputConfigs())
         .withSlot0(
             new Slot0Configs()
-                .withKS(10)
-                .withKV(10)
-                .withKA(10)
-                .withKP(10)
-                .withKI(10)
-                .withKD(10)); /* set PID */
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2)); /* set PID */
     turretMotor.getConfigurator().apply(turretConfig);
 
     // init hood motor
@@ -166,10 +171,9 @@ public class TurretIOTalonFX implements TurretIO {
     // need to subtract angleInitRad here
     System.out.println("set to " + angle.magnitude());
     turretMotor.set(1);
-    // turretMotor.setControl(
-    //     new PositionVoltage(
-    //         Rotations.of(angle.magnitude() / Math.PI / 2)
-    //             .minus(Rotations.of(angleInitRad / Math.PI / 2))));
+    turretMotor.setControl(
+        new PositionTorqueCurrentFOC(
+            (angle.minus(Radian.of(angleInitRad)))));
   }
 
   @Override

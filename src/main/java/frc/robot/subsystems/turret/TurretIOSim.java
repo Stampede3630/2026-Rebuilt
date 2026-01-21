@@ -91,9 +91,7 @@ public class TurretIOSim implements TurretIO {
 
     // turretMotor
     inputs.turretPosition =
-        turretMotor.getAngularPositionRad() 
-            / Math.PI
-            * 180 /* convert to degrees cuz why not */;
+        turretMotor.getAngularPositionRad() / Math.PI * 180 /* convert to degrees cuz why not */;
     // System.out.println(turretMotor.getInputVoltage());
     inputs.turretVelocity = turretMotor.getAngularVelocityRadPerSec();
     inputs.turretTorqueCurrent = turretMotor.getTorqueNewtonMeters();

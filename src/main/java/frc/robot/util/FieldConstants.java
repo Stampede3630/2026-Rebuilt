@@ -14,7 +14,10 @@ public class FieldConstants {
   public static final double NEUTRAL_X_BLUE = 4.644;
 
   public static boolean checkNeutral(Pose2d pose) {
-
     return AllianceFlipUtil.applyX(pose.getMeasureX().magnitude()) > FieldConstants.NEUTRAL_X_BLUE;
+  }
+
+  public static double getDistanceFromHub(Translation2d pose) {
+    return pose.getDistance(HUB_POSE_BLUE);
   }
 }
