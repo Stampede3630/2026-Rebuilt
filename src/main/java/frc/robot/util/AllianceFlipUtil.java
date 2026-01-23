@@ -16,9 +16,12 @@ public class AllianceFlipUtil {
     return new Translation2d(applyX(translation.getX()), applyY(translation.getY()));
   }
 
+  /**
+   * @return True if the DriverStation's Alliance is currently Red
+   */
   public static boolean shouldFlip() {
     // maybe add disableHAL
     return DriverStation.getAlliance().isPresent()
-        && DriverStation.getAlliance().get() == DriverStation.Alliance.Blue;
+        && DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
   }
 }

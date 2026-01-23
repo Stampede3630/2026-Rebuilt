@@ -71,7 +71,7 @@ public final class Constants {
    * The velocity to apply to balls leaving the outtake
    * Assumes that the velocity of the outtake wheel is approximately equal to the velocity applied to the ball
    */
-  public static final double OUTAKE_VEL = 5.0;
+  public static final double OUTTAKE_VEL = 8.0;
 
   public static enum Mode {
     /** Running on a real robot. */

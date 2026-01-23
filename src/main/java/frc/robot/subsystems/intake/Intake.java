@@ -1,44 +1,39 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Volts;
-
-import com.ctre.phoenix6.SignalLogger;
-import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Shooter extends SubsystemBase {
+public class Intake extends SubsystemBase {
   // temp
   // change
   public static final double WHEEL_RADIUS_METERS = 0.06;
-  private final ShooterIO io;
+  private final IntakeIO io;
 
-  private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
+  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
-  private final SysIdRoutine routine;
+  // private final SysIdRoutine routine;
 
-  private final VoltageOut req = new VoltageOut(0.0);
+  // private final VoltageOut req = new VoltageOut(0.0);
 
-  public Shooter(ShooterIO io) {
+  public Intake(IntakeIO io) {
     this.io = io;
 
-    routine =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                Volts.of(4),
-                null,
-                (state) -> SignalLogger.writeString("state", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (volts) -> io.setShooterMotorsControl(req.withOutput(volts.in(Volts))),
-                null,
-                this));
+    // routine =
+    //     new SysIdRoutine(
+    //         new SysIdRoutine.Config(
+    //             null,
+    //             Volts.of(4),
+    //             null,
+    //             (state) -> SignalLogger.writeString("state", state.toString())),
+    //         new SysIdRoutine.Mechanism(
+    //             (volts) -> io.setShooterMotorsControl(req.withOutput(volts.in(Volts))),
+    //             null,
+    //             this));
   }
 
   public Command runVelocity(DoubleSupplier velocity) {
@@ -72,11 +67,11 @@ public class Shooter extends SubsystemBase {
     Logger.processInputs("Shooter", inputs);
   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return routine.quasistatic(direction);
-  }
+  // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+  //   return routine.quasistatic(direction);
+  // }
 
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return routine.quasistatic(direction);
-  }
+  // public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+  //   return routine.quasistatic(direction);
+  // }
 }

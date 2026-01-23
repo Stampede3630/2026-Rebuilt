@@ -1,12 +1,11 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.intake;
 
-import com.ctre.phoenix6.controls.VoltageOut;
 import org.littletonrobotics.junction.AutoLog;
 
-public interface ShooterIO {
+public interface IntakeIO {
   default void runVelocity(double perc) {}
 
-  default void updateInputs(ShooterIOInputs inputs) {}
+  default void updateInputs(IntakeIOInputs inputs) {}
 
   default void stop() {}
 
@@ -14,14 +13,14 @@ public interface ShooterIO {
     return true;
   }
 
-  default double getShooterSpeed() {
-    return 0.0;
-  }
+  // default double getShooterSpeed() {
+  //   return 0.0;
+  // }
 
-  default void setShooterMotorsControl(VoltageOut volts) {}
+  // default void setShooterMotorsControl(VoltageOut volts) {}
 
   @AutoLog
-  class ShooterIOInputs {
+  class IntakeIOInputs {
     public boolean connected = false;
 
     // leader motor

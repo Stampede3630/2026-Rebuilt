@@ -1,6 +1,7 @@
 package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -71,7 +73,8 @@ public class Turret extends SubsystemBase {
   }
 
   /**
-   * Returns the vector that represents where the fuel should be shot
+   * Returns the vector that represents where the fuel should be shot. Currently does not have the
+   * code for neutral shots
    *
    * @param pose The robot's current pose
    * @param vel The robot's current velocity (assumes this is relative to the robot rather than the
@@ -82,30 +85,31 @@ public class Turret extends SubsystemBase {
   public Translation2d getTargetVector(Pose2d pose, ChassisSpeeds vel) {
     ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(vel, pose.getRotation());
     Pose2d futurePose =
-        pose.plus(new Transform2d(
+        pose.plus(
+            new Transform2d(
                 new Translation2d(
-                        fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond).times(LATENCY),
-                        new Rotation2d(
-                            vel.omegaRadiansPerSecond) /* try to account for angular velocity */));
+                        fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond)
+                    .times(LATENCY),
+                new Rotation2d(
+                    vel.omegaRadiansPerSecond) /* try to account for angular velocity */));
     // System.out.println("future: " + futurePose);
 
     Translation2d velVector =
-          new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
+        new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
 
     if (!FieldConstants.checkNeutral(pose)) {
       // shoot towards hub if in alliance area
       Rotation2d targetAngle =
-          FieldConstants.HUB_POSE_BLUE
+          AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
               .minus(futurePose.getTranslation())
               .getAngle()
               .minus(pose.getRotation() /* account for robot's current rotation */);
       // System.out.println("angle: " + targetAngle);
       // the vector target if the robot is not moving
       Translation2d targetVector =
-          new Translation2d(Constants.OUTAKE_VEL, targetAngle.plus(CORRECTION))
+          new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
               .times(Math.cos(io.getHoodAngle().magnitude()));
 
-     
       return targetVector.minus(velVector).times(-1);
     } else {
       // shoot towards alliance side if in neutral zone
@@ -113,7 +117,7 @@ public class Turret extends SubsystemBase {
       Rotation2d targetAngle = new Rotation2d().minus(futurePose.getRotation());
       Translation2d targetVector =
           new Translation2d(
-                  Constants.OUTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
+                  Constants.OUTTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
               .times(Math.cos(io.getHoodAngle().magnitude()));
       return targetVector.minus(velVector).times(-1);
     }
@@ -131,64 +135,64 @@ public class Turret extends SubsystemBase {
         ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
     Pose2d futurePose =
         pose.get()
-            .plus(new Transform2d(
-                new Translation2d(
-                        fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond).times(LATENCY),
-                        new Rotation2d(
-                            vel.get()
-                                .omegaRadiansPerSecond) /* try to account for angular velocity */));
+            .plus(
+                new Transform2d(
+                    new Translation2d(
+                            fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond)
+                        .times(LATENCY),
+                    new Rotation2d(
+                        vel.get()
+                            .omegaRadiansPerSecond) /* try to account for angular velocity */));
 
     Translation2d velVector =
-          new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
-    
+        new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
+
     if (!FieldConstants.checkNeutral(pose.get())) {
       // shoot towards hub if in alliance area
       Rotation2d targetAngle =
-          FieldConstants.HUB_POSE_BLUE
+          AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
               .minus(futurePose.getTranslation())
               .getAngle()
               .minus(pose.get().getRotation() /* account for robot's current rotation */);
       // the vector target if the robot is not moving
       Translation2d targetVector =
-          new Translation2d(Constants.OUTAKE_VEL, targetAngle.plus(CORRECTION))
+          new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
               .times(Math.cos(io.getHoodAngle().magnitude()));
 
-      
       return targetVector.minus(velVector).times(-1);
     } else {
       // shoot towards alliance side if in neutral zone
-      // NOTE: need to account for hub and outtake velocity
-      //NEED TO FLIP
+
       Rotation2d targetAngle = new Rotation2d().minus(futurePose.getRotation());
       Translation2d targetVector =
           new Translation2d(
-                  Constants.OUTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
+                  Constants.OUTTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
               .times(Math.cos(io.getHoodAngle().magnitude()));
 
-      targetVector = new Translation2d(FieldConstants.getDistanceFromHub(pose.get().getTranslation()), targetAngle.plus(CORRECTION)).times(Math.cos(io.getHoodAngle().magnitude()));
-      
-      while (futurePose.getMeasureY().isNear(Meters.of(4.0), 0.0625) /* these numbers might need to be fine-tuned */ || futurePose.plus(new Transform2d(targetVector, new Rotation2d()).times(-1)).getMeasureY().isNear(Meters.of(4.0), 0.25)) {
-        double angleChange = Math.copySign(Math.PI / 24, -1 * (futurePose.getY() - 4));
-        targetVector = targetVector.rotateBy(new Rotation2d(angleChange));
-        System.out.println("at hub " + targetVector);
-        // change angle if straight would be shooting at hub
-        if (FieldConstants.checkNeutral(futurePose.plus(new Transform2d(targetVector, new Rotation2d()).times(-1)))) {
-          System.out.println(futurePose.plus(new Transform2d(targetVector, new Rotation2d()).times(-1)));
-          System.out.println("can't do");
-          return new Translation2d();
-        }
+      targetVector =
+          new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
+              .times(Math.cos(io.getHoodAngle().magnitude()));
+
+      // if shooting straight would hit hub
+      if (futurePose
+          .getMeasureY()
+          .isNear(Meters.of(4.0), 0.15) /* these numbers might need to be fine-tuned */) {
+        Translation2d corner =
+            AllianceFlipUtil.apply(FieldConstants.getHubCorner(futurePose.getY()));
+        Angle adjustment =
+            Radians.of(
+                Math.atan(
+                    (futurePose.getY() - corner.getY())
+                        / corner.getDistance(
+                            futurePose
+                                .getTranslation()))) /*.minus(futurePose.getRotation().getMeasure()) */;
+        System.out.println("adjust: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
+        targetVector = targetVector.rotateBy(new Rotation2d(adjustment));
       }
-      // Translation2d velVector =
-      //     new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
       targetVector = targetVector.minus(velVector).times(-1);
 
       return targetVector;
     }
-  }
-
-  @Deprecated
-  public Command setAngleWithVel(Supplier<Pose2d> pose, Supplier<ChassisSpeeds> vel) {
-    return run(() -> io.setAngle(getTargetVector(pose.get(), vel.get()).getAngle().getMeasure()));
   }
 
   public Command setAngleIf(
@@ -251,4 +255,10 @@ public class Turret extends SubsystemBase {
   public Command stopTurret() {
     return runOnce(() -> io.stopTurret());
   }
+
+  // public double getOptimalVelocity(Pose2d pose, Pose2d target) {
+  //   double xGoal = pose.getTranslation().getDistance(target.getTranslation());
+  //   double yGoal = FieldConstants.HUB_HEIGHT;
+
+  // }
 }

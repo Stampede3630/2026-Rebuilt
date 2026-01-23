@@ -1,11 +1,10 @@
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -15,7 +14,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
-public class ShooterIOTalonFX implements ShooterIO {
+public class IntakeIOTalonFX implements IntakeIO {
   private final TalonFX leader;
   private final TalonFX follower;
 
@@ -44,7 +43,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
-  public ShooterIOTalonFX() {
+  public IntakeIOTalonFX() {
     // init leader motor
     leader = new TalonFX(Constants.SHOOTER_LEADER_ID);
     leaderPosition = leader.getPosition();
@@ -72,7 +71,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
-  public void updateInputs(ShooterIOInputs inputs) {
+  public void updateInputs(IntakeIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
                 leaderPosition,
@@ -122,14 +121,14 @@ public class ShooterIOTalonFX implements ShooterIO {
     leader.setControl(velocityRequest.withVelocity(vel));
   }
 
-  @Override
-  public double getShooterSpeed() {
-    return leader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
-  }
+  // @Override
+  // public double getShooterSpeed() {
+  //   return leader.getVelocity().getValueAsDouble() * Intake.WHEEL_RADIUS_METERS;
+  // }
 
-  @Override
-  public void setShooterMotorsControl(VoltageOut volts) {
-    leader.setControl(volts);
-    follower.setControl(volts);
-  }
+  // @Override
+  // public void setShooterMotorsControl(VoltageOut volts) {
+  //   leader.setControl(volts);
+  //   follower.setControl(volts);
+  // }
 }
