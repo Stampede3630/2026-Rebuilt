@@ -2,6 +2,8 @@ package frc.robot.subsystems.shooter;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
@@ -41,6 +43,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final StatusSignal<Current> followerSupplyCurrent;
   private final StatusSignal<Temperature> followerTemp;
 
+  private double velSetpoint = 0.0;
+
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
@@ -54,7 +58,18 @@ public class ShooterIOTalonFX implements ShooterIO {
     leaderStatorCurrent = leader.getStatorCurrent();
     leaderSupplyCurrent = leader.getSupplyCurrent();
     leaderTemp = leader.getDeviceTemp();
-    // add leaderConfig here
+
+    leaderConfig
+        .withMotorOutput(new MotorOutputConfigs())
+        .withSlot0(
+            new Slot0Configs()
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2));
+    leader.getConfigurator().apply(leaderConfig);
 
     // init follower motor
     follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID);
@@ -65,7 +80,18 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerStatorCurrent = follower.getStatorCurrent();
     followerSupplyCurrent = follower.getSupplyCurrent();
     followerTemp = follower.getDeviceTemp();
-    // add followerConfig here
+
+    followerConfig
+        .withMotorOutput(new MotorOutputConfigs())
+        .withSlot0(
+            new Slot0Configs()
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2));
+    follower.getConfigurator().apply(followerConfig);
 
     follower.setControl(
         new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
@@ -110,6 +136,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.followerStatorCurrent = followerStatorCurrent.getValueAsDouble();
     inputs.followerSupplyCurrent = followerSupplyCurrent.getValueAsDouble();
     inputs.followerTemp = followerTemp.getValueAsDouble();
+
+    inputs.velSetpoint = velSetpoint;
   }
 
   // @Override
@@ -119,6 +147,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   @Override
   public void runVelocity(double vel) {
+    velSetpoint = vel;
     leader.setControl(velocityRequest.withVelocity(vel));
   }
 

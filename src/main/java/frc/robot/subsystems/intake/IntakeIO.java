@@ -23,22 +23,22 @@ public interface IntakeIO {
   class IntakeIOInputs {
     public boolean connected = false;
 
-    // leader motor
-    public double leaderPosition = 0.0;
-    public double leaderVelocity = 0.0;
-    public double leaderTorqueCurrent = 0.0;
-    public double leaderVoltage = 0.0;
-    public double leaderStatorCurrent = 0.0;
-    public double leaderSupplyCurrent = 0.0;
-    public double leaderTemp = 0.0;
+    // intake motor
+    public double intakePosition = 0.0;
+    public double intakeVelocity = 0.0;
+    public double intakeTorqueCurrent = 0.0;
+    public double intakeVoltage = 0.0;
+    public double intakeStatorCurrent = 0.0;
+    public double intakeSupplyCurrent = 0.0;
+    public double intakeTemp = 0.0;
 
-    // follower motor
-    public double followerPosition = 0.0;
-    public double followerVelocity = 0.0;
-    public double followerTorqueCurrent = 0.0;
-    public double followerVoltage = 0.0;
-    public double followerStatorCurrent = 0.0;
-    public double followerSupplyCurrent = 0.0;
-    public double followerTemp = 0.0;
+    // flip motor
+    public double flipPosition = 0.0;
+    public double flipVelocity = 0.0;
+    public double flipTorqueCurrent = 0.0;
+    public double flipVoltage = 0.0;
+    public double flipStatorCurrent = 0.0;
+    public double flipSupplyCurrent = 0.0;
+    public double flipTemp = 0.0;
   }
 }

@@ -2,6 +2,9 @@ package frc.robot.subsystems.turret;
 
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
+
+import static edu.wpi.first.units.Units.Radians;
+
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
@@ -15,13 +18,16 @@ public interface TurretIO {
     return true;
   }
 
-  default double getTurretAngle() {
-    return 0.0;
+  /**
+   * @return Get the current angle of the turret, in robot-relative coordinates
+   */
+  default Angle getTurretAngle() {
+    return Radians.of(0);
   }
 
   default void setHoodAngle(Angle angle) {}
 
-  default void setAngleInit(double newAngle) {}
+  default void resetAnglePos(Angle newAngle) {}
 
   default boolean isInitSet() {
     return false;
@@ -29,8 +35,11 @@ public interface TurretIO {
 
   default void updateInitSet(boolean set) {}
 
+  /**
+   * @return Get the current angle of the turret's hood
+   */
   default Angle getHoodAngle() {
-    return null;
+    return Radians.of(0);
   }
 
   default void setTurretMotorControl(VoltageOut volts) {}
@@ -61,5 +70,6 @@ public interface TurretIO {
     public double hoodStatorCurrent = 0.0;
     public double hoodSupplyCurrent = 0.0;
     public double hoodTemp = 0.0;
+    public double hoodSetpoint = 0.0;
   }
 }

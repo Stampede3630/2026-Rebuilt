@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
+
+import java.util.TreeMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -44,7 +46,14 @@ public class Turret extends SubsystemBase {
   private final Supplier<ChassisSpeeds> vel;
   private final DoubleSupplier tol;
 
+  // private final Mechanism2d turretMechanism;
+
   private final SysIdRoutine routine;
+
+  // temp
+  // represents multiple pairs of distances from the hub and angles of the turret hood motor
+  // distance in meters and angle in radians
+  public static final TreeMap<Double, Double> ANGLE_DATA = new TreeMap<>();
 
   public Turret(
       TurretIO io, Supplier<Pose2d> pose, Supplier<ChassisSpeeds> vel, DoubleSupplier tol) {
@@ -62,6 +71,7 @@ public class Turret extends SubsystemBase {
     this.pose = pose;
     this.vel = vel;
     this.tol = tol;
+    // turretMechanism = new Mechanism2d(0.05, 0.05);
   }
 
   public Command setAngle(Angle angle) {
@@ -141,8 +151,8 @@ public class Turret extends SubsystemBase {
                             fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond)
                         .times(LATENCY),
                     new Rotation2d(
-                        vel.get()
-                            .omegaRadiansPerSecond) /* try to account for angular velocity */));
+                        vel.get().omegaRadiansPerSecond
+                            * LATENCY) /* try to account for angular velocity */));
 
     Translation2d velVector =
         new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
@@ -217,7 +227,7 @@ public class Turret extends SubsystemBase {
     return () ->
         Math.abs(
                 getTargetVector(pose.get(), vel.get()).getAngle().getMeasure().magnitude()
-                    - io.getTurretAngle())
+                    - io.getTurretAngle().magnitude())
             < tolerance.getAsDouble();
   }
 
@@ -225,7 +235,7 @@ public class Turret extends SubsystemBase {
     return () ->
         Math.abs(
                 getTargetVector(pose.get(), vel.get()).getAngle().getMeasure().magnitude()
-                    - io.getTurretAngle())
+                    - io.getTurretAngle().magnitude())
             < tol.getAsDouble();
   }
 
@@ -233,8 +243,8 @@ public class Turret extends SubsystemBase {
     return new Rotation2d(io.getTurretAngle());
   }
 
-  public void setAngleInit(double newAngle) {
-    io.setAngleInit(newAngle);
+  public void resetAnglePos(Angle newAngle) {
+    io.resetAnglePos(newAngle);
     io.updateInitSet(true);
   }
 
@@ -254,6 +264,32 @@ public class Turret extends SubsystemBase {
 
   public Command stopTurret() {
     return runOnce(() -> io.stopTurret());
+  }
+
+  public DoubleSupplier getValue(DoubleSupplier dist) {
+    // lerp table
+    // precondition: data has at least two KV pairs
+    Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
+    Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
+    if (high == null) {
+      high = low; // low == data.lastKey()
+      low = ANGLE_DATA.lowerKey(low);
+    } else if (low == null) {
+      low = high; // high == data.firstKey()
+      high = ANGLE_DATA.higherKey(high);
+    }
+    final Double high2 = high;
+    final Double low2 = high;
+    return () ->
+        (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
+  }
+
+  public void setHoodAngleWithDist(DoubleSupplier dist) {
+    io.setHoodAngle(Radians.of(getValue(dist).getAsDouble()));
+  }
+
+  public void setHoodAngle(Angle angle) {
+    io.setHoodAngle(angle);
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {

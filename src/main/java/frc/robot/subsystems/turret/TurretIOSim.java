@@ -1,6 +1,6 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.controller.PIDController;
@@ -19,8 +19,6 @@ public class TurretIOSim implements TurretIO {
 
   // turret motor
 
-  // angle offset
-  private double angleInitRad = 0.0;
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
 
@@ -121,8 +119,8 @@ public class TurretIOSim implements TurretIO {
    * @param newAngle The angle to set the turret motors adjustment to, in radians
    */
   @Override
-  public void setAngleInit(double newAngle) {
-    angleInitRad = newAngle;
+  public void resetAnglePos(Angle newAngle) {
+    turretMotor.setAngle(newAngle.in(Radians));
   }
 
   @Override
@@ -142,8 +140,8 @@ public class TurretIOSim implements TurretIO {
    * @return The current angle of the turret, in radians
    */
   @Override
-  public double getTurretAngle() {
-    return turretMotor.getAngularPositionRad();
+  public Angle getTurretAngle() {
+    return turretMotor.getAngularPosition();
   }
 
   @Override
@@ -162,7 +160,7 @@ public class TurretIOSim implements TurretIO {
   @Override
   public Angle getHoodAngle() {
     // return null;
-    return Rotations.of(hoodMotor.getAngularPositionRotations() / Math.PI / 2);
+    return hoodMotor.getAngularPosition();
   }
 
   @Override

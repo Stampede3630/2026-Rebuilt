@@ -153,13 +153,12 @@ public class Vision extends SubsystemBase {
 
         if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
           // might need to be converted to robot-relative coordinates
-          turret.setAngleInit(
+          turret.resetAnglePos(
               observation
                   .pose()
                   .transformBy(offsets[cameraIndex].get())
                   .toPose2d()
-                  .getRotation()
-                  .getRadians());
+                  .getRotation().getMeasure());
         }
       }
 

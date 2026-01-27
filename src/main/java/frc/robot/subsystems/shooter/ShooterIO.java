@@ -41,5 +41,8 @@ public interface ShooterIO {
     public double followerStatorCurrent = 0.0;
     public double followerSupplyCurrent = 0.0;
     public double followerTemp = 0.0;
+
+    // setpoint should be shared
+    public double velSetpoint = 0.0;
   }
 }

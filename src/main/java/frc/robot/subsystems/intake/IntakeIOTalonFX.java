@@ -3,7 +3,6 @@ package frc.robot.subsystems.intake;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
@@ -15,100 +14,98 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
 public class IntakeIOTalonFX implements IntakeIO {
-  private final TalonFX leader;
-  private final TalonFX follower;
+  private final TalonFX flip;
+  private final TalonFX intake;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
-  // leader motor
-  private final TalonFXConfiguration leaderConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> leaderPosition;
-  private final StatusSignal<AngularVelocity> leaderVelocity;
-  private final StatusSignal<Current> leaderTorqueCurrent;
-  private final StatusSignal<Voltage> leaderVoltage;
-  private final StatusSignal<Current> leaderStatorCurrent;
-  private final StatusSignal<Current> leaderSupplyCurrent;
-  private final StatusSignal<Temperature> leaderTemp;
+  // intake motor
+  private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> intakePosition;
+  private final StatusSignal<AngularVelocity> intakeVelocity;
+  private final StatusSignal<Current> intakeTorqueCurrent;
+  private final StatusSignal<Voltage> intakeVoltage;
+  private final StatusSignal<Current> intakeStatorCurrent;
+  private final StatusSignal<Current> intakeSupplyCurrent;
+  private final StatusSignal<Temperature> intakeTemp;
 
-  // follower motor
-  private final TalonFXConfiguration followerConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> followerPosition;
-  private final StatusSignal<AngularVelocity> followerVelocity;
-  private final StatusSignal<Current> followerTorqueCurrent;
-  private final StatusSignal<Voltage> followerVoltage;
-  private final StatusSignal<Current> followerStatorCurrent;
-  private final StatusSignal<Current> followerSupplyCurrent;
-  private final StatusSignal<Temperature> followerTemp;
+  // flip motor
+  private final TalonFXConfiguration flipConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> flipPosition;
+  private final StatusSignal<AngularVelocity> flipVelocity;
+  private final StatusSignal<Current> flipTorqueCurrent;
+  private final StatusSignal<Voltage> flipVoltage;
+  private final StatusSignal<Current> flipStatorCurrent;
+  private final StatusSignal<Current> flipSupplyCurrent;
+  private final StatusSignal<Temperature> flipTemp;
 
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
   public IntakeIOTalonFX() {
-    // init leader motor
-    leader = new TalonFX(Constants.SHOOTER_LEADER_ID);
-    leaderPosition = leader.getPosition();
-    leaderVelocity = leader.getVelocity();
-    leaderTorqueCurrent = leader.getTorqueCurrent();
-    leaderVoltage = leader.getMotorVoltage();
-    leaderStatorCurrent = leader.getStatorCurrent();
-    leaderSupplyCurrent = leader.getSupplyCurrent();
-    leaderTemp = leader.getDeviceTemp();
-    // add leaderConfig here
+    // init intake motor
+    intake = new TalonFX(Constants.INTAKE_ID);
+    intakePosition = intake.getPosition();
+    intakeVelocity = intake.getVelocity();
+    intakeTorqueCurrent = intake.getTorqueCurrent();
+    intakeVoltage = intake.getMotorVoltage();
+    intakeStatorCurrent = intake.getStatorCurrent();
+    intakeSupplyCurrent = intake.getSupplyCurrent();
+    intakeTemp = intake.getDeviceTemp();
+    // add intakeConfig here
 
-    // init follower motor
-    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID);
-    followerPosition = follower.getPosition();
-    followerVelocity = follower.getVelocity();
-    followerTorqueCurrent = follower.getTorqueCurrent();
-    followerVoltage = follower.getMotorVoltage();
-    followerStatorCurrent = follower.getStatorCurrent();
-    followerSupplyCurrent = follower.getSupplyCurrent();
-    followerTemp = follower.getDeviceTemp();
-    // add followerConfig here
+    // init flip motor
+    flip = new TalonFX(Constants.INTAKE_FLIP_ID);
+    flipPosition = flip.getPosition();
+    flipVelocity = flip.getVelocity();
+    flipTorqueCurrent = flip.getTorqueCurrent();
+    flipVoltage = flip.getMotorVoltage();
+    flipStatorCurrent = flip.getStatorCurrent();
+    flipSupplyCurrent = flip.getSupplyCurrent();
+    flipTemp = flip.getDeviceTemp();
+    // add flipConfig here
 
-    follower.setControl(
-        new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
   }
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
-                leaderPosition,
-                leaderVelocity,
-                leaderTorqueCurrent,
-                leaderVoltage,
-                leaderStatorCurrent,
-                leaderSupplyCurrent,
-                leaderTemp,
-                followerPosition,
-                followerVelocity,
-                followerTorqueCurrent,
-                followerVoltage,
-                followerStatorCurrent,
-                followerSupplyCurrent,
-                followerTemp)
+                intakePosition,
+                intakeVelocity,
+                intakeTorqueCurrent,
+                intakeVoltage,
+                intakeStatorCurrent,
+                intakeSupplyCurrent,
+                intakeTemp,
+                flipPosition,
+                flipVelocity,
+                flipTorqueCurrent,
+                flipVoltage,
+                flipStatorCurrent,
+                flipSupplyCurrent,
+                flipTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
 
-    // leader
-    inputs.leaderPosition = leaderPosition.getValueAsDouble();
-    inputs.leaderVelocity = leaderVelocity.getValueAsDouble();
-    inputs.leaderTorqueCurrent = leaderTorqueCurrent.getValueAsDouble();
-    inputs.leaderVoltage = leaderVoltage.getValueAsDouble();
-    inputs.leaderStatorCurrent = leaderStatorCurrent.getValueAsDouble();
-    inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValueAsDouble();
-    inputs.leaderTemp = leaderTemp.getValueAsDouble();
+    // intake
+    inputs.intakePosition = intakePosition.getValueAsDouble();
+    inputs.intakeVelocity = intakeVelocity.getValueAsDouble();
+    inputs.intakeTorqueCurrent = intakeTorqueCurrent.getValueAsDouble();
+    inputs.intakeVoltage = intakeVoltage.getValueAsDouble();
+    inputs.intakeStatorCurrent = intakeStatorCurrent.getValueAsDouble();
+    inputs.intakeSupplyCurrent = intakeSupplyCurrent.getValueAsDouble();
+    inputs.intakeTemp = intakeTemp.getValueAsDouble();
 
-    // follower
-    inputs.followerPosition = followerPosition.getValueAsDouble();
-    inputs.followerVelocity = followerVelocity.getValueAsDouble();
-    inputs.followerTorqueCurrent = followerTorqueCurrent.getValueAsDouble();
-    inputs.followerVoltage = followerVoltage.getValueAsDouble();
-    inputs.followerStatorCurrent = followerStatorCurrent.getValueAsDouble();
-    inputs.followerSupplyCurrent = followerSupplyCurrent.getValueAsDouble();
-    inputs.followerTemp = followerTemp.getValueAsDouble();
+    // flip
+    inputs.flipPosition = flipPosition.getValueAsDouble();
+    inputs.flipVelocity = flipVelocity.getValueAsDouble();
+    inputs.flipTorqueCurrent = flipTorqueCurrent.getValueAsDouble();
+    inputs.flipVoltage = flipVoltage.getValueAsDouble();
+    inputs.flipStatorCurrent = flipStatorCurrent.getValueAsDouble();
+    inputs.flipSupplyCurrent = flipSupplyCurrent.getValueAsDouble();
+    inputs.flipTemp = flipTemp.getValueAsDouble();
   }
 
   // @Override
@@ -118,17 +115,17 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void runVelocity(double vel) {
-    leader.setControl(velocityRequest.withVelocity(vel));
+    intake.setControl(velocityRequest.withVelocity(vel));
   }
 
   // @Override
   // public double getShooterSpeed() {
-  //   return leader.getVelocity().getValueAsDouble() * Intake.WHEEL_RADIUS_METERS;
+  //   return intake.getVelocity().getValueAsDouble() * Intake.WHEEL_RADIUS_METERS;
   // }
 
   // @Override
   // public void setShooterMotorsControl(VoltageOut volts) {
-  //   leader.setControl(volts);
-  //   follower.setControl(volts);
+  //   intake.setControl(volts);
+  //   flip.setControl(volts);
   // }
 }

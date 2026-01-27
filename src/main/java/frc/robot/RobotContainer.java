@@ -91,7 +91,10 @@ public class RobotContainer {
         shooter = new Shooter(new ShooterIOTalonFX());
         turret =
             new Turret(
-                new TurretIOTalonFX(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
+                new TurretIOTalonFX(),
+                () -> drive.getPose().plus(Constants.TURRET_OFFSET),
+                () -> drive.getChassisSpeeds(),
+                tol);
 
         VisionIO[] visionIOs = {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),

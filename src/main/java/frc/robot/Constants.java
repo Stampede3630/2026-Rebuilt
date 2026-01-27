@@ -8,6 +8,9 @@
 package frc.robot;
 
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.TreeMap;
 import java.util.function.DoubleSupplier;
@@ -40,31 +43,17 @@ public final class Constants {
   public static final int INDEXER_1_ID = 36;
   public static final int INDEXER_2_ID = 37;
   public static final int INDEXER_3_ID = 38;
+  public static final int INTAKE_ID = 39;
+  public static final int INTAKE_FLIP_ID = 40;
 
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Aligned;
 
-  // temp
-  // represents multiple pairs of distances from the hub and angles of the turret hood motor
-  public static final TreeMap<Double, Double> ANGLE_DATA = new TreeMap<>();
+  /** The position of the turret relative to the center of the robot */
+  public static final Transform2d TURRET_OFFSET =
+      new Transform2d(new Translation2d(0.0, 0.0), new Rotation2d());
 
-  public DoubleSupplier getValue(DoubleSupplier dist) {
-    // lerp table
-    // precondition: data has at least two KV pairs
-    Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
-    Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
-    if (high == null) {
-      high = low; // low == data.lastKey()
-      low = ANGLE_DATA.lowerKey(low);
-    } else if (low == null) {
-      low = high; // high == data.firstKey()
-      high = ANGLE_DATA.higherKey(high);
-    }
-    final Double high2 = high;
-    final Double low2 = high;
-    return () ->
-        (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
-  }
+  
 
   // temp
   /***
