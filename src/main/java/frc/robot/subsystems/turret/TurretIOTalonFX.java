@@ -7,7 +7,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -171,8 +170,7 @@ public class TurretIOTalonFX implements TurretIO {
   }
 
   @Override
-  public void setHoodAngle(Angle angle) 
-  {
+  public void setHoodAngle(Angle angle) {
     hoodSetpoint = angle;
     hoodMotor.setControl(new PositionTorqueCurrentFOC(angle));
   }
@@ -196,8 +194,8 @@ public class TurretIOTalonFX implements TurretIO {
   }
 
   /**
-   * @return The current angle of the hood, in rotations
-   * NOTE: need to initialize at a specific angle
+   * @return The current angle of the hood, in rotations NOTE: need to initialize at a specific
+   *     angle
    */
   @Override
   public Angle getHoodAngle() {
@@ -212,5 +210,10 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void stopTurret() {
     turretMotor.stopMotor();
+  }
+
+  @Override
+  public void run(double speed) {
+    turretMotor.set(speed);
   }
 }

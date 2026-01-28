@@ -62,13 +62,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leaderConfig
         .withMotorOutput(new MotorOutputConfigs())
         .withSlot0(
-            new Slot0Configs()
-                .withKS(1)
-                .withKV(1)
-                .withKA(1)
-                .withKP(1.4)
-                .withKI(0.01)
-                .withKD(0.2));
+            new Slot0Configs().withKS(1).withKV(1).withKA(1).withKP(1.4).withKI(0.01).withKD(0.2));
     leader.getConfigurator().apply(leaderConfig);
 
     // init follower motor
@@ -84,13 +78,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerConfig
         .withMotorOutput(new MotorOutputConfigs())
         .withSlot0(
-            new Slot0Configs()
-                .withKS(1)
-                .withKV(1)
-                .withKA(1)
-                .withKP(1.4)
-                .withKI(0.01)
-                .withKD(0.2));
+            new Slot0Configs().withKS(1).withKV(1).withKA(1).withKP(1.4).withKI(0.01).withKD(0.2));
     follower.getConfigurator().apply(followerConfig);
 
     follower.setControl(
@@ -161,4 +149,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     leader.setControl(volts);
     follower.setControl(volts);
   }
+
+  @Override
+  /** might not work */
+  public void stop() {
+    runVelocity(0);
+  }
+  // add AutoLogOutputs
 }

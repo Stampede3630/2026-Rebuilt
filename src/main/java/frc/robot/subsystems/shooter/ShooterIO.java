@@ -4,7 +4,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ShooterIO {
-  default void runVelocity(double perc) {}
+  default void runVelocity(double vel) {}
 
   default void updateInputs(ShooterIOInputs inputs) {}
 

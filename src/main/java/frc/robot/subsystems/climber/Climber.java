@@ -1,20 +1,20 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.climber;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Intake extends SubsystemBase {
-  private final IntakeIO io;
+public class Climber extends SubsystemBase {
+  private final ClimberIO io;
 
-  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+  private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
   // private final SysIdRoutine routine;
 
   // private final VoltageOut req = new VoltageOut(0.0);
 
-  public Intake(IntakeIO io) {
+  public Climber(ClimberIO io) {
     this.io = io;
 
     // routine =
@@ -34,26 +34,26 @@ public class Intake extends SubsystemBase {
   //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   // }
 
-  public Command runIntake(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
+  public Command runLeft(DoubleSupplier dutyCycle) {
+    return runOnce(() -> io.runDutyCycleLeft(dutyCycle.getAsDouble()));
   }
 
-  public Command stopIntake() {
-    return runOnce(() -> io.stop());
+  public Command stopLeft() {
+    return runOnce(() -> io.stopLeft());
   }
 
-  public Command runFlip(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleFlip(dutyCycle.getAsDouble()));
+  public Command runRight(DoubleSupplier dutyCycle) {
+    return runOnce(() -> io.runDutyCycleRight(dutyCycle.getAsDouble()));
   }
 
-  public Command stopFlip() {
-    return runOnce(() -> io.stopFlip());
+  public Command stopRight() {
+    return runOnce(() -> io.stopRight());
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
+    Logger.processInputs("Climber", inputs);
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

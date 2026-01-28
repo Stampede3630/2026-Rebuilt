@@ -23,12 +23,16 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.turret.Turret;
@@ -38,8 +42,9 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.Transform3dSupplier;
-import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -54,6 +59,8 @@ public class RobotContainer {
   private final Vision vision;
   private final Shooter shooter;
   private final Turret turret;
+  private final Intake intake;
+  private final Climber climber;
 
   // create a second Vision object to avoid making significant changes to the open ended-ness of
   // Vision's constructor
@@ -69,7 +76,27 @@ public class RobotContainer {
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
-  private final DoubleSupplier tol = () -> 0.10;
+  /** The tolerance of the turret, in degrees */
+  private final LoggedNetworkNumber tolDegrees = new LoggedNetworkNumber("turretTolerance", 0.10);
+  /** Whether the robot's turret auto aim should be enabled */
+  private final LoggedNetworkBoolean enableAutoAim =
+      new LoggedNetworkBoolean("enableAutoAim", true);
+  /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
+  private final LoggedNetworkNumber autoAimDisabledSpeed =
+      new LoggedNetworkNumber("autoAimDisabledSpeed", 0.2);
+  /** The speed target to set the shooter to while not actively shooting, in m/s */
+  private final LoggedNetworkNumber shooterIdleSpeed =
+      new LoggedNetworkNumber("shooterIdleSpeed", 1.0);
+  /** The duty cycle speed to use while intaking [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeSpeed = new LoggedNetworkNumber("intakeSpeed", 0.7);
+  /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeIdleSpeed =
+      new LoggedNetworkNumber("intakeIdleSpeed", 0.3);
+  /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeFlipSpeed =
+      new LoggedNetworkNumber("intakeFlipSpeed", 0.6);
+  /** The duty cycle speed to use to climb */
+  private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("climbSpeed", 1.0);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -94,13 +121,17 @@ public class RobotContainer {
                 new TurretIOTalonFX(),
                 () -> drive.getPose().plus(Constants.TURRET_OFFSET),
                 () -> drive.getChassisSpeeds(),
-                tol);
+                tolDegrees);
+        intake = new Intake(new IntakeIOTalonFX());
+        climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOs = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA_2, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         Transform3dSupplier[] offsets = {
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
           () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
           // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
           // */).plus()
@@ -152,18 +183,31 @@ public class RobotContainer {
         shooter = new Shooter(new ShooterIOTalonFX());
         turret =
             new Turret(
-                new TurretIOSim(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
+                new TurretIOSim(),
+                () -> drive.getPose(),
+                () -> drive.getChassisSpeeds(),
+                tolDegrees);
+        intake = new Intake(new IntakeIOTalonFX());
+        climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         Transform3dSupplier[] offsetsSim = {
           () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () ->
+              new Transform3d(
+                  new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                      .rotateAround(
+                          new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
+                  new Rotation3d(turret.getRotation()))
         };
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret);
+
         break;
 
       default:
@@ -179,10 +223,15 @@ public class RobotContainer {
         shooter = new Shooter(new ShooterIOTalonFX());
         turret =
             new Turret(
-                new TurretIOTalonFX(), () -> drive.getPose(), () -> drive.getChassisSpeeds(), tol);
+                new TurretIOTalonFX(),
+                () -> drive.getPose(),
+                () -> drive.getChassisSpeeds(),
+                tolDegrees);
+        intake = new Intake(new IntakeIOTalonFX());
+        climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOsDef = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA, drive::getRotation),
+          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         Transform3dSupplier[] offsetsDef = {
@@ -257,13 +306,42 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+    // auto aim turret and shoot if within tolerance
+    // if auto aim is disabled, shoot
     controller
         .rightTrigger()
         .whileTrue(
-            Commands.parallel(
-                turret.setAngleIf(() -> !turret.isFacingRightWay().getAsBoolean()),
-                shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())));
-    controller.rightTrigger().onFalse(turret.stopTurret());
+            Commands.either(
+                Commands.parallel(
+                    turret.setAngleIf(() -> !turret.isFacingRightWay().getAsBoolean()),
+                    shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())),
+                shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
+                enableAutoAim));
+    controller
+        .rightTrigger()
+        .onFalse(
+            shooter
+                .stop()
+                .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
+
+    controller.leftTrigger().onTrue(intake.runIntake(intakeSpeed));
+    controller.leftTrigger().onFalse(intake.runIntake(intakeIdleSpeed));
+    controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
+    controller.a().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    // controller.y().whileTrue(climber);
+
+    // toggle turret auto aim
+    controller
+        .povUp()
+        .and(controller.povDown())
+        .onTrue(Commands.run(() -> enableAutoAim.set(!enableAutoAim.get())));
+
+    // turn turret if auto aim is disabled
+    controller
+        .povLeft()
+        .and(enableAutoAim)
+        .whileTrue(turret.runMotor(() -> -autoAimDisabledSpeed.get()));
+    controller.povRight().and(enableAutoAim).whileTrue(turret.runMotor(autoAimDisabledSpeed));
 
     // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
 

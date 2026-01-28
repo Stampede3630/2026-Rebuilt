@@ -3,15 +3,21 @@ package frc.robot.subsystems.intake;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
-  default void runVelocity(double perc) {}
+  // default void runVelocity(double vel) {}
 
   default void updateInputs(IntakeIOInputs inputs) {}
 
-  default void stop() {}
+  // default boolean setCoastMode(boolean enabled) {
+  //   return true;
+  // }
 
-  default boolean setCoastMode(boolean enabled) {
-    return true;
-  }
+  default void runDutyCycleFlip(double dutyCycle) {}
+
+  default void stopFlip() {}
+
+  default void runDutyCycle(double dutyCycle) {}
+
+  default void stop() {}
 
   // default double getShooterSpeed() {
   //   return 0.0;

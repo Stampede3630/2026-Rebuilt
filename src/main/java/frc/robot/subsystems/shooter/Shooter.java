@@ -4,7 +4,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.VoltageOut;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -45,25 +45,30 @@ public class Shooter extends SubsystemBase {
     return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   }
 
-  public Command outtakeWithVector(Supplier<Translation2d> vector) {
+  public Command outtakeWithVector(Supplier<Translation3d> vector) {
     // System.out.println("Shooting!");
     return run(
         () -> {
-          io.runVelocity(Math.hypot(vector.get().getX(), vector.get().getY()));
-          System.out.println("shoot");
+          io.runVelocity(vector.get().getDistance(Translation3d.kZero));
+          System.out.println("shoot command");
         });
   }
 
-  public void runOuttakeWithVector(Supplier<Translation2d> vector) {
-    io.runVelocity(Math.hypot(vector.get().getX(), vector.get().getY()));
+  public void runOuttakeWithVector(Supplier<Translation3d> vector) {
+    io.runVelocity(vector.get().getDistance(Translation3d.kZero));
     System.out.println("shoot");
   }
 
-  public Command shootIf(Supplier<Translation2d> vector, BooleanSupplier cond) {
+  public Command shootIf(Supplier<Translation3d> vector, BooleanSupplier cond) {
     return run(
         () -> {
           if (cond.getAsBoolean()) runOuttakeWithVector(vector);
+          else stop();
         });
+  }
+
+  public Command stop() {
+    return runOnce(() -> io.stop());
   }
 
   @Override

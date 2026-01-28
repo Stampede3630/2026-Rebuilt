@@ -1,10 +1,9 @@
 package frc.robot.subsystems.turret;
 
-import com.ctre.phoenix6.controls.VoltageOut;
-import edu.wpi.first.units.measure.Angle;
-
 import static edu.wpi.first.units.Units.Radians;
 
+import com.ctre.phoenix6.controls.VoltageOut;
+import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
@@ -43,6 +42,13 @@ public interface TurretIO {
   }
 
   default void setTurretMotorControl(VoltageOut volts) {}
+
+  /**
+   * A method to be used in case turret auto aim is disabled
+   *
+   * @param speed The speed to turn at [-1, 1]
+   */
+  default void run(double speed) {}
 
   @AutoLog
   class TurretIOInputs {

@@ -113,9 +113,29 @@ public class IntakeIOTalonFX implements IntakeIO {
   //     runVelocity(getValue(dist));
   // }
 
+  // @Override
+  // public void runVelocity(double vel) {
+  //   intake.setControl(velocityRequest.withVelocity(vel));
+  // }
+
   @Override
-  public void runVelocity(double vel) {
-    intake.setControl(velocityRequest.withVelocity(vel));
+  public void runDutyCycleFlip(double dutyCycle) {
+    flip.set(dutyCycle);
+  }
+
+  @Override
+  public void stopFlip() {
+    flip.stopMotor();
+  }
+
+  @Override
+  public void runDutyCycle(double dutyCycle) {
+    intake.set(dutyCycle);
+  }
+
+  @Override
+  public void stop() {
+    intake.stopMotor();
   }
 
   // @Override

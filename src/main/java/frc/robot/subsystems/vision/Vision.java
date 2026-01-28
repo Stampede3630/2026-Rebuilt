@@ -158,7 +158,8 @@ public class Vision extends SubsystemBase {
                   .pose()
                   .transformBy(offsets[cameraIndex].get())
                   .toPose2d()
-                  .getRotation().getMeasure());
+                  .getRotation()
+                  .getMeasure());
         }
       }
 
