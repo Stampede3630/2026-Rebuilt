@@ -91,26 +91,25 @@ public class Turret extends SubsystemBase {
    * <p>THIS METHOD IS VERY OUT OF DATE
    *
    * @param pose The robot's current pose
-   * @param vel The robot's current velocity (assumes this is relative to the robot rather than the
-   *     field)
+   * @param vel The robot's current velocity (in field-relative coordinates)
    * @return A Translation2d, created from finding the vector that would be required to hit the hub
    *     if the robot were still, then accounting for the robot's current velocity
    */
   @Deprecated
   public Translation2d getTargetVector(Pose2d pose, ChassisSpeeds vel) {
-    ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(vel, pose.getRotation());
+    // ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(vel, pose.getRotation());
     Pose2d futurePose =
         pose.plus(
             new Transform2d(
                 new Translation2d(
-                        fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond)
+                        vel.vxMetersPerSecond, vel.vyMetersPerSecond)
                     .times(LATENCY),
                 new Rotation2d(
                     vel.omegaRadiansPerSecond) /* try to account for angular velocity */));
     // System.out.println("future: " + futurePose);
 
     Translation2d velVector =
-        new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
+        new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond);
 
     if (!FieldConstants.checkNeutral(pose)) {
       // shoot towards hub if in alliance area

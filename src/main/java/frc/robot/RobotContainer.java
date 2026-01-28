@@ -41,6 +41,9 @@ import frc.robot.subsystems.turret.TurretIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.FuelSim;
 import frc.robot.util.Transform3dSupplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -77,26 +80,28 @@ public class RobotContainer {
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
   /** The tolerance of the turret, in degrees */
-  private final LoggedNetworkNumber tolDegrees = new LoggedNetworkNumber("turretTolerance", 0.10);
+  private final LoggedNetworkNumber tolDegrees =
+      new LoggedNetworkNumber("Turret/turretTolerance", 0.10);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
-      new LoggedNetworkBoolean("enableAutoAim", true);
+      new LoggedNetworkBoolean("Turret/enableAutoAim", true);
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
   private final LoggedNetworkNumber autoAimDisabledSpeed =
-      new LoggedNetworkNumber("autoAimDisabledSpeed", 0.2);
+      new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.2);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("shooterIdleSpeed", 1.0);
+      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 1.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
-  private final LoggedNetworkNumber intakeSpeed = new LoggedNetworkNumber("intakeSpeed", 0.7);
+  private final LoggedNetworkNumber intakeSpeed =
+      new LoggedNetworkNumber("Intake/intakeSpeed", 0.7);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("intakeIdleSpeed", 0.3);
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.3);
   /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("intakeFlipSpeed", 0.6);
+      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.6);
   /** The duty cycle speed to use to climb */
-  private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("climbSpeed", 1.0);
+  private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("Climber/climbSpeed", 1.0);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -120,23 +125,22 @@ public class RobotContainer {
             new Turret(
                 new TurretIOTalonFX(),
                 () -> drive.getPose().plus(Constants.TURRET_OFFSET),
-                () -> drive.getChassisSpeeds(),
+                () -> drive.getFieldRelSpeeds(),
                 tolDegrees);
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOs = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA_2, drive::getRotation),
+          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_1, new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
+          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_2, new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         Transform3dSupplier[] offsets = {
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
           // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
           // */).plus()
-          () ->
-              new Transform3d(
+          () -> new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
                       .rotateAround(
                           new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
@@ -185,19 +189,19 @@ public class RobotContainer {
             new Turret(
                 new TurretIOSim(),
                 () -> drive.getPose(),
-                () -> drive.getChassisSpeeds(),
+                () -> drive.getFieldRelSpeeds(),
                 tolDegrees);
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
-          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+          new VisionIOPhotonVisionSim(Constants.CHASSIS_CAMERA_1, new Transform3d(), drive::getPose),
+          new VisionIOPhotonVisionSim(Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
+          new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(), drive::getPose)
         };
         Transform3dSupplier[] offsetsSim = {
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
+          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
           () ->
               new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
@@ -207,6 +211,8 @@ public class RobotContainer {
         };
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret);
+
+        initFuelSim();
 
         break;
 
@@ -225,7 +231,7 @@ public class RobotContainer {
             new Turret(
                 new TurretIOTalonFX(),
                 () -> drive.getPose(),
-                () -> drive.getChassisSpeeds(),
+                () -> drive.getFieldRelSpeeds(),
                 tolDegrees);
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
@@ -350,6 +356,14 @@ public class RobotContainer {
     // Commands.none(), turret.isFacingRightWay(
     //       () -> drive.getPose(), () -> drive.getChassisSpeeds(), () -> 0.01))
 
+  }
+
+  /** Initializes fuel simulation */
+  private void initFuelSim() {
+    FuelSim instance = FuelSim.getInstance();
+    instance.spawnStartingFuel();
+    // TEMP DIMENSIONS
+    instance.registerRobot(0.5, 0.5, 0.03, drive::getPose, drive::getFieldRelSpeeds);
   }
 
   /**
