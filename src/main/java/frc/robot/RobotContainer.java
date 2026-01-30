@@ -82,7 +82,7 @@ public class RobotContainer {
 
   /** The tolerance of the turret, in degrees */
   private final LoggedNetworkNumber tolDegrees =
-      new LoggedNetworkNumber("Turret/turretTolerance", 0.10);
+      new LoggedNetworkNumber("Turret/turretTolerance", 15.0);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true);
@@ -328,7 +328,7 @@ public class RobotContainer {
         .whileTrue(
             Commands.either(
                 Commands.parallel(
-                    turret.setAngleIf(() -> !turret.isFacingRightWay().getAsBoolean()),
+                    turret.setBothAnglesIf(() -> !turret.isFacingRightWay().getAsBoolean()),
                     shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())),
                 shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
                 enableAutoAim));
@@ -370,7 +370,7 @@ public class RobotContainer {
   /** Initializes fuel simulation */
   private void initFuelSim() {
     FuelSim instance = FuelSim.getInstance();
-    instance.spawnStartingFuel();
+    // instance.spawnStartingFuel();
     // TEMP DIMENSIONS
     instance.registerRobot(
         Units.inchesToMeters(27.0),

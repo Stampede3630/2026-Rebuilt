@@ -37,7 +37,16 @@ public class Turret extends SubsystemBase {
   public static final int CAMERA_INDEX = 2 /* might need to change */;
 
   // in seconds
-  public static final double LATENCY = 0.15;
+  public static final double LATENCY;
+
+  static {
+    if (Constants.currentMode == Constants.Mode.REAL) {
+      LATENCY = 0.15;
+    } else {
+      LATENCY = 0.0;
+    }
+  }
+  // public static final double LATENCY_SIM = 0.0;
   public static final Rotation2d CORRECTION = new Rotation2d(0);
 
   private final TurretIOInputsAutoLogged inputs = new TurretIOInputsAutoLogged();
@@ -59,7 +68,7 @@ public class Turret extends SubsystemBase {
 
   static {
     ANGLE_DATA.put(3.01, Units.degreesToRadians(75.0));
-    ANGLE_DATA.put(4.92, Units.degreesToRadians(60));
+    ANGLE_DATA.put(4.92, Units.degreesToRadians(60.0));
   }
 
   public Turret(
@@ -149,8 +158,8 @@ public class Turret extends SubsystemBase {
    *     if the robot were still, then accounting for the robot's current velocity
    */
   public Translation3d getTargetVector() {
-    ChassisSpeeds fieldRelSpeeds =
-        ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
+    ChassisSpeeds fieldRelSpeeds = vel.get();
+        // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
     Pose2d futurePose =
         pose.get()
             .plus(
@@ -180,7 +189,11 @@ public class Turret extends SubsystemBase {
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
               .times(Math.cos(io.getHoodAngle().in(Radians)));
 
-      targetVector = targetVector.minus(velVector) /*.times(-1) */;
+      // System.out.println("before: " +targetVector);
+      if (Constants.currentMode == Constants.Mode.REAL) {
+        targetVector = targetVector.minus(velVector) /*.times(-1) */;
+        // System.out.println("after: " +targetVector);
+      }
 
       return Constants.toTranslation3d(targetVector)
           .plus(
@@ -395,21 +408,30 @@ public class Turret extends SubsystemBase {
   public DoubleSupplier getValue(DoubleSupplier dist) {
     // lerp table
     // precondition: data has at least two KV pairs
-    Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
-    Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
-    if (high == null) {
-      high = low; // low == data.lastKey()
-      low = ANGLE_DATA.lowerKey(low);
-    } else if (low == null) {
-      low = high; // high == data.firstKey()
-      high = ANGLE_DATA.higherKey(high);
-    }
-    final Double high2 = high;
-    final Double low2 = high;
-    System.out.println("high: " + high2);
-    System.out.println("low: " + low2);
-    return () ->
-        (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
+    return () -> {
+      Double high = ANGLE_DATA.ceilingKey(dist.getAsDouble());
+      Double low = ANGLE_DATA.floorKey(dist.getAsDouble());
+      if (high == null) {
+        // System.out.println("high is null");
+        high = low; // low == data.lastKey()
+        low = ANGLE_DATA.lowerKey(low);
+      } else if (low == null) {
+        low = high; // high == data.firstKey()
+        high = ANGLE_DATA.higherKey(high);
+      }
+      final Double high2 = high;
+      final Double low2 = low;
+
+      System.out.println("high: " + high2);
+      System.out.println("low: " + low2);
+      // System.out.println(
+      // "slope: " + (-1 * (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2)));
+
+      return ((ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2))
+              / (high2 - low2)
+              * (dist.getAsDouble() - low2))
+          + ANGLE_DATA.get(low2);
+    };
   }
 
   public void setHoodAngle(Translation2d robot, Translation2d target) {
@@ -417,6 +439,8 @@ public class Turret extends SubsystemBase {
   }
 
   public void setHoodAngle(DoubleSupplier dist) {
+    System.out.println("dist: " + dist.getAsDouble());
+    System.out.println("value: " + getValue(dist).getAsDouble());
     io.setHoodAngle(Radians.of(getValue(dist).getAsDouble()));
   }
 
