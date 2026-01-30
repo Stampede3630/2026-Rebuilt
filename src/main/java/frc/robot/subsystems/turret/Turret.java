@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -24,7 +25,6 @@ import java.util.TreeMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Turret extends SubsystemBase {
@@ -57,6 +57,11 @@ public class Turret extends SubsystemBase {
   // distance in meters and angle in radians
   public static final TreeMap<Double, Double> ANGLE_DATA = new TreeMap<>();
 
+  static {
+    ANGLE_DATA.put(3.01, Units.degreesToRadians(75.0));
+    ANGLE_DATA.put(4.92, Units.degreesToRadians(60));
+  }
+
   public Turret(
       TurretIO io, Supplier<Pose2d> pose, Supplier<ChassisSpeeds> vel, DoubleSupplier tol) {
     this.io = io;
@@ -73,6 +78,7 @@ public class Turret extends SubsystemBase {
     this.pose = pose;
     this.vel = vel;
     this.tolDegrees = tol;
+    setHoodAngle(Degrees.of(60));
     // turretMechanism = new Mechanism2d(0.05, 0.05);
   }
 
@@ -97,19 +103,17 @@ public class Turret extends SubsystemBase {
    */
   @Deprecated
   public Translation2d getTargetVector(Pose2d pose, ChassisSpeeds vel) {
-    // ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(vel, pose.getRotation());
+    // ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(vel,
+    // pose.getRotation());
     Pose2d futurePose =
         pose.plus(
             new Transform2d(
-                new Translation2d(
-                        vel.vxMetersPerSecond, vel.vyMetersPerSecond)
-                    .times(LATENCY),
+                new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond).times(LATENCY),
                 new Rotation2d(
                     vel.omegaRadiansPerSecond) /* try to account for angular velocity */));
     // System.out.println("future: " + futurePose);
 
-    Translation2d velVector =
-        new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond);
+    Translation2d velVector = new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond);
 
     if (!FieldConstants.checkNeutral(pose)) {
       // shoot towards hub if in alliance area
@@ -122,9 +126,9 @@ public class Turret extends SubsystemBase {
       // the vector target if the robot is not moving
       Translation2d targetVector =
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
-      return targetVector.minus(velVector).times(-1);
+      return targetVector.minus(velVector) /*.times(-1) */;
     } else {
       // shoot towards alliance side if in neutral zone
       // NOTE: need to account for hub and outtake velocity
@@ -132,7 +136,7 @@ public class Turret extends SubsystemBase {
       Translation2d targetVector =
           new Translation2d(
                   Constants.OUTTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
       return targetVector.minus(velVector).times(-1);
     }
   }
@@ -141,7 +145,7 @@ public class Turret extends SubsystemBase {
    * Returns the vector that represents where the fuel should be shot, using this Turret's Pose2d
    * and ChassisSpeed Suppliers
    *
-   * @return A Translation2d, created from finding the vector that would be required to hit the hub
+   * @return A Translation3d, created from finding the vector that would be required to hit the hub
    *     if the robot were still, then accounting for the robot's current velocity
    */
   public Translation3d getTargetVector() {
@@ -162,6 +166,8 @@ public class Turret extends SubsystemBase {
         new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
 
     if (!FieldConstants.checkNeutral(pose.get())) {
+      System.out.println("hood is " + io.getHoodAngle());
+      // Logger.recordOutput("inAllianceZone", true);
       // shoot towards hub if in alliance area
       Rotation2d targetAngle =
           AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
@@ -172,26 +178,27 @@ public class Turret extends SubsystemBase {
       // the vector target if the robot is not moving
       Translation2d targetVector =
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
-      targetVector = targetVector.minus(velVector).times(-1);
+      targetVector = targetVector.minus(velVector) /*.times(-1) */;
 
       return Constants.toTranslation3d(targetVector)
           .plus(
               new Translation3d(
-                  0, 0, Constants.OUTTAKE_VEL * Math.sin(io.getHoodAngle().magnitude())));
+                  0, 0, Constants.OUTTAKE_VEL * Math.sin(io.getHoodAngle().in(Radians))));
     } else {
+      // Logger.recordOutput("inAllianceZone", false);
       // shoot towards alliance side if in neutral zone
 
       Rotation2d targetAngle = new Rotation2d().minus(futurePose.getRotation());
       Translation2d targetVector =
           new Translation2d(
                   Constants.OUTTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
       targetVector =
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
       // if shooting straight would hit hub
       if (futurePose
@@ -206,7 +213,7 @@ public class Turret extends SubsystemBase {
                         / corner.getDistance(
                             futurePose
                                 .getTranslation()))) /*.minus(futurePose.getRotation().getMeasure()) */;
-        System.out.println("adjust: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
+        System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
         targetVector = targetVector.rotateBy(new Rotation2d(adjustment));
       }
       targetVector = targetVector.minus(velVector).times(-1);
@@ -214,7 +221,7 @@ public class Turret extends SubsystemBase {
       return Constants.toTranslation3d(targetVector)
           .plus(
               new Translation3d(
-                  0, 0, Constants.OUTTAKE_VEL * Math.sin(io.getHoodAngle().magnitude())));
+                  0, 0, Constants.OUTTAKE_VEL * Math.sin(io.getHoodAngle().in(Radians))));
     }
   }
 
@@ -246,9 +253,9 @@ public class Turret extends SubsystemBase {
       // the vector target if the robot is not moving
       Translation2d targetVector =
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
-      targetVector = targetVector.minus(velVector).times(-1);
+      targetVector = targetVector.minus(velVector) /*.times(-1) */;
 
       return targetVector.getAngle().getMeasure();
     } else {
@@ -258,11 +265,11 @@ public class Turret extends SubsystemBase {
       Translation2d targetVector =
           new Translation2d(
                   Constants.OUTTAKE_VEL /* will need to change */, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
       targetVector =
           new Translation2d(Constants.OUTTAKE_VEL, targetAngle.plus(CORRECTION))
-              .times(Math.cos(io.getHoodAngle().magnitude()));
+              .times(Math.cos(io.getHoodAngle().in(Radians)));
 
       // if shooting straight would hit hub
       if (futurePose
@@ -277,7 +284,7 @@ public class Turret extends SubsystemBase {
                         / corner.getDistance(
                             futurePose
                                 .getTranslation()))) /*.minus(futurePose.getRotation().getMeasure()) */;
-        System.out.println("adjust: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
+        System.out.println("adjust2: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
         targetVector = targetVector.rotateBy(new Rotation2d(adjustment));
       }
       targetVector = targetVector.minus(velVector).times(-1);
@@ -308,6 +315,36 @@ public class Turret extends SubsystemBase {
         });
   }
 
+  public Command setHoodAngleIf(BooleanSupplier cond) {
+    return run(
+        () -> {
+          if (cond.getAsBoolean()) {
+            // Translation3d vector = getTargetVector();
+            // Angle angle =
+            //     Radians.of(Math.atan(vector.getZ() / vector.getDistance(Translation3d.kZero)));
+            // io.setHoodAngle(angle);
+            setHoodAngle(
+                pose.get().getTranslation(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE));
+          }
+        });
+  }
+
+  public Command setBothAnglesIf(BooleanSupplier cond) {
+    return run(
+        () -> {
+          if (cond.getAsBoolean()) {
+            io.setAngle(getTargetAngle());
+            // System.out.println("why hello there");
+            // Translation3d vector = getTargetVector();
+            // Angle angle =
+            //     Radians.of(Math.atan(vector.getZ() / vector.getDistance(Translation3d.kZero)));
+            // io.setHoodAngle(angle);
+            setHoodAngle(
+                pose.get().getTranslation(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE));
+          }
+        });
+  }
+
   @Deprecated
   /**
    * Uses the highly outdated getTargetVector method
@@ -324,7 +361,6 @@ public class Turret extends SubsystemBase {
             < tolerance.getAsDouble();
   }
 
-  @AutoLogOutput
   public BooleanSupplier isFacingRightWay() {
     return () -> getTargetAngle().isNear(io.getTurretAngle(), Degrees.of(tolDegrees.getAsDouble()));
   }
@@ -370,11 +406,17 @@ public class Turret extends SubsystemBase {
     }
     final Double high2 = high;
     final Double low2 = high;
+    System.out.println("high: " + high2);
+    System.out.println("low: " + low2);
     return () ->
         (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2) * dist.getAsDouble();
   }
 
-  public void setHoodAngleWithDist(DoubleSupplier dist) {
+  public void setHoodAngle(Translation2d robot, Translation2d target) {
+    setHoodAngle(() -> robot.getDistance(target));
+  }
+
+  public void setHoodAngle(DoubleSupplier dist) {
     io.setHoodAngle(Radians.of(getValue(dist).getAsDouble()));
   }
 

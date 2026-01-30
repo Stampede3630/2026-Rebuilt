@@ -138,6 +138,11 @@ public class IntakeIOTalonFX implements IntakeIO {
     intake.stopMotor();
   }
 
+  @Override
+  public boolean isRunning() {
+    return intake.getVelocity().getValueAsDouble() > 0;
+  }
+
   // @Override
   // public double getShooterSpeed() {
   //   return intake.getVelocity().getValueAsDouble() * Intake.WHEEL_RADIUS_METERS;

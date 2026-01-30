@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -120,19 +121,23 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        shooter = new Shooter(new ShooterIOTalonFX());
         turret =
             new Turret(
                 new TurretIOTalonFX(),
                 () -> drive.getPose().plus(Constants.TURRET_OFFSET),
                 () -> drive.getFieldRelSpeeds(),
                 tolDegrees);
+        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOs = {
-          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_1, new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
-          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_2, new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
+          new VisionIOPhotonVision(
+              Constants.CHASSIS_CAMERA_1,
+              new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
+          new VisionIOPhotonVision(
+              Constants.CHASSIS_CAMERA_2,
+              new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         Transform3dSupplier[] offsets = {
@@ -140,7 +145,8 @@ public class RobotContainer {
           () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
           // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
           // */).plus()
-          () -> new Transform3d(
+          () ->
+              new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
                       .rotateAround(
                           new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
@@ -184,19 +190,22 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        shooter = new Shooter(new ShooterIOTalonFX());
+
         turret =
             new Turret(
                 new TurretIOSim(),
-                () -> drive.getPose(),
+                () -> drive.getPose().plus(Constants.TURRET_OFFSET),
                 () -> drive.getFieldRelSpeeds(),
                 tolDegrees);
+        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOPhotonVisionSim(Constants.CHASSIS_CAMERA_1, new Transform3d(), drive::getPose),
-          new VisionIOPhotonVisionSim(Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
+          new VisionIOPhotonVisionSim(
+              Constants.CHASSIS_CAMERA_1, new Transform3d(), drive::getPose),
+          new VisionIOPhotonVisionSim(
+              Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
           new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(), drive::getPose)
         };
         Transform3dSupplier[] offsetsSim = {
@@ -226,7 +235,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        shooter = new Shooter(new ShooterIOTalonFX());
+        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         turret =
             new Turret(
                 new TurretIOTalonFX(),
@@ -363,7 +372,29 @@ public class RobotContainer {
     FuelSim instance = FuelSim.getInstance();
     instance.spawnStartingFuel();
     // TEMP DIMENSIONS
-    instance.registerRobot(0.5, 0.5, 0.03, drive::getPose, drive::getFieldRelSpeeds);
+    instance.registerRobot(
+        Units.inchesToMeters(27.0),
+        Units.inchesToMeters(27.0),
+        Units.inchesToMeters(6.0),
+        drive::getPose,
+        drive::getFieldRelSpeeds);
+    instance.registerIntake(
+        Units.inchesToMeters(27.0 / 2),
+        Units.inchesToMeters(27.0 / 2 + 3),
+        Units.inchesToMeters(-27.0 / 2),
+        Units.inchesToMeters(27.0 / 2),
+        intake::isIntaking,
+        shooter::intakeFuelSim);
+    instance.start();
+
+    SmartDashboard.putData(
+        Commands.runOnce(
+                () -> {
+                  FuelSim.getInstance().clearFuel();
+                  FuelSim.getInstance().spawnStartingFuel();
+                })
+            .withName("Reset Fuel")
+            .ignoringDisable(true));
   }
 
   /**

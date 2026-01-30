@@ -133,6 +133,7 @@ public class TurretIOSim implements TurretIO {
 
   @Override
   public void setHoodAngle(Angle angle) {
+    hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
     // hoodMotor.setControl(new PositionDutyCycle(angle));
   }
 

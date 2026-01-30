@@ -19,6 +19,10 @@ public interface IntakeIO {
 
   default void stop() {}
 
+  default boolean isRunning() {
+    return true;
+  }
+
   // default double getShooterSpeed() {
   //   return 0.0;
   // }

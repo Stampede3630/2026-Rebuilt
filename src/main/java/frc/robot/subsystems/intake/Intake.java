@@ -10,6 +10,8 @@ public class Intake extends SubsystemBase {
 
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
+  private boolean on = false;
+
   // private final SysIdRoutine routine;
 
   // private final VoltageOut req = new VoltageOut(0.0);
@@ -35,10 +37,12 @@ public class Intake extends SubsystemBase {
   // }
 
   public Command runIntake(DoubleSupplier dutyCycle) {
+    on = true;
     return runOnce(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
   }
 
   public Command stopIntake() {
+    on = false;
     return runOnce(() -> io.stop());
   }
 
@@ -54,6 +58,10 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
+  }
+
+  public boolean isIntaking() {
+    return on;
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

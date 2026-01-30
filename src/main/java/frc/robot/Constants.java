@@ -7,12 +7,9 @@
 
 package frc.robot;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -52,8 +49,10 @@ public final class Constants {
   public static final int CLIMBER_LEFT_ID = 41;
   public static final int CLIMBER_RIGHT_ID = 42;
 
+  public static final int STARTING_FUEL_SIM = 500;
+
   // follower-leader alignments
-  public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Aligned;
+  public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
 
   /** The position of the turret relative to the center of the robot */
   public static final Transform2d TURRET_OFFSET =
