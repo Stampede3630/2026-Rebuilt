@@ -20,7 +20,6 @@ import frc.robot.Constants;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
-  private final TalonFX hoodMotor;
   // private final CANcoder cancoder;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
@@ -35,17 +34,6 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<Current> turretSupplyCurrent;
   private final StatusSignal<Temperature> turretTemp;
   private Angle turretSetpoint = Radians.of(0);
-
-  // hood motor
-  private final TalonFXConfiguration hoodConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> hoodPosition;
-  private final StatusSignal<AngularVelocity> hoodVelocity;
-  private final StatusSignal<Current> hoodTorqueCurrent;
-  private final StatusSignal<Voltage> hoodVoltage;
-  private final StatusSignal<Current> hoodStatorCurrent;
-  private final StatusSignal<Current> hoodSupplyCurrent;
-  private final StatusSignal<Temperature> hoodTemp;
-  private Angle hoodSetpoint = Radians.of(0);
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
@@ -72,19 +60,6 @@ public class TurretIOTalonFX implements TurretIO {
                 .withKI(0.01)
                 .withKD(0.2)); /* set PID */
     turretMotor.getConfigurator().apply(turretConfig);
-
-    // init hood motor
-    hoodMotor = new TalonFX(Constants.HOOD_ID);
-    hoodPosition = hoodMotor.getPosition();
-    hoodVelocity = hoodMotor.getVelocity();
-    hoodTorqueCurrent = hoodMotor.getTorqueCurrent();
-    hoodVoltage = hoodMotor.getMotorVoltage();
-    hoodStatorCurrent = hoodMotor.getStatorCurrent();
-    hoodSupplyCurrent = hoodMotor.getSupplyCurrent();
-    hoodTemp = hoodMotor.getDeviceTemp();
-
-    hoodConfig.withMotorOutput(new MotorOutputConfigs());
-    hoodMotor.getConfigurator().apply(hoodConfig);
   }
 
   @Override
@@ -97,64 +72,24 @@ public class TurretIOTalonFX implements TurretIO {
                 turretVoltage,
                 turretStatorCurrent,
                 turretSupplyCurrent,
-                turretTemp,
-                hoodPosition,
-                hoodVelocity,
-                hoodTorqueCurrent,
-                hoodVoltage,
-                hoodStatorCurrent,
-                hoodSupplyCurrent,
-                hoodTemp)
+                turretTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
 
     // turretMotor
-    inputs.turretPosition = turretPosition.getValueAsDouble();
-    inputs.turretVelocity = turretVelocity.getValueAsDouble();
-    inputs.turretTorqueCurrent = turretTorqueCurrent.getValueAsDouble();
-    inputs.turretVoltage = turretVoltage.getValueAsDouble();
-    inputs.turretStatorCurrent = turretStatorCurrent.getValueAsDouble();
-    inputs.turretSupplyCurrent = turretSupplyCurrent.getValueAsDouble();
-    inputs.turretTemp = turretTemp.getValueAsDouble();
-    inputs.turretSetpoint = turretSetpoint.magnitude();
-
-    // hoodMotor
-    inputs.hoodPosition = hoodPosition.getValueAsDouble();
-    inputs.hoodVelocity = hoodVelocity.getValueAsDouble();
-    inputs.hoodTorqueCurrent = hoodTorqueCurrent.getValueAsDouble();
-    inputs.hoodVoltage = hoodVoltage.getValueAsDouble();
-    inputs.hoodStatorCurrent = hoodStatorCurrent.getValueAsDouble();
-    inputs.hoodSupplyCurrent = hoodSupplyCurrent.getValueAsDouble();
-    inputs.hoodTemp = hoodTemp.getValueAsDouble();
-    inputs.hoodSetpoint = hoodSetpoint.magnitude();
-
-    // // turretMotor
-    // inputs.turret.position = turretPosition.getValueAsDouble();
-    // inputs.turret.velocity = turretVelocity.getValueAsDouble();
-    // inputs.turret.torqueCurrent = turretTorqueCurrent.getValueAsDouble();
-    // inputs.turret.voltage = turretVoltage.getValueAsDouble();
-    // inputs.turret.statorCurrent = turretStatorCurrent.getValueAsDouble();
-    // inputs.turret.statorCurrent = turretSupplyCurrent.getValueAsDouble();
-    // inputs.turret.temp = turretTemp.getValueAsDouble();
-
-    // // hoodMotor
-    // inputs.hood.position = hoodPosition.getValueAsDouble();
-    // inputs.hood.velocity = hoodVelocity.getValueAsDouble();
-    // inputs.hood.torqueCurrent = hoodTorqueCurrent.getValueAsDouble();
-    // inputs.hood.voltage = hoodVoltage.getValueAsDouble();
-    // inputs.hood.statorCurrent = hoodStatorCurrent.getValueAsDouble();
-    // inputs.hood.supplyCurrent = hoodSupplyCurrent.getValueAsDouble();
-    // inputs.hood.temp = hoodTemp.getValueAsDouble();
+    inputs.position = turretPosition.getValueAsDouble();
+    inputs.velocity = turretVelocity.getValueAsDouble();
+    inputs.torqueCurrent = turretTorqueCurrent.getValueAsDouble();
+    inputs.voltage = turretVoltage.getValueAsDouble();
+    inputs.statorCurrent = turretStatorCurrent.getValueAsDouble();
+    inputs.supplyCurrent = turretSupplyCurrent.getValueAsDouble();
+    inputs.temp = turretTemp.getValueAsDouble();
+    inputs.setpoint = turretSetpoint.magnitude();
   }
 
-  // @Override
-  // public void runWithDist(DoubleSupplier dist) {
-  //     runVelocity(getValue(dist));
-  // }
-
   /**
-   * @param newAngle The angle to set the turret motors adjustment to
+   * @param newAngle The angle to set the turret motor's adjustment to
    */
   @Override
   public void resetAnglePos(Angle newAngle) {
@@ -162,17 +97,11 @@ public class TurretIOTalonFX implements TurretIO {
   }
 
   @Override
-  public void setAngle(Angle angle) {
+  public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
     turretSetpoint = angle;
     turretMotor.setControl(new PositionTorqueCurrentFOC(angle));
-  }
-
-  @Override
-  public void setHoodAngle(Angle angle) {
-    hoodSetpoint = angle;
-    hoodMotor.setControl(new PositionTorqueCurrentFOC(angle));
   }
 
   /**
@@ -193,15 +122,6 @@ public class TurretIOTalonFX implements TurretIO {
     initSet = set;
   }
 
-  /**
-   * @return The current angle of the hood, in rotations NOTE: need to initialize at a specific
-   *     angle
-   */
-  @Override
-  public Angle getHoodAngle() {
-    return hoodMotor.getPosition().getValue();
-  }
-
   @Override
   public void setTurretMotorControl(VoltageOut volts) {
     turretMotor.setControl(volts);
@@ -213,7 +133,7 @@ public class TurretIOTalonFX implements TurretIO {
   }
 
   @Override
-  public void run(double speed) {
+  public void runTurret(double speed) {
     turretMotor.set(speed);
   }
 }

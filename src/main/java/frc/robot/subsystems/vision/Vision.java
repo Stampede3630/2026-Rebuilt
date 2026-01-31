@@ -151,16 +151,16 @@ public class Vision extends SubsystemBase {
             observation.timestamp(),
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
 
-        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
-          // might need to be converted to robot-relative coordinates
-          turret.resetAnglePos(
-              observation
-                  .pose()
-                  .transformBy(offsets[cameraIndex].get())
-                  .toPose2d()
-                  .getRotation()
-                  .getMeasure());
-        }
+        //        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
+        //          // might need to be converted to robot-relative coordinates
+        //          turret.resetAnglePos(
+        //              observation
+        //                  .pose()
+        //                  .transformBy(offsets[cameraIndex].get())
+        //                  .toPose2d()
+        //                  .getRotation()
+        //                  .getMeasure());
+        //        }
       }
 
       // Log camera metadata

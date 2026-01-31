@@ -83,6 +83,10 @@ public class Shooter extends SubsystemBase {
         });
   }
 
+  public Command shoot(Supplier<Translation3d> vector) {
+    return run(() -> runOuttakeWithVector(vector));
+  }
+
   public Command stop() {
     return runOnce(() -> io.stop());
   }

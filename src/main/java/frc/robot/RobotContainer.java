@@ -7,14 +7,14 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -32,6 +32,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.hood.HoodIOSim;
+import frc.robot.subsystems.hood.HoodIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
@@ -44,8 +47,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.util.FuelSim;
-import frc.robot.util.Transform3dSupplier;
+import frc.robot.util.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -65,6 +67,7 @@ public class RobotContainer {
   private final Turret turret;
   private final Intake intake;
   private final Climber climber;
+  private final Hood hood;
 
   // create a second Vision object to avoid making significant changes to the open ended-ness of
   // Vision's constructor
@@ -80,9 +83,24 @@ public class RobotContainer {
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
+  // meters -> rad
+  private static final DoubleLerpTable ANGLE_DATA = new DoubleLerpTable();
+
+  static {
+    ANGLE_DATA.put(3.01, Units.degreesToRadians(75.0));
+    ANGLE_DATA.put(4.92, Units.degreesToRadians(60.0));
+  }
+
+  /** The correction angle to apply to the turret, in degrees */
+  private final LoggedNetworkNumber correctionDeg =
+      new LoggedNetworkNumber("Turret/correctionDeg", 0.0);
+  /** The amount of time for the indexer to index another fuel, in seconds */
+  private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
   /** The tolerance of the turret, in degrees */
-  private final LoggedNetworkNumber tolDegrees =
-      new LoggedNetworkNumber("Turret/turretTolerance", 15.0);
+  private final LoggedNetworkNumber turretTolDeg =
+      new LoggedNetworkNumber("Turret/turretTolDeg", 2.0);
+  /** The tolerance of the turret's hood, in degrees */
+  private final LoggedNetworkNumber hoodTolDeg = new LoggedNetworkNumber("Turret/hoodTolDeg", 2.0);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true);
@@ -104,11 +122,13 @@ public class RobotContainer {
   /** The duty cycle speed to use to climb */
   private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("Climber/climbSpeed", 1.0);
 
+  private Translation3d targetVector = Translation3d.kZero;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-
     switch (Constants.currentMode) {
       case REAL:
+
         // Real robot, instantiate hardware IO implementations
         // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
         // a CANcoder
@@ -121,15 +141,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        turret =
-            new Turret(
-                new TurretIOTalonFX(),
-                () -> drive.getPose().plus(Constants.TURRET_OFFSET),
-                () -> drive.getFieldRelSpeeds(),
-                tolDegrees);
+        turret = new Turret(new TurretIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
+        hood = new Hood(new HoodIOTalonFX());
 
         VisionIO[] visionIOs = {
           new VisionIOPhotonVision(
@@ -149,8 +165,9 @@ public class RobotContainer {
               new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
                       .rotateAround(
-                          new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
-                  new Rotation3d(turret.getRotation()))
+                          new Translation3d(1.0, 2.0, 3.0),
+                          new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                  new Rotation3d(new Rotation2d(turret.getTurretAngle())))
         };
         // new Transform3d()
         // Rotation3d turretRot = turret.getRotation();
@@ -180,6 +197,8 @@ public class RobotContainer {
         break;
 
       case SIM:
+        latency.set(0.0);
+
         // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
@@ -191,15 +210,11 @@ public class RobotContainer {
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
 
-        turret =
-            new Turret(
-                new TurretIOSim(),
-                () -> drive.getPose().plus(Constants.TURRET_OFFSET),
-                () -> drive.getFieldRelSpeeds(),
-                tolDegrees);
+        turret = new Turret(new TurretIOSim());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
+        hood = new Hood(new HoodIOSim());
 
         VisionIO[] visionIOsSim = {
           new VisionIOPhotonVisionSim(
@@ -215,8 +230,9 @@ public class RobotContainer {
               new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
                       .rotateAround(
-                          new Translation3d(1.0, 2.0, 3.0), new Rotation3d(turret.getRotation())),
-                  new Rotation3d(turret.getRotation()))
+                          new Translation3d(1.0, 2.0, 3.0),
+                          new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                  new Rotation3d(new Rotation2d(turret.getTurretAngle())))
         };
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret);
@@ -236,14 +252,10 @@ public class RobotContainer {
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
-        turret =
-            new Turret(
-                new TurretIOTalonFX(),
-                () -> drive.getPose(),
-                () -> drive.getFieldRelSpeeds(),
-                tolDegrees);
+        turret = new Turret(new TurretIOTalonFX());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
+        hood = new Hood(new HoodIOTalonFX());
 
         VisionIO[] visionIOsDef = {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
@@ -327,9 +339,27 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(
             Commands.either(
-                Commands.parallel(
-                    turret.setBothAnglesIf(() -> !turret.isFacingRightWay().getAsBoolean()),
-                    shooter.shootIf(() -> turret.getTargetVector(), turret.isFacingRightWay())),
+                Commands.run(
+                        () -> {
+                          targetVector =
+                              getTargetVector(
+                                  drive.getFieldRelSpeeds(),
+                                  drive.getPose().plus(Constants.TURRET_OFFSET));
+                          System.out.println(targetVector);
+                        })
+                    .alongWith(
+                        Commands.parallel(
+                            hood.setHoodAngle(() -> getHoodTarget(drive.getPose()))
+                                .onlyIf(() -> !isHoodAngleRight(drive.getPose()))
+                                .repeatedly(),
+                            turret
+                                .setTurretAngle(() -> getTargetAngle(targetVector))
+                                .onlyIf(() -> !isFacingRightWay())
+                                .repeatedly(),
+                            shooter
+                                .shoot(() -> targetVector)
+                                .onlyIf(this::isFacingRightWay)
+                                .repeatedly())),
                 shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
                 enableAutoAim));
     controller
@@ -355,8 +385,8 @@ public class RobotContainer {
     controller
         .povLeft()
         .and(enableAutoAim)
-        .whileTrue(turret.runMotor(() -> -autoAimDisabledSpeed.get()));
-    controller.povRight().and(enableAutoAim).whileTrue(turret.runMotor(autoAimDisabledSpeed));
+        .whileTrue(turret.runTurret(() -> -autoAimDisabledSpeed.get()));
+    controller.povRight().and(enableAutoAim).whileTrue(turret.runTurret(autoAimDisabledSpeed));
 
     // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
 
@@ -395,6 +425,125 @@ public class RobotContainer {
                 })
             .withName("Reset Fuel")
             .ignoringDisable(true));
+  }
+
+  /**
+   * Returns the vector that represents where the fuel should be shot, using this Turret's Pose2d
+   * and ChassisSpeed Suppliers
+   *
+   * @param vel The robot's velocity, in field-relative coordinates
+   * @param pose The pose of the turret, in field-relative coordinates
+   * @return A Translation3d, created from finding the vector that would be required to hit the hub
+   *     if the robot were still, then accounting for the robot's current velocity
+   */
+  public Translation3d getTargetVector(ChassisSpeeds vel, Pose2d pose) {
+    // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
+    Pose2d futurePose =
+        pose.plus(
+            new Transform2d(
+                new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond)
+                    .times(latency.getAsDouble()),
+                new Rotation2d(
+                    vel.omegaRadiansPerSecond
+                        * latency.getAsDouble()) /* try to account for angular velocity */));
+
+    Translation2d velVector = new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond);
+
+    if (!FieldConstants.checkNeutral(pose)) {
+      //      System.out.println("hood is " + io.getHoodAngle());
+      // Logger.recordOutput("inAllianceZone", true);
+      // shoot towards hub if in alliance area
+      Rotation2d targetAngle =
+          AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
+              .minus(futurePose.getTranslation())
+              .getAngle()
+              .minus(pose.getRotation() /* account for robot's current rotation */);
+
+      // the vector target if the robot is not moving
+      Translation2d targetVector =
+          new Translation2d(
+                  Constants.OUTTAKE_VEL,
+                  targetAngle.plus(Rotation2d.fromDegrees(correctionDeg.getAsDouble())))
+              .times(Math.cos(hood.getHoodAngle().in(Radians)));
+
+      // System.out.println("before: " +targetVector);
+      if (Constants.currentMode == Constants.Mode.REAL) {
+        targetVector = targetVector.minus(velVector) /*.times(-1) */;
+        // System.out.println("after: " +targetVector);
+      }
+
+      return Constants.toTranslation3d(targetVector)
+          .plus(
+              new Translation3d(
+                  0, 0, Constants.OUTTAKE_VEL * Math.sin(hood.getHoodAngle().in(Radians))));
+    } else {
+      // Logger.recordOutput("inAllianceZone", false);
+      // shoot towards alliance side if in neutral zone
+
+      Rotation2d targetAngle = new Rotation2d().minus(futurePose.getRotation());
+      //      Translation2d targetVector = new Translation2d(
+      //                      Constants.OUTTAKE_VEL /* will need to change */,
+      // targetAngle.plus(CORRECTION))
+      //                      .times(Math.cos(turret.getHoodAngle().in(Radians)));
+
+      Translation2d targetVector =
+          new Translation2d(
+                  Constants.OUTTAKE_VEL,
+                  targetAngle.plus(Rotation2d.fromDegrees(correctionDeg.getAsDouble())))
+              .times(Math.cos(hood.getHoodAngle().in(Radians)));
+
+      // if shooting straight would hit hub
+      if (futurePose
+          .getMeasureY()
+          .isNear(Meters.of(4.0), 0.15) /* these numbers might need to be fine-tuned */) {
+        Translation2d corner =
+            AllianceFlipUtil.apply(FieldConstants.getHubCorner(futurePose.getY()));
+        Angle adjustment =
+            Radians.of(
+                Math.atan(
+                    (futurePose.getY() - corner.getY())
+                        / corner.getDistance(
+                            futurePose
+                                .getTranslation()))) /*.minus(futurePose.getRotation().getMeasure()) */;
+        System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
+        targetVector = targetVector.rotateBy(new Rotation2d(adjustment));
+      }
+      targetVector = targetVector.minus(velVector).times(-1);
+
+      return Constants.toTranslation3d(targetVector)
+          .plus(
+              new Translation3d(
+                  0, 0, Constants.OUTTAKE_VEL * Math.sin(hood.getHoodAngle().in(Radians))));
+    }
+  }
+
+  public Angle getTargetAngle(Translation3d target) {
+    Translation2d target2d = target.toTranslation2d();
+    return target2d.getAngle().getMeasure();
+  }
+
+  public boolean isFacingRightWay() {
+    return getTargetAngle(targetVector)
+        .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
+  }
+
+  public Angle getHoodTarget(Pose2d pose) {
+    // only works in alliance zone
+    if (FieldConstants.checkNeutral(pose)) {
+      // assumes that the target is straight towards x = 2
+      Radians.of(
+          ANGLE_DATA.apply(
+              pose.getTranslation()
+                  .getDistance(AllianceFlipUtil.apply(new Translation2d(2.0, pose.getY())))));
+    }
+    return Radians.of(
+        ANGLE_DATA.apply(
+            pose.getTranslation()
+                .getDistance(AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE))));
+  }
+
+  public boolean isHoodAngleRight(Pose2d pose) {
+    return getHoodTarget(pose).isNear(hood.getHoodAngle(), Degrees.of(hoodTolDeg.getAsDouble()));
   }
 
   /**

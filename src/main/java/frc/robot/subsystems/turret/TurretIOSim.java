@@ -11,10 +11,8 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class TurretIOSim implements TurretIO {
   private boolean turretActive = false;
-  private boolean hoodActive = false;
 
   private final DCMotorSim turretMotor;
-  private final DCMotorSim hoodMotor;
   // private final CANcoder cancoder;
 
   // turret motor
@@ -30,49 +28,10 @@ public class TurretIOSim implements TurretIO {
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(1), 0.004, 1.0),
             DCMotor.getKrakenX60Foc(1));
-
-    // turretConfig
-    //     .withMotorOutput(new MotorOutputConfigs())
-    //     .withSlot0(
-    //         new Slot0Configs()
-    //             .withKS(10)
-    //             .withKV(10)
-    //             .withKA(10)
-    //             .withKP(10)
-    //             .withKI(10)
-    //             .withKD(10)); /* set PID */
-    // turretMotor.getConfigurator().apply(turretConfig);
-
-    // init hood motor
-    hoodMotor =
-        new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(1), 0.004, 10),
-            DCMotor.getKrakenX60Foc(1));
-
-    // hoodConfig.withMotorOutput(new MotorOutputConfigs());
-    // hoodMotor.getConfigurator().apply(hoodConfig);
   }
 
   @Override
   public void updateInputs(TurretIOInputs inputs) {
-    // boolean connected =
-    //     BaseStatusSignal.refreshAll(
-    //             turretPosition,
-    //             turretVelocity,
-    //             turretTorqueCurrent,
-    //             turretVoltage,
-    //             turretStatorCurrent,
-    //             turretSupplyCurrent,
-    //             turretTemp,
-    //             hoodPosition,
-    //             hoodVelocity,
-    //             hoodTorqueCurrent,
-    //             hoodVoltage,
-    //             hoodStatorCurrent,
-    //             hoodSupplyCurrent,
-    //             hoodTemp)
-    //         .isOK();
-
     // Update simulation state
     // turretMotor.setInputVoltage(MathUtil.clamp(driveAppliedVolts, -12.0, 12.0));
     // hoodMotor.setInputVoltage(MathUtil.clamp(turnAppliedVolts, -12.0, 12.0));
@@ -83,31 +42,20 @@ public class TurretIOSim implements TurretIO {
       turretMotor.setInputVoltage(0);
     }
     turretMotor.update(0.02);
-    hoodMotor.update(0.02);
 
     inputs.connected = true;
 
     // turretMotor
-    inputs.turretPosition =
+    inputs.position =
         turretMotor.getAngularPositionRad() / Math.PI * 180 /* convert to degrees cuz why not */;
     // System.out.println(turretMotor.getInputVoltage());
-    inputs.turretVelocity = turretMotor.getAngularVelocityRadPerSec();
-    inputs.turretTorqueCurrent = turretMotor.getTorqueNewtonMeters();
-    inputs.turretVoltage = turretMotor.getInputVoltage();
-    inputs.turretStatorCurrent = turretMotor.getCurrentDrawAmps();
-    inputs.turretSupplyCurrent = turretMotor.getCurrentDrawAmps();
-    inputs.turretTemp = 1.0;
-    inputs.turretSetpoint =
-        controller.getSetpoint() / Math.PI * 180 /* convert to degrees cuz why not */;
-
-    // hoodMotor
-    inputs.hoodPosition = hoodMotor.getAngularPositionRad();
-    inputs.hoodVelocity = hoodMotor.getAngularVelocityRadPerSec();
-    inputs.hoodTorqueCurrent = hoodMotor.getTorqueNewtonMeters();
-    inputs.hoodVoltage = hoodMotor.getInputVoltage();
-    inputs.hoodStatorCurrent = hoodMotor.getCurrentDrawAmps();
-    inputs.hoodSupplyCurrent = hoodMotor.getCurrentDrawAmps();
-    inputs.hoodTemp = 1.0;
+    inputs.velocity = turretMotor.getAngularVelocityRadPerSec();
+    inputs.torqueCurrent = turretMotor.getTorqueNewtonMeters();
+    inputs.voltage = turretMotor.getInputVoltage();
+    inputs.statorCurrent = turretMotor.getCurrentDrawAmps();
+    inputs.supplyCurrent = turretMotor.getCurrentDrawAmps();
+    inputs.temp = 1.0;
+    inputs.setpoint = controller.getSetpoint() / Math.PI * 180 /* convert to degrees cuz why not */;
   }
 
   // @Override
@@ -124,17 +72,11 @@ public class TurretIOSim implements TurretIO {
   }
 
   @Override
-  public void setAngle(Angle angle) {
+  public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
     turretActive = true;
     controller.setSetpoint(angle.magnitude());
-  }
-
-  @Override
-  public void setHoodAngle(Angle angle) {
-    hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
-    // hoodMotor.setControl(new PositionDutyCycle(angle));
   }
 
   /**
@@ -153,15 +95,6 @@ public class TurretIOSim implements TurretIO {
   @Override
   public void updateInitSet(boolean set) {
     initSet = set;
-  }
-
-  /**
-   * @return The current angle of the hood, in rotations
-   */
-  @Override
-  public Angle getHoodAngle() {
-    // return null;
-    return hoodMotor.getAngularPosition();
   }
 
   @Override
