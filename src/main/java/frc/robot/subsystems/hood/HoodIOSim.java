@@ -1,5 +1,7 @@
 package frc.robot.subsystems.hood;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
@@ -19,6 +21,8 @@ public class HoodIOSim implements HoodIO {
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(1), 0.004, 10),
             DCMotor.getKrakenX60Foc(1));
+
+    controller.setSetpoint(0.0);
   }
 
   @Override
@@ -50,9 +54,9 @@ public class HoodIOSim implements HoodIO {
 
   @Override
   public void setHoodAngle(Angle angle) {
-    //    hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
+    // hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
     hoodActive = true;
-    controller.setSetpoint(angle.magnitude());
+    controller.setSetpoint(angle.in(Radians));
   }
 
   @Override

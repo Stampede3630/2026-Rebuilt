@@ -19,6 +19,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.util.Transform3dSupplier;
@@ -33,16 +34,22 @@ public class Vision extends SubsystemBase {
   private final Alert[] disconnectedAlerts;
   private final Transform3dSupplier[] offsets;
   private final Turret turret;
+  private final Drive drive;
 
   public Vision(
-      VisionConsumer consumer, VisionIO[] io, Transform3dSupplier[] offsets, Turret turret) {
+      VisionConsumer consumer,
+      VisionIO[] io,
+      Transform3dSupplier[] offsets,
+      Turret turret,
+      Drive drive) {
     this.consumer = consumer;
     this.io = io;
     this.offsets = offsets;
     if (io.length != offsets.length) {
-      System.out.println("Array lengths don't match!");
+      // System.out.println("Array lengths don't match!");
     }
     this.turret = turret;
+    this.drive = drive;
 
     // Initialize inputs
     this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -145,22 +152,22 @@ public class Vision extends SubsystemBase {
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
 
+        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
+          // might need to be converted to robot-relative coordinates
+          turret.resetAnglePos(
+              observation
+                  .pose()
+                  .toPose2d()
+                  .getRotation()
+                  .minus(drive.getPose().getRotation())
+                  .getMeasure());
+        }
+
         // Send vision observation
         consumer.accept(
             observation.pose().transformBy(offsets[cameraIndex].get()).toPose2d(),
             observation.timestamp(),
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
-
-        //        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
-        //          // might need to be converted to robot-relative coordinates
-        //          turret.resetAnglePos(
-        //              observation
-        //                  .pose()
-        //                  .transformBy(offsets[cameraIndex].get())
-        //                  .toPose2d()
-        //                  .getRotation()
-        //                  .getMeasure());
-        //        }
       }
 
       // Log camera metadata

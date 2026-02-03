@@ -1,7 +1,5 @@
 package frc.robot.subsystems.hood;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,7 +40,7 @@ public class Hood extends SubsystemBase {
     // other params for easier angle checking
     // need to change to reset for real robot
     // need to change to reset for real robot
-    runSetHoodAngle(Degrees.of(60));
+    // runSetHoodAngle(Degrees.of(60));
     // turretMechanism = new Mechanism2d(0.05, 0.05);
   }
 

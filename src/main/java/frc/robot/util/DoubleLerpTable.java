@@ -31,8 +31,8 @@ public class DoubleLerpTable implements Function<Double, Double> {
     final Double high2 = high;
     final Double low2 = low;
 
-    System.out.println("high: " + high2);
-    System.out.println("low: " + low2);
+    // System.out.println("high: " + high2);
+    // System.out.println("low: " + low2);
     // System.out.println(
     // "slope: " + (-1 * (ANGLE_DATA.get(high2) - ANGLE_DATA.get(low2)) / (high2 - low2)));
 

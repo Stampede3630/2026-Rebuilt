@@ -47,9 +47,9 @@ public class Turret extends SubsystemBase {
   //    return runOnce(() -> io.setAngle(angle));
   //  }
 
-  //  public boolean isInitSet() {
-  //    return io.isInitSet();
-  //  }
+  public boolean isInitSet() {
+    return io.isInitSet();
+  }
 
   //  public Command setAngleIf(BooleanSupplier cond) {
   //    return run(
@@ -96,10 +96,10 @@ public class Turret extends SubsystemBase {
   //    return new Rotation2d(io.getTurretAngle());
   //  }
 
-  //  public void resetAnglePos(Angle newAngle) {
-  //    io.resetAnglePos(newAngle);
-  //    io.updateInitSet(true);
-  //  }
+  public void resetAnglePos(Angle newAngle) {
+    io.resetAnglePos(newAngle);
+    io.updateInitSet(true);
+  }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return routine.quasistatic(direction);

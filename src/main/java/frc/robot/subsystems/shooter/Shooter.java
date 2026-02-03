@@ -63,7 +63,7 @@ public class Shooter extends SubsystemBase {
     return run(
         () -> {
           io.runVelocity(vector.get().getDistance(Translation3d.kZero));
-          System.out.println("shoot command");
+          // System.out.println("shoot command");
         });
   }
 
@@ -72,7 +72,7 @@ public class Shooter extends SubsystemBase {
       launchFuel(vector);
     }
     io.runVelocity(vector.get().getDistance(Translation3d.kZero));
-    System.out.println("shoot");
+    // System.out.println("shoot");
   }
 
   public Command shootIf(Supplier<Translation3d> vector, BooleanSupplier cond) {

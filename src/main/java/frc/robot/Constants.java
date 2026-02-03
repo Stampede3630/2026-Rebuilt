@@ -37,19 +37,19 @@ public final class Constants {
   // IDs with an X should be accurate
   public static final int TURRET_ID = 30;
   public static final int HOOD_ID = 31;
-  public static final int SHOOTER_LEADER_ID = 1;
+  public static final int SHOOTER_LEADER_ID = 28;
   public static final int SHOOTER_FOLLOWER_ID = 19;
   public static final int INTAKE_LEADER_ID = 34;
   public static final int INTAKE_FOLLOWER_ID = 35;
-  public static final int INDEXER_1_ID = 36;
-  public static final int INDEXER_2_ID = 37;
-  public static final int INDEXER_3_ID = 38;
+  public static final int INDEXER_SPIN_ID = 36;
+  public static final int INDEXER_CHUTE_ID = 37;
+  public static final int INDEXER_ENCODER_ID = 38;
   public static final int INTAKE_ID = 39;
   public static final int INTAKE_FLIP_ID = 40;
   public static final int CLIMBER_LEFT_ID = 41;
   public static final int CLIMBER_RIGHT_ID = 42;
 
-  public static final int STARTING_FUEL_SIM = 500;
+  public static final int STARTING_FUEL_SIM = 0;
 
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
