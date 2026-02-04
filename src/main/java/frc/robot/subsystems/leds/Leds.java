@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Leds extends SubsystemBase {
   private static Leds instance;
@@ -22,9 +21,9 @@ public class Leds extends SubsystemBase {
   private static Color shiftOff = Color.kBlue;
   private static Color disabled = Color.kRed;
 
-  private static int limiterSpeed = 1;
+  private static int limiterSpeed = 60;
 
-  @AutoLogOutput private static char gameData = ' ';
+  /* @AutoLogOutput */ private static String gameData = " ";
 
   private final AddressableLED leds;
   private final AddressableLEDBuffer buffer;
@@ -38,8 +37,8 @@ public class Leds extends SubsystemBase {
 
   private Leds() {
     leds = new AddressableLED(0);
-    buffer = new AddressableLEDBuffer(length);
     leds.setLength(length);
+    buffer = new AddressableLEDBuffer(length);
     leds.setData(buffer);
     leds.start();
 
@@ -52,6 +51,8 @@ public class Leds extends SubsystemBase {
                 () -> true));
 
     colors = new ArrayList<>(List.of(disabled, shiftOn, shiftOff, disabled));
+
+    // Logger.recordOutput("gameData", gameData);
   }
 
   public static Leds getInstance() {
@@ -63,10 +64,11 @@ public class Leds extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (gameData != 'R' && gameData != 'B') {
+    if (gameData.charAt(0) != 'R' && gameData.charAt(0) != 'B') {
       String gameMessage = DriverStation.getGameSpecificMessage();
       if (gameMessage.length() > 0) {
-        gameData = gameMessage.charAt(0);
+        gameData = gameMessage.substring(0, 1);
+        // Logger.recordOutput("gameData", gameData);
       }
     }
 
@@ -77,14 +79,15 @@ public class Leds extends SubsystemBase {
       if (conds.get(index).getAsBoolean()) {
         active = index;
       }
+      index++;
     }
 
     for (int i = 0; i < length; i++) {
       buffer.setRGB(
           i,
-          (int) (redLimiter.calculate(colors.get(i).red * 255)),
-          (int) (greenLimiter.calculate(colors.get(i).green * 255)),
-          (int) (blueLimiter.calculate(colors.get(i).blue * 255)));
+          (int) (redLimiter.calculate(colors.get(active).red * 255)),
+          (int) (greenLimiter.calculate(colors.get(active).green * 255)),
+          (int) (blueLimiter.calculate(colors.get(active).blue * 255)));
     }
 
     leds.setData(buffer);
@@ -101,7 +104,7 @@ public class Leds extends SubsystemBase {
     // move time for easier arithmetic
     timeSec -= 30;
     timeSec /= 25;
-    return (gameData == getAllianceChar()
+    return (gameData.charAt(0) == getAllianceChar()
         && (timeSec == 0 || timeSec == 2 /* shifts 4 and 2, respectively */));
   }
 

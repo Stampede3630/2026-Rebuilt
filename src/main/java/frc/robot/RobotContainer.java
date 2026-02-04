@@ -38,6 +38,7 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
+import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.turret.Turret;
@@ -70,6 +71,7 @@ public class RobotContainer {
   private final Climber climber;
   private final Indexer indexer;
   private final Hood hood;
+  private final Leds leds = Leds.getInstance();
 
   // create a second Vision object to avoid making significant changes to the open ended-ness of
   // Vision's constructor
