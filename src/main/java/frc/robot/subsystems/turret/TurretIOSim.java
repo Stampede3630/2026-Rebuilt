@@ -8,9 +8,12 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class TurretIOSim implements TurretIO {
   private boolean turretActive = false;
+  private LoggedNetworkBoolean disablePID =
+      new LoggedNetworkBoolean("Sim/disabledTurretPID", false);
 
   private final DCMotorSim turretMotor;
   // private final CANcoder cancoder;
@@ -75,8 +78,12 @@ public class TurretIOSim implements TurretIO {
   public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
-    turretActive = true;
-    controller.setSetpoint(angle.magnitude());
+    if (!disablePID.getAsBoolean()) {
+      turretActive = true;
+      controller.setSetpoint(angle.magnitude());
+    } else {
+      turretMotor.setAngle(angle.magnitude());
+    }
   }
 
   /**

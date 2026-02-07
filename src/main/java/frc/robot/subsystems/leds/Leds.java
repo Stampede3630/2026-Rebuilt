@@ -98,6 +98,7 @@ public class Leds extends SubsystemBase {
       return true;
     }
     double timeSec = DriverStation.getMatchTime();
+    // System.out.println("time: " + timeSec);
     if (timeSec > 130.0 || timeSec < 30.0) {
       return true;
     }

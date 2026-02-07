@@ -12,6 +12,7 @@ import static edu.wpi.first.units.Units.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -334,8 +335,18 @@ public class RobotContainer {
                         })
                     .alongWith(
                         Commands.parallel(
-                            hood.setHoodAngle(() -> AutoAim.getHoodTarget(drive.getPose()))
-                                .onlyIf(() -> !isHoodAngleRight(drive.getPose()))
+                            hood.setHoodAngle(
+                                    () ->
+                                        AutoAim.getHoodTarget(
+                                            drive.getPose(),
+                                            drive.getFieldRelSpeeds(),
+                                            latency.getAsDouble()))
+                                .onlyIf(
+                                    () ->
+                                        !isHoodAngleRight(
+                                            drive.getPose(),
+                                            drive.getFieldRelSpeeds(),
+                                            latency.getAsDouble()))
                                 .repeatedly(),
                             turret
                                 .setTurretAngle(() -> AutoAim.getTargetAngle(targetVector))
@@ -343,7 +354,7 @@ public class RobotContainer {
                                 .repeatedly(),
                             shooter
                                 .shoot(() -> targetVector)
-                                .onlyIf(this::isFacingRightWay)
+                                .onlyIf(this::isFacingRightWay).onlyIf(() -> isHoodAngleRight(drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
                                 .repeatedly())),
                 shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
                 enableAutoAim));
@@ -361,17 +372,27 @@ public class RobotContainer {
     // controller.y().whileTrue(climber);
 
     // toggle turret auto aim
-    controller
-        .povUp()
-        .and(controller.povDown())
-        .onTrue(Commands.run(() -> enableAutoAim.set(!enableAutoAim.get())));
+    controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // turn turret if auto aim is disabled
     controller
         .povLeft()
-        .and(enableAutoAim)
+        .and(() -> !enableAutoAim.getAsBoolean())
         .whileTrue(turret.runTurret(() -> -autoAimDisabledSpeed.get()));
-    controller.povRight().and(enableAutoAim).whileTrue(turret.runTurret(autoAimDisabledSpeed));
+    controller
+        .povRight()
+        .and(() -> !enableAutoAim.getAsBoolean())
+        .whileTrue(turret.runTurret(autoAimDisabledSpeed));
+
+    controller
+        .leftBumper()
+        .and(() -> !enableAutoAim.getAsBoolean())
+        .whileTrue(hood.spin(() -> 3.0));
+
+    controller
+        .rightBumper()
+        .and(() -> !enableAutoAim.getAsBoolean())
+        .whileTrue(hood.spin(() -> -3.0));
 
     // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
 
@@ -418,8 +439,8 @@ public class RobotContainer {
         .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
   }
 
-  public boolean isHoodAngleRight(Pose2d pose) {
-    return AutoAim.getHoodTarget(pose)
+  public boolean isHoodAngleRight(Pose2d pose, ChassisSpeeds vel, double latency) {
+    return AutoAim.getHoodTarget(pose, vel, latency)
         .isNear(hood.getHoodAngle(), Degrees.of(hoodTolDeg.getAsDouble()));
   }
 

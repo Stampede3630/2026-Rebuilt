@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.137864768683275,
-        "y": 5.687
+        "x": 7.785836298932384,
+        "y": 1.1461565836298928
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.697342823250297,
-        "y": 5.568648873072361
+        "x": 7.785836298932384,
+        "y": 2.15912192478457
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Bulldoze Right Start"
     },
     {
       "anchor": {
-        "x": 6.064365361803085,
-        "y": 5.568185053380782
+        "x": 7.785836298932384,
+        "y": 3.5239383155397386
       },
       "prevControl": {
-        "x": 5.031482799525505,
-        "y": 5.417556346381969
-      },
-      "nextControl": {
-        "x": 7.014956215305043,
-        "y": 5.706812886183151
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 7.775077105575328,
-        "y": 6.934602609727165
-      },
-      "prevControl": {
-        "x": 6.075124555160143,
-        "y": 6.9130842230130485
+        "x": 7.785836298932384,
+        "y": 2.7311821410700685
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Bulldoze Left Start"
+      "linkedName": "Bulldoze Right End"
     }
   ],
   "rotationTargets": [],
@@ -58,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -46.12330271407543
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

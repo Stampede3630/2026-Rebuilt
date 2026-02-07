@@ -7,13 +7,15 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class HoodIOSim implements HoodIO {
   private boolean hoodActive = false;
+  private LoggedNetworkBoolean disablePID = new LoggedNetworkBoolean("Sim/disableHoodPID", false);
 
   private final DCMotorSim hoodMotor;
 
-  private final PIDController controller = new PIDController(1.4, 0.01, 0.2);
+  private final PIDController controller = new PIDController(4.0, 0.01, 0.2);
 
   public HoodIOSim() {
     // init hood motor
@@ -55,17 +57,27 @@ public class HoodIOSim implements HoodIO {
   @Override
   public void setHoodAngle(Angle angle) {
     // hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
-    hoodActive = true;
-    controller.setSetpoint(angle.in(Radians));
+    if (!disablePID.getAsBoolean()) {
+      hoodActive = true;
+      controller.setSetpoint(angle.in(Radians));
+    } else {
+      hoodMotor.setAngle(angle.magnitude());
+    }
+  }
+
+  @Override
+  public void runHood(double speed) {
+    hoodMotor.setAngularVelocity(speed);
   }
 
   @Override
   public void stopHood() {
     hoodActive = false;
+    hoodMotor.setAngularVelocity(0);
   }
 
   /**
-   * @return The current angle of the hood, in rotations
+   * @return The current angle of the hood
    */
   @Override
   public Angle getHoodAngle() {

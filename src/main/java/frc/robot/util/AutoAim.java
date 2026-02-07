@@ -18,8 +18,10 @@ public class AutoAim {
   private static final DoubleLerpTable ANGLE_DATA = new DoubleLerpTable();
 
   static {
+    ANGLE_DATA.put(2.275740138, Units.degreesToRadians(80));
     ANGLE_DATA.put(3.01, Units.degreesToRadians(75.0));
     ANGLE_DATA.put(4.92, Units.degreesToRadians(60.0));
+    ANGLE_DATA.put(5.2744, Units.degreesToRadians(55));
   }
 
   /**
@@ -55,7 +57,14 @@ public class AutoAim {
           AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
               .minus(futurePose.getTranslation())
               .getAngle()
-              .minus(pose.getRotation() /* account for robot's current rotation */);
+              .minus(
+                  futurePose
+                      .getRotation() /* account for robot's current rotation - might need to be pose*/);
+      // System.out.println("target: " + targetAngle);
+      // System.out.println("first: " +  AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE)
+      //         .minus(futurePose.getTranslation())
+      //         .getAngle());
+      // System.out.println("robot: " + pose.getRotation());
 
       // the vector target if the robot is not moving
       Translation2d targetVector =
@@ -114,18 +123,28 @@ public class AutoAim {
     return target2d.getAngle().getMeasure();
   }
 
-  public static Angle getHoodTarget(Pose2d pose) {
+  public static Angle getHoodTarget(Pose2d pose, ChassisSpeeds vel, double latency) {
+    Pose2d futurePose =
+        pose.plus(
+            new Transform2d(
+                new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond).times(latency),
+                new Rotation2d(
+                    vel.omegaRadiansPerSecond
+                        * latency) /* try to account for angular velocity */));
+
     // only works in alliance zone
-    if (FieldConstants.checkNeutral(pose)) {
+    if (FieldConstants.checkNeutral(futurePose)) {
       // assumes that the target is straight towards x = 2
       Radians.of(
           ANGLE_DATA.apply(
-              pose.getTranslation()
-                  .getDistance(AllianceFlipUtil.apply(new Translation2d(2.0, pose.getY())))));
+              futurePose
+                  .getTranslation()
+                  .getDistance(AllianceFlipUtil.apply(new Translation2d(2.0, futurePose.getY())))));
     }
     return Radians.of(
         ANGLE_DATA.apply(
-            pose.getTranslation()
+            futurePose
+                .getTranslation()
                 .getDistance(AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE))));
   }
 }

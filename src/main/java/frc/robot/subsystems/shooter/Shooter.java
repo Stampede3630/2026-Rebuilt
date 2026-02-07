@@ -18,6 +18,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Shooter extends SubsystemBase {
   // temp
@@ -36,6 +37,8 @@ public class Shooter extends SubsystemBase {
   private int fuelStored = Constants.STARTING_FUEL_SIM;
 
   private int simCooldown = 0;
+
+  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 10);
 
   public Shooter(ShooterIO io, Supplier<Pose2d> pose) {
     this.io = io;
@@ -115,7 +118,7 @@ public class Shooter extends SubsystemBase {
   public void launchFuel(Supplier<Translation3d> vector) {
     if (fuelStored == 0 || simCooldown > 0) return;
     fuelStored--;
-    simCooldown = 5;
+    simCooldown = (int)cooldown.getAsDouble();
     Pose3d robot =
         new Pose3d(
             pose.get().getX(),
