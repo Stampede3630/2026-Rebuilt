@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.118161328588376,
-        "y": 2.6094068801897987
+        "x": 6.5485290628707,
+        "y": 2.856868327402135
       },
       "isLocked": false,
       "linkedName": "Bulldoze Right End"
@@ -20,8 +20,8 @@
         "y": 2.491055753262159
       },
       "prevControl": {
-        "x": 2.385,
-        "y": 2.491055753262159
+        "x": 3.8802491103202854,
+        "y": 2.146761565836299
       },
       "nextControl": null,
       "isLocked": false,

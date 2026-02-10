@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -35,16 +36,14 @@ public final class Constants {
   // CAN IDs
   // Swerve IDs are located in frc.robot.generated.TunerConstants.java
   // IDs with an X should be accurate
-  public static final int TURRET_ID = 30;
+  public static final int TURRET_ID = 51; // x
   public static final int HOOD_ID = 31;
-  public static final int SHOOTER_LEADER_ID = 28;
-  public static final int SHOOTER_FOLLOWER_ID = 19;
-  public static final int INTAKE_LEADER_ID = 34;
-  public static final int INTAKE_FOLLOWER_ID = 35;
-  public static final int INDEXER_SPIN_ID = 36;
-  public static final int INDEXER_CHUTE_ID = 37;
+  public static final int SHOOTER_LEADER_ID = 20; // x
+  public static final int SHOOTER_FOLLOWER_ID = 19; // x
+  public static final int INDEXER_SPIN_ID = 29; // x
+  public static final int INDEXER_CHUTE_ID = 34; // x
   public static final int INDEXER_ENCODER_ID = 38;
-  public static final int INTAKE_ID = 39;
+  public static final int INTAKE_ID = 13;
   public static final int INTAKE_FLIP_ID = 40;
   public static final int CLIMBER_LEFT_ID = 41;
   public static final int CLIMBER_RIGHT_ID = 42;
@@ -53,6 +52,8 @@ public final class Constants {
 
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
+
+  public static final CANBus SWERVE_BUS = new CANBus("Swerve");
 
   /** The position of the turret relative to the center of the robot */
   public static final Transform2d TURRET_OFFSET =

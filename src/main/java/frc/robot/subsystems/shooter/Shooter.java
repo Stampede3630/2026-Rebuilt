@@ -38,7 +38,7 @@ public class Shooter extends SubsystemBase {
 
   private int simCooldown = 0;
 
-  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 10);
+  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   public Shooter(ShooterIO io, Supplier<Pose2d> pose) {
     this.io = io;
@@ -118,7 +118,7 @@ public class Shooter extends SubsystemBase {
   public void launchFuel(Supplier<Translation3d> vector) {
     if (fuelStored == 0 || simCooldown > 0) return;
     fuelStored--;
-    simCooldown = (int)cooldown.getAsDouble();
+    simCooldown = (int) cooldown.getAsDouble();
     Pose3d robot =
         new Pose3d(
             pose.get().getX(),
@@ -132,5 +132,9 @@ public class Shooter extends SubsystemBase {
     FuelSim.getInstance()
         .spawnFuel(
             initialPosition, vector.get().rotateBy(new Rotation3d(pose.get().getRotation())));
+  }
+
+  public void setFuelCount(int fuel) {
+    fuelStored = fuel;
   }
 }

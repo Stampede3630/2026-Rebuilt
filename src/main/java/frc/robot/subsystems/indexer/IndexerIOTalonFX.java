@@ -46,7 +46,7 @@ public class IndexerIOTalonFX implements IndexerIO {
 
   public IndexerIOTalonFX() {
     // init spin motor
-    spin = new TalonFX(Constants.INDEXER_SPIN_ID);
+    spin = new TalonFX(Constants.INDEXER_SPIN_ID, Constants.SWERVE_BUS);
     spinPosition = spin.getPosition();
     spinVelocity = spin.getVelocity();
     spinTorqueCurrent = spin.getTorqueCurrent();
@@ -57,7 +57,7 @@ public class IndexerIOTalonFX implements IndexerIO {
     // add spinConfig here
 
     // init chute motor
-    chute = new TalonFX(Constants.INDEXER_CHUTE_ID);
+    chute = new TalonFX(Constants.INDEXER_CHUTE_ID, Constants.SWERVE_BUS);
     chutePosition = chute.getPosition();
     chuteVelocity = chute.getVelocity();
     chuteTorqueCurrent = chute.getTorqueCurrent();
@@ -133,6 +133,7 @@ public class IndexerIOTalonFX implements IndexerIO {
 
   @Override
   public void runDutyCycleSpin(double dutyCycle) {
+    System.out.println("spinning at " + dutyCycle);
     spin.set(dutyCycle);
   }
 

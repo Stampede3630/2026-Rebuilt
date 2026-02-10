@@ -55,8 +55,17 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command runBoth(DoubleSupplier dutyCycleChute, DoubleSupplier dutyCycleSpin) {
-    return runOnce(() -> io.runDutyCycleChute(dutyCycleChute.getAsDouble()))
-        .alongWith(runOnce(() -> io.runDutyCycleSpin(dutyCycleSpin.getAsDouble())));
+    return startEnd(
+        () -> {
+          // System.out.println("start");
+          io.runDutyCycleSpin(dutyCycleSpin.getAsDouble());
+          io.runDutyCycleChute(dutyCycleChute.getAsDouble());
+        },
+        () -> {
+          // System.out.println("stop");
+          io.stopSpin();
+          io.stopChute();
+        });
   }
 
   @Override

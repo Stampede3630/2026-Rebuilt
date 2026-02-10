@@ -39,7 +39,6 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
-import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.turret.Turret;
@@ -72,7 +71,7 @@ public class RobotContainer {
   private final Climber climber;
   private final Indexer indexer;
   private final Hood hood;
-  private final Leds leds = Leds.getInstance();
+  //   private final Leds leds = Leds.getInstance();
 
   // create a second Vision object to avoid making significant changes to the open ended-ness of
   // Vision's constructor
@@ -109,15 +108,19 @@ public class RobotContainer {
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 1.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 0.7);
+      new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.3);
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.2);
   /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeFlipSpeed =
       new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.6);
   /** The duty cycle speed to use to climb */
   private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("Climber/climbSpeed", 1.0);
+  /** The duty cycle speed to run the spindexer with */
+  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.5);
+  /** The duty cycle speed to run the chute with */
+  private final LoggedNetworkNumber chuteSpeed = new LoggedNetworkNumber("Indexer/chuteSpeed", 0.5);
 
   private Translation3d targetVector = Translation3d.kZero;
 
@@ -354,7 +357,13 @@ public class RobotContainer {
                                 .repeatedly(),
                             shooter
                                 .shoot(() -> targetVector)
-                                .onlyIf(this::isFacingRightWay).onlyIf(() -> isHoodAngleRight(drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
+                                .onlyIf(this::isFacingRightWay)
+                                .onlyIf(
+                                    () ->
+                                        isHoodAngleRight(
+                                            drive.getPose(),
+                                            drive.getFieldRelSpeeds(),
+                                            latency.getAsDouble()))
                                 .repeatedly())),
                 shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
                 enableAutoAim));
@@ -365,8 +374,8 @@ public class RobotContainer {
                 .stop()
                 .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
-    controller.leftTrigger().onTrue(intake.runIntake(intakeSpeed));
-    controller.leftTrigger().onFalse(intake.runIntake(intakeIdleSpeed));
+    controller.leftTrigger().whileTrue(intake.runIntake(intakeSpeed));
+    controller.leftTrigger().whileFalse(intake.runIntake(intakeIdleSpeed));
     controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     controller.a().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
     // controller.y().whileTrue(climber);
@@ -393,6 +402,8 @@ public class RobotContainer {
         .rightBumper()
         .and(() -> !enableAutoAim.getAsBoolean())
         .whileTrue(hood.spin(() -> -3.0));
+
+    controller.a().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
 
     // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
 
@@ -429,6 +440,7 @@ public class RobotContainer {
                 () -> {
                   FuelSim.getInstance().clearFuel();
                   FuelSim.getInstance().spawnStartingFuel();
+                  shooter.setFuelCount(0);
                 })
             .withName("Reset Fuel")
             .ignoringDisable(true));

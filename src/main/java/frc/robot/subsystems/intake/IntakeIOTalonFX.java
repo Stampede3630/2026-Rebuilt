@@ -44,7 +44,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   public IntakeIOTalonFX() {
     // init intake motor
-    intake = new TalonFX(Constants.INTAKE_ID);
+    intake = new TalonFX(Constants.INTAKE_ID, Constants.SWERVE_BUS);
     intakePosition = intake.getPosition();
     intakeVelocity = intake.getVelocity();
     intakeTorqueCurrent = intake.getTorqueCurrent();
@@ -55,7 +55,7 @@ public class IntakeIOTalonFX implements IntakeIO {
     // add intakeConfig here
 
     // init flip motor
-    flip = new TalonFX(Constants.INTAKE_FLIP_ID);
+    flip = new TalonFX(Constants.INTAKE_FLIP_ID, Constants.SWERVE_BUS);
     flipPosition = flip.getPosition();
     flipVelocity = flip.getVelocity();
     flipTorqueCurrent = flip.getTorqueCurrent();

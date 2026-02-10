@@ -96,7 +96,7 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "race",
           "data": {
             "commands": [
               {
@@ -115,6 +115,31 @@
                 "type": "path",
                 "data": {
                   "pathName": "Right Bump to Climb"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "updateTargetVector"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "aimAndShoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "lowerClimber"
                 }
               }
             ]

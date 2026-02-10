@@ -44,7 +44,7 @@ public class Hood extends SubsystemBase {
     // need to change to reset for real robot
 
     // need to figure out pre-init for real matches
-    runSetHoodAngle(Degrees.of(60));
+    runSetHoodAngle(Degrees.of(80));
     // turretMechanism = new Mechanism2d(0.05, 0.05);
   }
 
