@@ -1,9 +1,12 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.VoltageOut;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -29,6 +32,8 @@ public class Turret extends SubsystemBase {
 
   private final SysIdRoutine routine;
 
+  private Angle setpoint = Degrees.of(0);
+
   public Turret(TurretIO io) {
     this.io = io;
     routine =
@@ -50,51 +55,6 @@ public class Turret extends SubsystemBase {
   public boolean isInitSet() {
     return io.isInitSet();
   }
-
-  //  public Command setAngleIf(BooleanSupplier cond) {
-  //    return run(
-  //        () -> {
-  //          if (cond.getAsBoolean()) io.setAngle(getTargetAngle());
-  //        });
-  //  }
-  //
-  //  public Command setHoodAngleIf(BooleanSupplier cond) {
-  //    return run(
-  //        () -> {
-  //          if (cond.getAsBoolean()) {
-  //            // Translation3d vector = getTargetVector();
-  //            // Angle angle =
-  //            //     Radians.of(Math.atan(vector.getZ() /
-  // vector.getDistance(Translation3d.kZero)));
-  //            // io.setHoodAngle(angle);
-  //            setHoodAngle(
-  //                pose.get().getTranslation(),
-  // AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE));
-  //          }
-  //        });
-  //  }
-
-  //  public Command setBothAnglesIf(BooleanSupplier cond) {
-  //    return run(
-  //        () -> {
-  //          if (cond.getAsBoolean()) {
-  //            io.setAngle(getTargetAngle());
-  //            // System.out.println("why hello there");
-  //            // Translation3d vector = getTargetVector();
-  //            // Angle angle =
-  //            //     Radians.of(Math.atan(vector.getZ() /
-  // vector.getDistance(Translation3d.kZero)));
-  //            // io.setHoodAngle(angle);
-  //            setHoodAngle(
-  //                pose.get().getTranslation(),
-  // AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE));
-  //          }
-  //        });
-  //  }
-
-  //  public Rotation2d getTurretRotation() {
-  //    return new Rotation2d(io.getTurretAngle());
-  //  }
 
   public void resetAnglePos(Angle newAngle) {
     io.resetAnglePos(newAngle);
@@ -119,16 +79,6 @@ public class Turret extends SubsystemBase {
     return runOnce(io::stopTurret);
   }
 
-  //  public void setHoodAngle(Translation2d robot, Translation2d target) {
-  //    setHoodAngle(() -> robot.getDistance(target));
-  //  }
-
-  //  public void setHoodAngle(DoubleSupplier dist) {
-  //    System.out.println("dist: " + dist.getAsDouble());
-  //    System.out.println("value: " + ANGLE_DATA.apply(dist.getAsDouble()));
-  //    io.setHoodAngle(Radians.of(ANGLE_DATA.apply(dist.getAsDouble())));
-  //  }
-
   public Angle getTurretAngle() {
     return io.getTurretAngle();
   }
@@ -136,16 +86,37 @@ public class Turret extends SubsystemBase {
   public Command setTurretAngle(Supplier<Angle> angle) {
     return runOnce(
         () -> {
-          io.setTurretAngle(angle.get());
+          setpoint = angle.get();
+          io.setTurretAngle(setpoint);
         });
   }
 
   public void runSetTurretAngle(Angle angle) {
+    setpoint = angle;
     io.setTurretAngle(angle);
   }
 
   public Command runTurret(DoubleSupplier speed) {
     return run(() -> io.runTurret(speed.getAsDouble()));
+  }
+
+  public boolean isAtSetpoint(Angle tolerance) {
+    return setpoint.isNear(getTurretAngle(), tolerance);
+  }
+
+  /**
+   * Converts a field-relative angle to robot-relative coordinates, and sets this Turret's angle to it
+   * @param angle An angle in field-relative coordinates
+   * @param robot The robot's position
+   * @return
+   */
+  public Command setAngleFieldRel(Angle angle, Pose2d robot) {
+    return runOnce(
+      () -> {
+        setpoint = angle;
+        io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
+      }
+    );
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {

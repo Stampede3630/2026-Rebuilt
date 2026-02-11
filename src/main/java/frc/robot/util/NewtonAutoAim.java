@@ -1,8 +1,13 @@
 package frc.robot.util;
 
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Function;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -11,11 +16,13 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import frc.robot.Constants;
+import frc.robot.util.ShotInfo.ShotQuality;
 
-public class NewtonAutoAim extends AutoAim {
+public class NewtonAutoAim implements AutoAimer {
   // meters -> rad
-  private static final DoubleLerpTable TOF_DATA = new DoubleLerpTable();
 
 //   static {
 //     ANGLE_DATA.put(2.275740138, Units.degreesToRadians(80));
@@ -27,6 +34,7 @@ public class NewtonAutoAim extends AutoAim {
   /**
    * Returns the vector that represents where the fuel should be shot, using this Turret's Pose2d
    * and ChassisSpeed Suppliers
+   * https://frc-docs--3242.org.readthedocs.build/en/3242/docs/software/advanced-controls/fire-control/newton-shooting.html
    *
    * @param vel The robot's velocity, in field-relative coordinates
    * @param pose The pose of the turret, in field-relative coordinates
@@ -37,88 +45,46 @@ public class NewtonAutoAim extends AutoAim {
    *     if the robot were still, then accounting for the robot's current velocity
    */
   // @Override
-  public static Translation3d getTargetVector(Pose2d target, Pose2d robot, ChassisSpeeds fieldRelSpeeds, int iterations) {
+   public ShotInfo get(Translation2d turretPosition, Translation2d robotVelocity, Translation2d goal, Function<Distance, ShooterParameters> shotLookup, Function<Distance, Time> tofLookup){
     // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
 
-    Transform2d dist = target.minus(robot); // dist between target and robot
+    Translation2d dist = goal.minus(turretPosition); // dist between target and robot
 
-    double time = TOF_DATA.apply(Math.hypot(dist.getX(), Math.get()));
-    Transform2d virtual_target = target.minus(robot).plus(fieldRelSpeeds(time).); // invert
+    double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
+    Translation2d virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
 
-    for (int i = 0; i < iterations; i++) {
-      error = time - TOF_DATA.apply(virtual_target.getTranslation().getDistance(Translation2d.kZero));
-      error_prime = 1 + (virtual_target.getX() * fieldRelSpeeds.vxMetersPerSecond
-      + virtual_target.getY() * fieldRelSpeeds.vyMetersPerSecond)
-      / virtual_target.getTranslation().getDistance(Translation2d.kZero); // derivative of error
+    // newton's method
+    for (int i = 0; i < 3; i++) {
+      // / virtual_target.getTranslation().getNorm(); // derivative of error
+      double vp = shotLookup.apply(Meters.of(virtual_target.getNorm())).shooterVelocity().in(MetersPerSecond);
+      time = time - (time - virtual_target.getNorm() / vp) / (1 + virtual_target.dot(robotVelocity) / (vp*virtual_target.getNorm()));
+
+      virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
     }
 
-    if (!FieldConstants.checkNeutral(pose)) { // in alliance zone
+    // // fixed point method
+    // Translation2d fpvirtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
+    // for (int i = 0; i < 3; i++) {
+    //   double fptime = tofLookup.apply(Meters.of(fpvirtual_target.getNorm())).in(Seconds);
+    //   fpvirtual_target = goal.minus(turretPosition).minus(robotVelocity.times(fptime));
+    // }
 
-    } else { // in neutral
-      // Logger.recordOutput("inAllianceZone", false);
-      // shoot towards alliance side if in neutral zone
+    ShooterParameters params = shotLookup.apply(Meters.of(virtual_target.getNorm()));
 
-      Rotation2d targetAngle = new Rotation2d().minus(futurePose.getRotation());
-      //      Translation2d targetVector = new Translation2d(
-      //                      Constants.OUTTAKE_VEL /* will need to change */,
-      // targetAngle.plus(CORRECTION))
-      //                      .times(Math.cos(turret.getHoodAngle().in(Radians)));
-
-      Translation2d targetVector =
-          new Translation2d(
-                  Constants.OUTTAKE_VEL, targetAngle.plus(Rotation2d.fromDegrees(correctionDeg)))
-              .times(Math.cos(vertAngle.in(Radians)));
-
-      // if shooting straight would hit hub
-      if (futurePose
-          .getMeasureY()
-          .isNear(Meters.of(4.0), 0.15) /* these numbers might need to be fine-tuned */) {
-        Translation2d corner =
-            AllianceFlipUtil.apply(FieldConstants.getHubCorner(futurePose.getY()));
-        Angle adjustment =
-            Radians.of(
-                Math.atan(
-                    (futurePose.getY() - corner.getY())
-                        / corner.getDistance(
-                            futurePose
-                                .getTranslation()))) /*.minus(futurePose.getRotation().getMeasure()) */;
-        // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
-        targetVector = targetVector.rotateBy(new Rotation2d(adjustment));
-      }
-      targetVector = targetVector.minus(velVector).times(-1);
-
-      return Constants.toTranslation3d(targetVector)
-          .plus(new Translation3d(0, 0, Constants.OUTTAKE_VEL * Math.sin(vertAngle.in(Radians))));
+    double radialVelocity = robotVelocity.dot(dist.div(dist.getNorm()));
+    double quality = 1.0 - Math.abs(radialVelocity / params.shooterVelocity().in(MetersPerSecond) /* need solution for this */);
+    quality = MathUtil.clamp(quality, 0, 1);
+    ShotQuality theQuality = ShotQuality.UNKNOWN;
+    if (quality > .9) {
+      theQuality = ShotQuality.EXCELLENT;
+    } else if (quality > .7) {
+      theQuality = ShotQuality.GOOD;
+    } else if (quality > .4) {
+      theQuality = ShotQuality.POOR;
+    } else {
+      theQuality = ShotQuality.IMPOSSIBLE;
     }
-  }
 
-  public static Angle getTargetAngle(Translation3d target) {
-    Translation2d target2d = target.toTranslation2d();
-    return target2d.getAngle().getMeasure();
-  }
-
-  public static Angle getHoodTarget(Pose2d pose, ChassisSpeeds vel, double latency) {
-    Pose2d futurePose =
-        pose.plus(
-            new Transform2d(
-                new Translation2d(vel.vxMetersPerSecond, vel.vyMetersPerSecond).times(latency),
-                new Rotation2d(
-                    vel.omegaRadiansPerSecond
-                        * latency) /* try to account for angular velocity */));
-
-    // only works in alliance zone
-    if (FieldConstants.checkNeutral(futurePose)) {
-      // assumes that the target is straight towards x = 2
-      Radians.of(
-          ANGLE_DATA.apply(
-              futurePose
-                  .getTranslation()
-                  .getDistance(AllianceFlipUtil.apply(new Translation2d(2.0, futurePose.getY())))));
-    }
-    return Radians.of(
-        ANGLE_DATA.apply(
-            futurePose
-                .getTranslation()
-                .getDistance(AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE))));
-  }
+    return new ShotInfo(params, virtual_target.getAngle().getMeasure(), theQuality);
+   }
 }

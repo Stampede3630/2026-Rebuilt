@@ -1,10 +1,15 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -16,8 +21,19 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.AutoAim;
+import frc.robot.util.AutoAimer;
+import frc.robot.util.FieldConstants;
+import frc.robot.util.FuelSim;
+import frc.robot.util.NewtonAutoAim;
+import frc.robot.util.ShooterParameters;
+import frc.robot.util.ShotInfo;
+import frc.robot.util.ShotInfo.ShotQuality;
+
 import java.util.HashMap;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class NamedCommands {
@@ -30,7 +46,11 @@ public class NamedCommands {
   private final Intake intake;
   private final Shooter shooter;
   private final Vision vision;
-  private Translation3d targetVector = Translation3d.kZero;
+
+  // auto aim
+  private AutoAimer aimer = new NewtonAutoAim();
+
+  private ShotInfo shotInfo = new ShotInfo(new ShooterParameters(0.0, MetersPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
 
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeDutyCycle", 0.3);
@@ -48,6 +68,11 @@ public class NamedCommands {
   /** The tolerance of the turret's hood, in degrees */
   private final LoggedNetworkNumber hoodTolDeg =
       new LoggedNetworkNumber("Auto/Hood/hoodTolDeg", 0.5);
+
+    /** The amount of simulation periodics before another fuel can be shot - seperate from RobotContainer*/
+    private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
+    // fuel sim - seperate from RobotContainer
+    private int fuelStored = Constants.STARTING_FUEL_SIM;
 
   public NamedCommands(
       Climber climber,
@@ -79,56 +104,75 @@ public class NamedCommands {
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
+    // assume target is always hub
     commands.put(
         "updateTargetVector",
         Commands.run(
             () -> {
-              targetVector =
-                  AutoAim.getTargetVector(
-                      drive.getFieldRelSpeeds(),
-                      drive.getPose().plus(Constants.TURRET_OFFSET),
-                      latency.getAsDouble(),
-                      correctionDeg.getAsDouble(),
-                      hood.getHoodAngle());
-              System.out.println(targetVector);
+                shotInfo =
+                aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelVector(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
             }));
 
     commands.put(
         "aimAndShoot",
-        Commands.parallel(
-            // could store hood target to optimize
-            hood.setHoodAngle(
-                    () ->
-                        AutoAim.getHoodTarget(
-                            drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
-                .onlyIf(
-                    () ->
-                        !isHoodAngleRight(
-                            drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
-                .repeatedly(),
-            turret
-                .setTurretAngle(() -> AutoAim.getTargetAngle(targetVector))
-                .onlyIf(() -> !isFacingRightWay())
-                .repeatedly(),
-            shooter
-                .shoot(() -> targetVector)
-                .onlyIf(this::isFacingRightWay)
-                .onlyIf(
-                    () ->
-                        isHoodAngleRight(
-                            drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
-                .repeatedly()));
+        Commands.parallel(Commands.parallel(
+                            hood.setHoodAngle(
+                                    () -> Radians.of(shotInfo.shooterParameters().hood()))
+                                .onlyIf(
+                                    () ->
+                                        !isHoodAngleRight(
+                                            drive.getPose(),
+                                            drive.getFieldRelSpeeds(),
+                                            latency.getAsDouble()))
+                                .repeatedly(),
+                            turret
+                                .setTurretAngle(() -> shotInfo.turretAngle())
+                                .onlyIf(() -> !isFacingRightWay())
+                                .repeatedly(),
+                            shooter
+                                .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
+                                .onlyIf(this::isFacingRightWay)
+                                .onlyIf(
+                                    () ->
+                                        isHoodAngleRight(
+                                            drive.getPose(),
+                                            drive.getFieldRelSpeeds(),
+                                            latency.getAsDouble()))
+                                .repeatedly())));
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }
 
   public boolean isFacingRightWay() {
-    return AutoAim.getTargetAngle(targetVector)
-        .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
+    return shotInfo.turretAngle().isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
   }
 
   public boolean isHoodAngleRight(Pose2d pose, ChassisSpeeds vel, double latency) {
-    return AutoAim.getHoodTarget(pose, vel, latency)
-        .isNear(hood.getHoodAngle(), Degrees.of(hoodTolDeg.getAsDouble()));
+    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHoodAngle().magnitude()) < Degrees.of(hoodTolDeg.getAsDouble()).baseUnitMagnitude();
+    // temporary while hood chaos gets sorted out
+  }
+
+  public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {
+    FuelSim instance = FuelSim.getInstance();
+    if (fuelStored == 0 || instance.getSimCooldown() > 0) return;
+    fuelStored--;
+    instance.setSimCoolown((int) cooldown.getAsDouble());
+    Pose3d robot =
+        new Pose3d(
+            pose.get().getX(),
+            pose.get().getY(),
+            Units.inchesToMeters(23.5),
+            new Rotation3d(pose.get().getRotation()));
+
+    // System.out.println("my z is " + vector.get().getZ());
+
+    ShooterParameters params = info.get().shooterParameters();
+
+    Translation3d shootVector = new Translation3d(params.shooterVelocity().in(MetersPerSecond), new Rotation3d(0, params.hood(), info.get().turretAngle().in(Radians)));
+
+    Translation3d initialPosition = robot.getTranslation();
+    FuelSim.getInstance()
+        .spawnFuel(
+            initialPosition, shootVector.rotateBy(new Rotation3d(pose.get().getRotation())));
   }
 }

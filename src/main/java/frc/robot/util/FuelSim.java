@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.robot.Constants;
+
 import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -50,6 +52,8 @@ public class FuelSim {
     new Translation3d(FIELD_LENGTH - 3.96, FIELD_WIDTH / 2 - 0.60, 0),
     new Translation3d(FIELD_LENGTH - 3.96, FIELD_WIDTH - 1.57, 0)
   };
+
+  private int simCooldown = 0;
 
   private class Fuel {
     private Translation3d pos;
@@ -303,8 +307,20 @@ public class FuelSim {
     stepSim();
   }
 
+  public int getSimCooldown() {
+    return simCooldown;
+  }
+
+  public void setSimCoolown(int cooldown) {
+    simCooldown = cooldown;
+  }
+
   /** Run the simulation forward 1 time step (0.02s) */
   public void stepSim() {
+    if (Constants.currentMode == Constants.Mode.SIM && simCooldown > 0) {
+      simCooldown--;
+    }
+
     for (int i = 0; i < subticks; i++) {
       for (Fuel fuel : fuels) {
         fuel.update();

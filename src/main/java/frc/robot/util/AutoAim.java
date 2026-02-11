@@ -13,6 +13,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.Constants;
 
+@Deprecated
 public class AutoAim {
   // meters -> rad
   private static final DoubleLerpTable ANGLE_DATA = new DoubleLerpTable();

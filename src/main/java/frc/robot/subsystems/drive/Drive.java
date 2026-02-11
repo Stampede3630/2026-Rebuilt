@@ -295,10 +295,16 @@ public class Drive extends SubsystemBase {
   }
 
   /** Returns the measured chassis speeds of the robot, in field-relative coordinates */
-  @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
   public ChassisSpeeds getFieldRelSpeeds() {
     return ChassisSpeeds.fromRobotRelativeSpeeds(
         kinematics.toChassisSpeeds(getModuleStates()), getRotation());
+  }
+
+  /** Returns the vector of the measured chassis speeds of the robot as a Translation2d, in field-relative coordinates */
+  public Translation2d getFieldRelVector() {
+    ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+      kinematics.toChassisSpeeds(getModuleStates()), getRotation());
+    return new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
   }
 
   /** Returns the position of each module in radians. */

@@ -27,6 +27,8 @@ public class Hood extends SubsystemBase {
 
   //  private final SysIdRoutine routine;
 
+  private Angle setpoint = Degrees.of(0);
+
   public Hood(HoodIO io) {
     this.io = io;
     //    routine =
@@ -77,10 +79,14 @@ public class Hood extends SubsystemBase {
   }
 
   public Command setHoodAngle(Supplier<Angle> angle) {
-    return runOnce(() -> io.setHoodAngle(angle.get()));
+    return runOnce(() -> {
+      setpoint = angle.get();
+      io.setHoodAngle(setpoint);
+    });
   }
 
   public void runSetHoodAngle(Angle angle) {
+    setpoint = angle;
     io.setHoodAngle(angle);
   }
 
@@ -90,6 +96,10 @@ public class Hood extends SubsystemBase {
 
   public Command spin(DoubleSupplier dutyCycleSpeed) {
     return run(() -> io.runHood(dutyCycleSpeed.getAsDouble()));
+  }
+
+  public boolean isAtSetpoint(Angle tolerance) {
+    return setpoint.isNear(getHoodAngle(), tolerance);
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {
