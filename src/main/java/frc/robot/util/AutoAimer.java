@@ -3,6 +3,7 @@ package frc.robot.util;
 import java.util.function.Function;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 
@@ -17,5 +18,5 @@ public interface AutoAimer {
      * @param tofLookup tof of the shot given the distance
      * @return Shot info given robot state and lerp table
      */
-    ShotInfo get(Translation2d turretPosition, Translation2d robotVelocity, Translation2d goal, Function<Distance, ShooterParameters> shotLookup, Function<Distance, Time> tofLookup);
+    ShotInfo get(Translation2d turretPosition, ChassisSpeeds robotVelocity, Translation2d goal, Function<Distance, ShooterParameters> shotLookup, Function<Distance, Time> tofLookup);
 }

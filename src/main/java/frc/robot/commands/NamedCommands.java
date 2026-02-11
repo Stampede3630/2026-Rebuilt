@@ -110,7 +110,7 @@ public class NamedCommands {
         Commands.run(
             () -> {
                 shotInfo =
-                aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelVector(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
+                aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelSpeeds(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
             }));
 
     commands.put(

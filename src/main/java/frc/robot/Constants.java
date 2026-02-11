@@ -62,6 +62,9 @@ public final class Constants {
 
   public static final int STARTING_FUEL_SIM = 0;
 
+  public static final int LED_PORT = 0;
+  public static final int HOOD_PORT = 1;
+
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
 

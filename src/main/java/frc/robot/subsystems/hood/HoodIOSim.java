@@ -41,17 +41,17 @@ public class HoodIOSim implements HoodIO {
     }
     hoodMotor.update(0.02);
 
-    inputs.connected = true;
+    // inputs.connected = true;
 
-    // hoodMotor
-    inputs.position = hoodMotor.getAngularPositionRad() / Math.PI * 180;
-    inputs.velocity = hoodMotor.getAngularVelocityRadPerSec();
-    inputs.torqueCurrent = hoodMotor.getTorqueNewtonMeters();
-    inputs.voltage = hoodMotor.getInputVoltage();
-    inputs.statorCurrent = hoodMotor.getCurrentDrawAmps();
-    inputs.supplyCurrent = hoodMotor.getCurrentDrawAmps();
-    inputs.temp = 1.0;
-    inputs.setpoint = controller.getSetpoint() / Math.PI * 180 /* convert to degrees */;
+    // // hoodMotor
+    // inputs.position = hoodMotor.getAngularPositionRad() / Math.PI * 180;
+    // inputs.velocity = hoodMotor.getAngularVelocityRadPerSec();
+    // inputs.torqueCurrent = hoodMotor.getTorqueNewtonMeters();
+    // inputs.voltage = hoodMotor.getInputVoltage();
+    // inputs.statorCurrent = hoodMotor.getCurrentDrawAmps();
+    // inputs.supplyCurrent = hoodMotor.getCurrentDrawAmps();
+    // inputs.temp = 1.0;
+    // inputs.setpoint = controller.getSetpoint() / Math.PI * 180 /* convert to degrees */;
   }
 
   @Override

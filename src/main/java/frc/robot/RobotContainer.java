@@ -352,7 +352,7 @@ public class RobotContainer {
                 Commands.run(
                         () -> {
                           shotInfo =
-                            aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelVector(), getTarget(drive.getPose()), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
+                            aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelSpeeds(), getTarget(drive.getPose()), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
                         })
                     .alongWith(
                         Commands.parallel(

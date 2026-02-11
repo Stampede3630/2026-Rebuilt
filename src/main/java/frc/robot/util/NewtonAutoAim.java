@@ -2,20 +2,13 @@ package frc.robot.util;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Function;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import frc.robot.Constants;
@@ -45,11 +38,13 @@ public class NewtonAutoAim implements AutoAimer {
    *     if the robot were still, then accounting for the robot's current velocity
    */
   // @Override
-   public ShotInfo get(Translation2d turretPosition, Translation2d robotVelocity, Translation2d goal, Function<Distance, ShooterParameters> shotLookup, Function<Distance, Time> tofLookup){
+
+   public ShotInfo get(Translation2d turretPosition, ChassisSpeeds chassisSpeeds, Translation2d goal, Function<Distance, ShooterParameters> shotLookup, Function<Distance, Time> tofLookup){
     // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
-
+    Translation2d robotVelocity = new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
     Translation2d dist = goal.minus(turretPosition); // dist between target and robot
-
+    Translation2d rotationVelocity = new Translation2d(-chassisSpeeds.omegaRadiansPerSecond * Constants.TURRET_OFFSET.getY(), chassisSpeeds.omegaRadiansPerSecond * Constants.TURRET_OFFSET.getX());
+    robotVelocity = robotVelocity.plus(rotationVelocity);
     double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
     Translation2d virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
 

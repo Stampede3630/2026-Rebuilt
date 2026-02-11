@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import frc.robot.Constants;
 
 public class Leds extends SubsystemBase {
   private static Leds instance;
@@ -36,7 +37,7 @@ public class Leds extends SubsystemBase {
   private final SlewRateLimiter blueLimiter = new SlewRateLimiter(limiterSpeed);
 
   private Leds() {
-    leds = new AddressableLED(0);
+    leds = new AddressableLED(Constants.LED_PORT);
     leds.setLength(length);
     buffer = new AddressableLEDBuffer(length);
     leds.setData(buffer);
