@@ -7,8 +7,11 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Time;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface VisionIO {
@@ -40,4 +43,8 @@ public interface VisionIO {
   }
 
   public default void updateInputs(VisionIOInputs inputs) {}
+
+  default Time getLatency() {
+    return Seconds.of(0.0);
+  }
 }

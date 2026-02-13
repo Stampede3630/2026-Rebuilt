@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.NamedCommands;
 import frc.robot.generated.TunerConstants;
@@ -106,28 +107,41 @@ public class RobotContainer {
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true);
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
-  private final LoggedNetworkNumber autoAimDisabledSpeed =
+  private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.2);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 1.0);
+      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 0.5);
+  /** The speed target to set the shooter to while auto aim is disabled, in m/s */
+  private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
+      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 1.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.2);
-  /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
+  /**
+   * The duty cycle speed to use to flip the intake up/down [-1.0, 1.0]
+   * <p>NOTE: negative is down; positive values will cause the intake to run backwards
+   */
   private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.6);
-  /** The duty cycle speed to use to climb */
-  private final LoggedNetworkNumber climbSpeed = new LoggedNetworkNumber("Climber/climbSpeed", 1.0);
+      new LoggedNetworkNumber("Intake/intakeFlipSpeed", -0.2);
+  /** The duty cycle speed to use to climb with the elevator */
+  private final LoggedNetworkNumber climbSpeedElev =
+      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.8);
+  /** The duty cycle speed to use to climb with the hooks */
+  private final LoggedNetworkNumber climbSpeedHook =
+      new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
   /** The duty cycle speed to run the spindexer with */
-  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.5);
+  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.3);
   /** The duty cycle speed to run the chute with */
-  private final LoggedNetworkNumber chuteSpeed = new LoggedNetworkNumber("Indexer/chuteSpeed", 0.5);
+  private final LoggedNetworkNumber chuteSpeed =
+      new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
 
-  /** The amount of simulation periodics before another fuel can be shot */
+  /** The amount of simulation periodics before another fuel can be shot
+   * <p>NOTE: negative is down; positive values will cause the indexer to run backwards
+  */
   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   // auto aim
@@ -172,17 +186,21 @@ public class RobotContainer {
               new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
-        Transform3dSupplier[] offsets = {
-          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+        Transform3dFunction[] offsets = {
+          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
           // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
           // */).plus()
-          () ->
+          (lat) ->
               new Transform3d(
                   new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS.in(Meters), 2.0, 3.0)
                       .rotateAround(
                           new Translation3d(1.0, 2.0, 3.0),
-                          new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                          new Rotation3d(
+                              new Rotation2d(
+                                  turret
+                                      .getTurretAngle()
+                                      .plus(turret.getAngularVelocity().times(lat))))),
                   new Rotation3d(new Rotation2d(turret.getTurretAngle())))
         };
         // new Transform3d()
@@ -218,13 +236,13 @@ public class RobotContainer {
         VisionIO[] visionIOsSim = {
           new VisionIOPhotonVisionSim(
               Constants.CHASSIS_CAMERA_1, new Transform3d(), drive::getPose),
-          //   new VisionIOPhotonVisionSim(
-          //       Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
-          //   new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
-          // drive::getPose)
+          //     new VisionIOPhotonVisionSim(
+          //         Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
+          //     new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
+          //   drive::getPose)
         };
-        Transform3dSupplier[] offsetsSim = {
-          () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
+        Transform3dFunction[] offsetsSim = {
+          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
           //   () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
           //   () ->
           //       new Transform3d(
@@ -262,9 +280,9 @@ public class RobotContainer {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
-        Transform3dSupplier[] offsetsDef = {
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          () -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
+        Transform3dFunction[] offsetsDef = {
+          (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+          (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
         };
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret, drive);
@@ -298,6 +316,8 @@ public class RobotContainer {
     SmartDashboard.putData(shooter);
     // Configure the button bindings
     configureButtonBindings();
+
+    addSysIDCommands();
   }
 
   /**
@@ -316,17 +336,17 @@ public class RobotContainer {
             () -> angularSlewRateLimiter.calculate(-controller.getRightX())));
 
     // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
+    // controller
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveAtAngle(
+    //             drive,
+    //             () -> -controller.getLeftY(),
+    //             () -> -controller.getLeftX(),
+    //             () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
     controller
@@ -389,18 +409,23 @@ public class RobotContainer {
                                             drive.getFieldRelSpeeds(),
                                             latency.getAsDouble()))
                                 .repeatedly())),
-                shooter.runVelocity(() -> Constants.OUTTAKE_VEL),
+                shooter.runVelocity(shooterAutoAimDisabledSpeed),
                 enableAutoAim))
-        .onFalse(
+        .whileFalse(
             shooter
                 .runVelocity(shooterIdleSpeed)
                 .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
-    controller.leftTrigger().whileTrue(intake.runIntake(intakeSpeed));
-    controller.leftTrigger().whileFalse(intake.runIntake(intakeIdleSpeed));
+    // run intake
+    controller
+        .leftTrigger()
+        .whileTrue(intake.runIntake(intakeSpeed))
+        .whileFalse(intake.runIntake(intakeIdleSpeed));
+
+    // flip intake down
     controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
-    controller.a().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
-    // controller.y().whileTrue(climber);
+    // flip intake up
+    controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
@@ -409,31 +434,29 @@ public class RobotContainer {
     controller
         .povLeft()
         .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(() -> -autoAimDisabledSpeed.get()));
+        .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
     controller
         .povRight()
         .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(autoAimDisabledSpeed));
+        .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
 
-    controller
-        .leftBumper()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(hood.spin(() -> 3.0));
+    // raise/lower hood if auto aim is disabled
+    // commented out to test other things and bc hood does not currently work
+    // controller
+    //     .leftBumper()
+    //     .and(() -> !enableAutoAim.getAsBoolean())
+    //     .whileTrue(hood.spin(() -> 0.1));
+    // controller
+    //     .rightBumper()
+    //     .and(() -> !enableAutoAim.getAsBoolean())
+    //     .whileTrue(hood.spin(() -> -0.1));
 
-    controller
-        .rightBumper()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(hood.spin(() -> -3.0));
-
+    // run the indexer
     controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
 
-    // turret.setAngleWithVel(() -> drive.getPose(), () -> drive.getChassisSpeeds()),
-
-    // shooter.outtakeWithVector(
-    //       () -> turret.getTargetVector(drive.getPose(), drive.getChassisSpeeds())),
-    // Commands.none(), turret.isFacingRightWay(
-    //       () -> drive.getPose(), () -> drive.getChassisSpeeds(), () -> 0.01))
-
+    // raise/lower climber elevator
+    controller.y().whileTrue(climber.runElevator(climbSpeedElev));
+    controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
   }
 
   /** Initializes fuel simulation */
@@ -466,6 +489,14 @@ public class RobotContainer {
                 })
             .withName("Reset Fuel")
             .ignoringDisable(true));
+  }
+
+  /** Adds commands for SysID to SmartDashboard */
+  private void addSysIDCommands() {
+    SmartDashboard.putData(
+        shooter.sysIdQuasistatic(Direction.kForward).withName("Shooter/SysID Quasistatic Forward"));
+    SmartDashboard.putData(
+        shooter.sysIdDynamic(Direction.kForward).withName("Shooter/SysID Dynamic Forward"));
   }
 
   /**

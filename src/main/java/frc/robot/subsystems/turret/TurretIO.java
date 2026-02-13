@@ -1,9 +1,11 @@
 package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
@@ -40,6 +42,13 @@ public interface TurretIO {
    * @param speed The speed to turn at [-1, 1]
    */
   default void runTurret(double speed) {}
+
+  /**
+   * @return The current angular velocity of the turret
+   */
+  default AngularVelocity getAngularVelocity() {
+    return RadiansPerSecond.of(0.0);
+  }
 
   @AutoLog
   class TurretIOInputs {

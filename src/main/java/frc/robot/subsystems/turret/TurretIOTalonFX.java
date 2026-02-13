@@ -40,7 +40,7 @@ public class TurretIOTalonFX implements TurretIO {
 
   public TurretIOTalonFX() {
     // init turret motor
-    turretMotor = new TalonFX(Constants.TURRET_ID);
+    turretMotor = new TalonFX(Constants.TURRET_ID, Constants.SWERVE_BUS);
     turretPosition = turretMotor.getPosition();
     turretVelocity = turretMotor.getVelocity();
     turretTorqueCurrent = turretMotor.getTorqueCurrent();
@@ -135,5 +135,10 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void runTurret(double speed) {
     turretMotor.set(speed);
+  }
+
+  @Override
+  public AngularVelocity getAngularVelocity() {
+    return turretMotor.getVelocity().getValue();
   }
 }

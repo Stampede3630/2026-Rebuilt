@@ -37,8 +37,8 @@ public final class Constants {
 
   /* middle: from DS: 182.11in (4.625594m) from side: 158.85in (4.03479m) */
 
-  public static final String CHASSIS_CAMERA_1 = "camera_chassis_1";
-  public static final String CHASSIS_CAMERA_2 = "camera_chassis_2";
+  public static final String CHASSIS_CAMERA_1 = "camera_0";
+  public static final String CHASSIS_CAMERA_2 = "camera_1";
   public static final String TURRET_CAMERA = "camera_turret";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(3.5); // wrong
@@ -46,17 +46,17 @@ public final class Constants {
   // CAN IDs
   // Swerve IDs are located in frc.robot.generated.TunerConstants.java
   // IDs with an X should be accurate
-  public static final int TURRET_ID = 51; // x
-  public static final int HOOD_ID = 31;
+  public static final int TURRET_ID = 54; // changed
+  public static final int HOOD_ID = 31; // now defunct
   public static final int SHOOTER_LEADER_ID = 20; // x
   public static final int SHOOTER_FOLLOWER_ID = 19; // x
   public static final int INDEXER_SPIN_ID = 29; // x
   public static final int INDEXER_CHUTE_ID = 34; // x
   public static final int INDEXER_ENCODER_ID = 38;
   public static final int INTAKE_ID = 13;
-  public static final int INTAKE_FLIP_ID = 40;
-  public static final int CLIMBER_LEFT_ID = 41;
-  public static final int CLIMBER_RIGHT_ID = 42;
+  public static final int INTAKE_FLIP_ID = 10; // x
+  public static final int CLIMBER_HOOK_ID = 2; // x
+  public static final int CLIMBER_ELEVATOR_ID = 57; // x
 
   public static final int STARTING_FUEL_SIM = 0;
 

@@ -11,13 +11,13 @@ public interface ClimberIO {
   //   return true;
   // }
 
-  default void runDutyCycleLeft(double dutyCycle) {}
+  default void runDutyCycleHook(double dutyCycle) {}
 
-  default void stopLeft() {}
+  default void stopHook() {}
 
-  default void runDutyCycleRight(double dutyCycle) {}
+  default void runDutyCycleElevator(double dutyCycle) {}
 
-  default void stopRight() {}
+  default void stopElevator() {}
 
   // default void setShooterMotorsControl(VoltageOut volts) {}
 
@@ -25,22 +25,22 @@ public interface ClimberIO {
   class ClimberIOInputs {
     public boolean connected = false;
 
-    // right motor
-    public double rightPosition = 0.0;
-    public double rightVelocity = 0.0;
-    public double rightTorqueCurrent = 0.0;
-    public double rightVoltage = 0.0;
-    public double rightStatorCurrent = 0.0;
-    public double rightSupplyCurrent = 0.0;
-    public double rightTemp = 0.0;
+    // elevator motor
+    public double elevatorPosition = 0.0;
+    public double elevatorVelocity = 0.0;
+    public double elevatorTorqueCurrent = 0.0;
+    public double elevatorVoltage = 0.0;
+    public double elevatorStatorCurrent = 0.0;
+    public double elevatorSupplyCurrent = 0.0;
+    public double elevatorTemp = 0.0;
 
-    // left motor
-    public double leftPosition = 0.0;
-    public double leftVelocity = 0.0;
-    public double leftTorqueCurrent = 0.0;
-    public double leftVoltage = 0.0;
-    public double leftStatorCurrent = 0.0;
-    public double leftSupplyCurrent = 0.0;
-    public double leftTemp = 0.0;
+    // hook motor
+    public double hookPosition = 0.0;
+    public double hookVelocity = 0.0;
+    public double hookTorqueCurrent = 0.0;
+    public double hookVoltage = 0.0;
+    public double hookStatorCurrent = 0.0;
+    public double hookSupplyCurrent = 0.0;
+    public double hookTemp = 0.0;
   }
 }

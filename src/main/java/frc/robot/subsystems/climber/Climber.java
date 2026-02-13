@@ -34,20 +34,21 @@ public class Climber extends SubsystemBase {
   //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   // }
 
-  public Command runLeft(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleLeft(dutyCycle.getAsDouble()));
+  public Command runHook(DoubleSupplier dutyCycle) {
+    return runOnce(() -> io.runDutyCycleHook(dutyCycle.getAsDouble()));
   }
 
-  public Command stopLeft() {
-    return runOnce(() -> io.stopLeft());
+  public Command stopHook() {
+    return runOnce(() -> io.stopHook());
   }
 
-  public Command runRight(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleRight(dutyCycle.getAsDouble()));
+  public Command runElevator(DoubleSupplier dutyCycle) {
+    return startEnd(
+        () -> io.runDutyCycleElevator(dutyCycle.getAsDouble()), () -> io.stopElevator());
   }
 
-  public Command stopRight() {
-    return runOnce(() -> io.stopRight());
+  public Command stopElevator() {
+    return runOnce(() -> io.stopElevator());
   }
 
   @Override

@@ -16,13 +16,14 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
-import frc.robot.util.Transform3dSupplier;
+import frc.robot.util.Transform3dFunction;
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
@@ -32,14 +33,14 @@ public class Vision extends SubsystemBase {
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
-  private final Transform3dSupplier[] offsets;
+  private final Transform3dFunction[] offsets;
   private final Turret turret;
   private final Drive drive;
 
   public Vision(
       VisionConsumer consumer,
       VisionIO[] io,
-      Transform3dSupplier[] offsets,
+      Transform3dFunction[] offsets,
       Turret turret,
       Drive drive) {
     this.consumer = consumer;
@@ -108,30 +109,31 @@ public class Vision extends SubsystemBase {
         }
       }
 
+      Time latency = io[cameraIndex].getLatency();
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
+        Pose3d transformedPose =
+            observation.pose().transformBy(offsets[cameraIndex].apply(latency));
+
         // Check whether to reject pose
         boolean rejectPose =
             observation.tagCount() == 0 // Must have at least one tag
                 || (observation.tagCount() == 1
                     && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-                || Math.abs(observation.pose().transformBy(offsets[cameraIndex].get()).getZ())
-                    > maxZError // Must have realistic Z coordinate
+                || Math.abs(transformedPose.getZ()) > maxZError // Must have realistic Z coordinate
 
                 // Must be within the field boundaries
-                || observation.pose().transformBy(offsets[cameraIndex].get()).getX() < 0.0
-                || observation.pose().transformBy(offsets[cameraIndex].get()).getX()
-                    > aprilTagLayout.getFieldLength()
-                || observation.pose().transformBy(offsets[cameraIndex].get()).getY() < 0.0
-                || observation.pose().transformBy(offsets[cameraIndex].get()).getY()
-                    > aprilTagLayout.getFieldWidth();
+                || transformedPose.getX() < 0.0
+                || transformedPose.getX() > aprilTagLayout.getFieldLength()
+                || transformedPose.getY() < 0.0
+                || transformedPose.getY() > aprilTagLayout.getFieldWidth();
 
         // Add pose to log
-        robotPoses.add(observation.pose().transformBy(offsets[cameraIndex].get()));
+        robotPoses.add(transformedPose);
         if (rejectPose) {
-          robotPosesRejected.add(observation.pose().transformBy(offsets[cameraIndex].get()));
+          robotPosesRejected.add(transformedPose);
         } else {
-          robotPosesAccepted.add(observation.pose().transformBy(offsets[cameraIndex].get()));
+          robotPosesAccepted.add(transformedPose);
         }
 
         // Skip if rejected
@@ -167,7 +169,7 @@ public class Vision extends SubsystemBase {
 
         // Send vision observation
         consumer.accept(
-            observation.pose().transformBy(offsets[cameraIndex].get()).toPose2d(),
+            transformedPose.toPose2d(),
             observation.timestamp(),
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
       }
@@ -198,6 +200,15 @@ public class Vision extends SubsystemBase {
         "Vision/Summary/RobotPosesAccepted", allRobotPosesAccepted.toArray(new Pose3d[0]));
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected", allRobotPosesRejected.toArray(new Pose3d[0]));
+  }
+
+  /**
+   * @param cameraIndex The index of the camera to get a pose from
+   * @return The most recent pose observation, not modified by offsets
+   */
+  public Pose3d getRawPose(int cameraIndex) {
+    var input = inputs[cameraIndex];
+    return input.poseObservations[input.poseObservations.length].pose();
   }
 
   @FunctionalInterface

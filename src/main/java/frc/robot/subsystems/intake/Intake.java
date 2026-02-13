@@ -47,7 +47,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command runFlip(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleFlip(dutyCycle.getAsDouble()));
+    return startEnd(() -> io.runDutyCycleFlip(dutyCycle.getAsDouble()), () -> io.stopFlip());
   }
 
   public Command stopFlip() {

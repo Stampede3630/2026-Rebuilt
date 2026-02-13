@@ -7,6 +7,8 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Milliseconds;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -15,6 +17,7 @@ import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotController;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -148,5 +151,9 @@ public class VisionIOLimelight implements VisionIO {
             Units.degreesToRadians(rawLLArray[3]),
             Units.degreesToRadians(rawLLArray[4]),
             Units.degreesToRadians(rawLLArray[5])));
+  }
+
+  public Time getLatency() {
+    return Milliseconds.of(latencySubscriber.getAsDouble());
   }
 }

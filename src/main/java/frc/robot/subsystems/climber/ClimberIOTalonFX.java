@@ -14,56 +14,56 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
 public class ClimberIOTalonFX implements ClimberIO {
-  private final TalonFX left;
-  private final TalonFX right;
+  private final TalonFX hook;
+  private final TalonFX elevator;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
-  // right motor
-  private final TalonFXConfiguration rightConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> rightPosition;
-  private final StatusSignal<AngularVelocity> rightVelocity;
-  private final StatusSignal<Current> rightTorqueCurrent;
-  private final StatusSignal<Voltage> rightVoltage;
-  private final StatusSignal<Current> rightStatorCurrent;
-  private final StatusSignal<Current> rightSupplyCurrent;
-  private final StatusSignal<Temperature> rightTemp;
+  // elevator motor
+  private final TalonFXConfiguration elevatorConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> elevatorPosition;
+  private final StatusSignal<AngularVelocity> elevatorVelocity;
+  private final StatusSignal<Current> elevatorTorqueCurrent;
+  private final StatusSignal<Voltage> elevatorVoltage;
+  private final StatusSignal<Current> elevatorStatorCurrent;
+  private final StatusSignal<Current> elevatorSupplyCurrent;
+  private final StatusSignal<Temperature> elevatorTemp;
 
-  // left motor
-  private final TalonFXConfiguration leftConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> leftPosition;
-  private final StatusSignal<AngularVelocity> leftVelocity;
-  private final StatusSignal<Current> leftTorqueCurrent;
-  private final StatusSignal<Voltage> leftVoltage;
-  private final StatusSignal<Current> leftStatorCurrent;
-  private final StatusSignal<Current> leftSupplyCurrent;
-  private final StatusSignal<Temperature> leftTemp;
+  // hook motor
+  private final TalonFXConfiguration hookConfig = new TalonFXConfiguration();
+  private final StatusSignal<Angle> hookPosition;
+  private final StatusSignal<AngularVelocity> hookVelocity;
+  private final StatusSignal<Current> hookTorqueCurrent;
+  private final StatusSignal<Voltage> hookVoltage;
+  private final StatusSignal<Current> hookStatorCurrent;
+  private final StatusSignal<Current> hookSupplyCurrent;
+  private final StatusSignal<Temperature> hookTemp;
 
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
   public ClimberIOTalonFX() {
-    // init right motor
-    right = new TalonFX(Constants.CLIMBER_RIGHT_ID);
-    rightPosition = right.getPosition();
-    rightVelocity = right.getVelocity();
-    rightTorqueCurrent = right.getTorqueCurrent();
-    rightVoltage = right.getMotorVoltage();
-    rightStatorCurrent = right.getStatorCurrent();
-    rightSupplyCurrent = right.getSupplyCurrent();
-    rightTemp = right.getDeviceTemp();
-    // add rightConfig here
+    // init elevator motor
+    elevator = new TalonFX(Constants.CLIMBER_ELEVATOR_ID, Constants.SWERVE_BUS); // need to refactor
+    elevatorPosition = elevator.getPosition();
+    elevatorVelocity = elevator.getVelocity();
+    elevatorTorqueCurrent = elevator.getTorqueCurrent();
+    elevatorVoltage = elevator.getMotorVoltage();
+    elevatorStatorCurrent = elevator.getStatorCurrent();
+    elevatorSupplyCurrent = elevator.getSupplyCurrent();
+    elevatorTemp = elevator.getDeviceTemp();
+    // add elevatorConfig here
 
-    // init left motor
-    left = new TalonFX(Constants.CLIMBER_LEFT_ID);
-    leftPosition = left.getPosition();
-    leftVelocity = left.getVelocity();
-    leftTorqueCurrent = left.getTorqueCurrent();
-    leftVoltage = left.getMotorVoltage();
-    leftStatorCurrent = left.getStatorCurrent();
-    leftSupplyCurrent = left.getSupplyCurrent();
-    leftTemp = left.getDeviceTemp();
-    // add leftConfig here
+    // init hook motor
+    hook = new TalonFX(Constants.CLIMBER_HOOK_ID, Constants.SWERVE_BUS);
+    hookPosition = hook.getPosition();
+    hookVelocity = hook.getVelocity();
+    hookTorqueCurrent = hook.getTorqueCurrent();
+    hookVoltage = hook.getMotorVoltage();
+    hookStatorCurrent = hook.getStatorCurrent();
+    hookSupplyCurrent = hook.getSupplyCurrent();
+    hookTemp = hook.getDeviceTemp();
+    // add hookConfig here
 
   }
 
@@ -71,41 +71,41 @@ public class ClimberIOTalonFX implements ClimberIO {
   public void updateInputs(ClimberIOInputs inputs) {
     boolean connected =
         BaseStatusSignal.refreshAll(
-                rightPosition,
-                rightVelocity,
-                rightTorqueCurrent,
-                rightVoltage,
-                rightStatorCurrent,
-                rightSupplyCurrent,
-                rightTemp,
-                leftPosition,
-                leftVelocity,
-                leftTorqueCurrent,
-                leftVoltage,
-                leftStatorCurrent,
-                leftSupplyCurrent,
-                leftTemp)
+                elevatorPosition,
+                elevatorVelocity,
+                elevatorTorqueCurrent,
+                elevatorVoltage,
+                elevatorStatorCurrent,
+                elevatorSupplyCurrent,
+                elevatorTemp,
+                hookPosition,
+                hookVelocity,
+                hookTorqueCurrent,
+                hookVoltage,
+                hookStatorCurrent,
+                hookSupplyCurrent,
+                hookTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
 
-    // right
-    inputs.rightPosition = rightPosition.getValueAsDouble();
-    inputs.rightVelocity = rightVelocity.getValueAsDouble();
-    inputs.rightTorqueCurrent = rightTorqueCurrent.getValueAsDouble();
-    inputs.rightVoltage = rightVoltage.getValueAsDouble();
-    inputs.rightStatorCurrent = rightStatorCurrent.getValueAsDouble();
-    inputs.rightSupplyCurrent = rightSupplyCurrent.getValueAsDouble();
-    inputs.rightTemp = rightTemp.getValueAsDouble();
+    // elevator
+    inputs.elevatorPosition = elevatorPosition.getValueAsDouble();
+    inputs.elevatorVelocity = elevatorVelocity.getValueAsDouble();
+    inputs.elevatorTorqueCurrent = elevatorTorqueCurrent.getValueAsDouble();
+    inputs.elevatorVoltage = elevatorVoltage.getValueAsDouble();
+    inputs.elevatorStatorCurrent = elevatorStatorCurrent.getValueAsDouble();
+    inputs.elevatorSupplyCurrent = elevatorSupplyCurrent.getValueAsDouble();
+    inputs.elevatorTemp = elevatorTemp.getValueAsDouble();
 
-    // left
-    inputs.leftPosition = leftPosition.getValueAsDouble();
-    inputs.leftVelocity = leftVelocity.getValueAsDouble();
-    inputs.leftTorqueCurrent = leftTorqueCurrent.getValueAsDouble();
-    inputs.leftVoltage = leftVoltage.getValueAsDouble();
-    inputs.leftStatorCurrent = leftStatorCurrent.getValueAsDouble();
-    inputs.leftSupplyCurrent = leftSupplyCurrent.getValueAsDouble();
-    inputs.leftTemp = leftTemp.getValueAsDouble();
+    // hook
+    inputs.hookPosition = hookPosition.getValueAsDouble();
+    inputs.hookVelocity = hookVelocity.getValueAsDouble();
+    inputs.hookTorqueCurrent = hookTorqueCurrent.getValueAsDouble();
+    inputs.hookVoltage = hookVoltage.getValueAsDouble();
+    inputs.hookStatorCurrent = hookStatorCurrent.getValueAsDouble();
+    inputs.hookSupplyCurrent = hookSupplyCurrent.getValueAsDouble();
+    inputs.hookTemp = hookTemp.getValueAsDouble();
   }
 
   // @Override
@@ -115,37 +115,37 @@ public class ClimberIOTalonFX implements ClimberIO {
 
   // @Override
   // public void runVelocity(double vel) {
-  //   right.setControl(velocityRequest.withVelocity(vel));
+  //   elevator.setControl(velocityRequest.withVelocity(vel));
   // }
 
   @Override
-  public void runDutyCycleLeft(double dutyCycle) {
-    left.set(dutyCycle);
+  public void runDutyCycleHook(double dutyCycle) {
+    hook.set(dutyCycle);
   }
 
   @Override
-  public void stopLeft() {
-    left.stopMotor();
+  public void stopHook() {
+    hook.stopMotor();
   }
 
   @Override
-  public void runDutyCycleRight(double dutyCycle) {
-    right.set(dutyCycle);
+  public void runDutyCycleElevator(double dutyCycle) {
+    elevator.set(dutyCycle);
   }
 
   @Override
-  public void stopRight() {
-    right.stopMotor();
+  public void stopElevator() {
+    elevator.stopMotor();
   }
 
   // @Override
   // public double getShooterSpeed() {
-  //   return right.getVelocity().getValueAsDouble() * right.WHEEL_RADIUS_METERS;
+  //   return elevator.getVelocity().getValueAsDouble() * elevator.WHEEL_RADIUS_METERS;
   // }
 
   // @Override
   // public void setShooterMotorsControl(VoltageOut volts) {
-  //   right.setControl(volts);
-  //   left.setControl(volts);
+  //   elevator.setControl(volts);
+  //   hook.setControl(volts);
   // }
 }

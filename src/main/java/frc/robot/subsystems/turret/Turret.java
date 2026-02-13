@@ -7,6 +7,7 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -95,8 +96,8 @@ public class Turret extends SubsystemBase {
     io.setTurretAngle(angle);
   }
 
-  public Command runTurret(DoubleSupplier speed) {
-    return run(() -> io.runTurret(speed.getAsDouble()));
+  public Command runTurret(DoubleSupplier dutyCycle) {
+    return startEnd(() -> io.runTurret(dutyCycle.getAsDouble()), () -> io.stopTurret());
   }
 
   public boolean isAtSetpoint(Angle tolerance) {
@@ -117,6 +118,10 @@ public class Turret extends SubsystemBase {
           setpoint = angle;
           io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
         });
+  }
+
+  public AngularVelocity getAngularVelocity() {
+    return io.getAngularVelocity();
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {

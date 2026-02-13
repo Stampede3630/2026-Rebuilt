@@ -101,6 +101,6 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return routine.quasistatic(direction);
+    return routine.dynamic(direction);
   }
 }

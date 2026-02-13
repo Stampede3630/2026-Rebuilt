@@ -50,7 +50,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   public ShooterIOTalonFX() {
     // init leader motor
-    leader = new TalonFX(Constants.SHOOTER_LEADER_ID);
+    leader = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SWERVE_BUS);
     leaderPosition = leader.getPosition();
     leaderVelocity = leader.getVelocity();
     leaderTorqueCurrent = leader.getTorqueCurrent();
@@ -62,11 +62,17 @@ public class ShooterIOTalonFX implements ShooterIO {
     leaderConfig
         .withMotorOutput(new MotorOutputConfigs())
         .withSlot0(
-            new Slot0Configs().withKS(1).withKV(1).withKA(1).withKP(1.4).withKI(0.01).withKD(0.2));
+            new Slot0Configs()
+                .withKS(1)
+                .withKV(0.1)
+                .withKA(0.01)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2));
     leader.getConfigurator().apply(leaderConfig);
 
     // init follower motor
-    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID);
+    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID, Constants.SWERVE_BUS);
     followerPosition = follower.getPosition();
     followerVelocity = follower.getVelocity();
     followerTorqueCurrent = follower.getTorqueCurrent();
