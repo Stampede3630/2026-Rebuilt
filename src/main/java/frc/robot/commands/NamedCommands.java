@@ -22,7 +22,6 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.AutoAim;
 import frc.robot.util.AutoAimer;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.FuelSim;
@@ -30,10 +29,8 @@ import frc.robot.util.NewtonAutoAim;
 import frc.robot.util.ShooterParameters;
 import frc.robot.util.ShotInfo;
 import frc.robot.util.ShotInfo.ShotQuality;
-
 import java.util.HashMap;
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class NamedCommands {
@@ -50,7 +47,9 @@ public class NamedCommands {
   // auto aim
   private AutoAimer aimer = new NewtonAutoAim();
 
-  private ShotInfo shotInfo = new ShotInfo(new ShooterParameters(0.0, MetersPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
+  private ShotInfo shotInfo =
+      new ShotInfo(
+          new ShooterParameters(0.0, MetersPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
 
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeDutyCycle", 0.3);
@@ -69,10 +68,13 @@ public class NamedCommands {
   private final LoggedNetworkNumber hoodTolDeg =
       new LoggedNetworkNumber("Auto/Hood/hoodTolDeg", 0.5);
 
-    /** The amount of simulation periodics before another fuel can be shot - seperate from RobotContainer*/
-    private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
-    // fuel sim - seperate from RobotContainer
-    private int fuelStored = Constants.STARTING_FUEL_SIM;
+  /**
+   * The amount of simulation periodics before another fuel can be shot - seperate from
+   * RobotContainer
+   */
+  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
+  // fuel sim - seperate from RobotContainer
+  private int fuelStored = Constants.STARTING_FUEL_SIM;
 
   public NamedCommands(
       Climber climber,
@@ -109,47 +111,58 @@ public class NamedCommands {
         "updateTargetVector",
         Commands.run(
             () -> {
-                shotInfo =
-                aimer.get(drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET.getTranslation()), drive.getFieldRelSpeeds(), AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE), Constants.SHOT_LOOKUP, Constants.TOF_LOOKUP);
+              shotInfo =
+                  aimer.get(
+                      drive
+                          .getPose()
+                          .getTranslation()
+                          .plus(Constants.TURRET_OFFSET.getTranslation()),
+                      drive.getFieldRelSpeeds(),
+                      AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE),
+                      Constants.SHOT_LOOKUP,
+                      Constants.TOF_LOOKUP);
             }));
 
     commands.put(
         "aimAndShoot",
-        Commands.parallel(Commands.parallel(
-                            hood.setHoodAngle(
-                                    () -> Radians.of(shotInfo.shooterParameters().hood()))
-                                .onlyIf(
-                                    () ->
-                                        !isHoodAngleRight(
-                                            drive.getPose(),
-                                            drive.getFieldRelSpeeds(),
-                                            latency.getAsDouble()))
-                                .repeatedly(),
-                            turret
-                                .setTurretAngle(() -> shotInfo.turretAngle())
-                                .onlyIf(() -> !isFacingRightWay())
-                                .repeatedly(),
-                            shooter
-                                .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
-                                .onlyIf(this::isFacingRightWay)
-                                .onlyIf(
-                                    () ->
-                                        isHoodAngleRight(
-                                            drive.getPose(),
-                                            drive.getFieldRelSpeeds(),
-                                            latency.getAsDouble()))
-                                .repeatedly())));
+        Commands.parallel(
+            Commands.parallel(
+                hood.setHoodAngle(() -> Radians.of(shotInfo.shooterParameters().hood()))
+                    .onlyIf(
+                        () ->
+                            !isHoodAngleRight(
+                                drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
+                    .repeatedly(),
+                turret
+                    .setTurretAngle(() -> shotInfo.turretAngle())
+                    .onlyIf(() -> !isFacingRightWay())
+                    .repeatedly(),
+                shooter
+                    .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
+                    .onlyIf(this::isFacingRightWay)
+                    .onlyIf(
+                        () ->
+                            isHoodAngleRight(
+                                drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
+                    .repeatedly())));
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }
 
   public boolean isFacingRightWay() {
-    return shotInfo.turretAngle().isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
+    return shotInfo
+        .turretAngle()
+        .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
   }
 
   public boolean isHoodAngleRight(Pose2d pose, ChassisSpeeds vel, double latency) {
-    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHoodAngle().magnitude()) < Degrees.of(hoodTolDeg.getAsDouble()).baseUnitMagnitude();
+    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHoodAngle().magnitude())
+        < Degrees.of(hoodTolDeg.getAsDouble()).baseUnitMagnitude();
     // temporary while hood chaos gets sorted out
+  }
+
+  public void resetOdometry() {
+    drive.setPose(Pose2d.kZero); // temp - this method might be unneeded
   }
 
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {
@@ -168,11 +181,13 @@ public class NamedCommands {
 
     ShooterParameters params = info.get().shooterParameters();
 
-    Translation3d shootVector = new Translation3d(params.shooterVelocity().in(MetersPerSecond), new Rotation3d(0, params.hood(), info.get().turretAngle().in(Radians)));
+    Translation3d shootVector =
+        new Translation3d(
+            params.shooterVelocity().in(MetersPerSecond),
+            new Rotation3d(0, params.hood(), info.get().turretAngle().in(Radians)));
 
     Translation3d initialPosition = robot.getTranslation();
     FuelSim.getInstance()
-        .spawnFuel(
-            initialPosition, shootVector.rotateBy(new Rotation3d(pose.get().getRotation())));
+        .spawnFuel(initialPosition, shootVector.rotateBy(new Rotation3d(pose.get().getRotation())));
   }
 }

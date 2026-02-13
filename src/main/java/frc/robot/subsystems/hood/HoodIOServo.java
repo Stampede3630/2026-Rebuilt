@@ -3,14 +3,11 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Servo;
 import frc.robot.Constants;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 public class HoodIOServo implements HoodIO {
   private final Servo hood;
@@ -18,7 +15,7 @@ public class HoodIOServo implements HoodIO {
 
   // hood motor
   private final Supplier<Angle> angle;
-  private final DoubleSupplier pos; 
+  private final DoubleSupplier pos;
   private Angle angleSetpoint = Radians.of(0);
   private double distSetpoint = 0.0;
 
@@ -43,9 +40,9 @@ public class HoodIOServo implements HoodIO {
   }
 
   /**
-   * Moves the servo to angle
-   * If angle is outside of the range [0, 180] degrees, 0 and 180 degrees will be used instead
-   * 
+   * Moves the servo to angle If angle is outside of the range [0, 180] degrees, 0 and 180 degrees
+   * will be used instead
+   *
    * @see Servo#setAngle(double)
    */
   @Override

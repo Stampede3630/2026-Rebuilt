@@ -79,10 +79,11 @@ public class Hood extends SubsystemBase {
   }
 
   public Command setHoodAngle(Supplier<Angle> angle) {
-    return runOnce(() -> {
-      setpoint = angle.get();
-      io.setHoodAngle(setpoint);
-    });
+    return runOnce(
+        () -> {
+          setpoint = angle.get();
+          io.setHoodAngle(setpoint);
+        });
   }
 
   public void runSetHoodAngle(Angle angle) {

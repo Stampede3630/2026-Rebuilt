@@ -90,6 +90,7 @@ public class Vision extends SubsystemBase {
 
     // Loop over cameras
     for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
+      // System.out.println("woo woo periodic loop");
       // Update disconnected alert
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
 
@@ -162,6 +163,7 @@ public class Vision extends SubsystemBase {
                   .minus(drive.getPose().getRotation())
                   .getMeasure());
         }
+        System.out.println("ACCEPTED");
 
         // Send vision observation
         consumer.accept(

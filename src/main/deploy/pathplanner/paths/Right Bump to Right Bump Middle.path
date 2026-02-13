@@ -3,45 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 3.385,
+        "y": 2.491055753262159
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0,
-        "y": 7.0
+        "x": 4.029292472245071,
+        "y": 2.414381943823619
       },
-      "isLocked": false,
-      "linkedName": null
+      "isLocked": true,
+      "linkedName": "Right Bump"
     },
     {
       "anchor": {
-        "x": 6.118161328593755,
-        "y": 3.9543060498220637
+        "x": 5.827663107947806,
+        "y": 2.146761565836299
       },
       "prevControl": {
-        "x": 5.118161328593755,
-        "y": 3.9543060498220637
-      },
-      "nextControl": {
-        "x": 7.118161328593755,
-        "y": 3.9543060498220637
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 4.633392645319733,
-        "y": 4.632135231316726
-      },
-      "prevControl": {
-        "x": 5.61217674970882,
-        "y": 4.293220640569395
+        "x": 4.959470198675497,
+        "y": 2.343435430463577
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Right Bump Middle"
     }
   ],
   "rotationTargets": [],
@@ -64,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 44.454342406584196
   },
   "useDefaultConstraints": true
 }

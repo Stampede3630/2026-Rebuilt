@@ -300,10 +300,14 @@ public class Drive extends SubsystemBase {
         kinematics.toChassisSpeeds(getModuleStates()), getRotation());
   }
 
-  /** Returns the vector of the measured chassis speeds of the robot as a Translation2d, in field-relative coordinates */
+  /**
+   * Returns the vector of the measured chassis speeds of the robot as a Translation2d, in
+   * field-relative coordinates
+   */
   public Translation2d getFieldRelVector() {
-    ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
-      kinematics.toChassisSpeeds(getModuleStates()), getRotation());
+    ChassisSpeeds fieldRelSpeeds =
+        ChassisSpeeds.fromRobotRelativeSpeeds(
+            kinematics.toChassisSpeeds(getModuleStates()), getRotation());
     return new Translation2d(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond);
   }
 

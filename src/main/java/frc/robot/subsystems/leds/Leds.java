@@ -7,10 +7,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import frc.robot.Constants;
 
 public class Leds extends SubsystemBase {
   private static Leds instance;

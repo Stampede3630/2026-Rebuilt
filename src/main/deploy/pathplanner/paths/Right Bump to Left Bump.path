@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.775077105575328,
-        "y": 4.535302491103202
+        "x": 3.385,
+        "y": 2.491055753262159
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.09664294187426,
-        "y": 5.5574258600237245
+        "x": 2.739774614472124,
+        "y": 3.254958481613286
       },
       "isLocked": false,
-      "linkedName": "Bulldoze Left End"
+      "linkedName": "Right Bump"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 5.288446026097272
       },
       "prevControl": {
-        "x": 5.020723606168446,
-        "y": 5.578944246737841
+        "x": 2.9872360616844604,
+        "y": 4.868837485172005
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 44.454342406584196
   },
   "useDefaultConstraints": true
 }

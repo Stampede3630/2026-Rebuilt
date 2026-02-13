@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.VoltageOut;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -105,18 +104,19 @@ public class Turret extends SubsystemBase {
   }
 
   /**
-   * Converts a field-relative angle to robot-relative coordinates, and sets this Turret's angle to it
+   * Converts a field-relative angle to robot-relative coordinates, and sets this Turret's angle to
+   * it
+   *
    * @param angle An angle in field-relative coordinates
    * @param robot The robot's position
    * @return
    */
   public Command setAngleFieldRel(Angle angle, Pose2d robot) {
     return runOnce(
-      () -> {
-        setpoint = angle;
-        io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
-      }
-    );
+        () -> {
+          setpoint = angle;
+          io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
+        });
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {
