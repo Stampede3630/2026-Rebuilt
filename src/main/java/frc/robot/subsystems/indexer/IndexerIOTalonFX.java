@@ -4,7 +4,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -17,7 +16,7 @@ import frc.robot.Constants;
 public class IndexerIOTalonFX implements IndexerIO {
   private final TalonFX spin;
   private final TalonFX chute;
-  private final CANcoder encoder;
+  // private final CANcoder encoder;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
@@ -67,7 +66,7 @@ public class IndexerIOTalonFX implements IndexerIO {
     chuteTemp = chute.getDeviceTemp();
     // add chuteConfig here
 
-    encoder = new CANcoder(Constants.INDEXER_ENCODER_ID);
+    // encoder = new CANcoder(Constants.INDEXER_ENCODER_ID);
   }
 
   @Override

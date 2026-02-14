@@ -2,9 +2,16 @@ package frc.robot.subsystems.climber;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -39,8 +46,13 @@ public class ClimberIOTalonFX implements ClimberIO {
   private final StatusSignal<Current> hookSupplyCurrent;
   private final StatusSignal<Temperature> hookTemp;
 
+  private final MotionMagicExpoVoltage positionRequest =
+      new MotionMagicExpoVoltage(0.0).withEnableFOC(true);
+
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
+
+  private double elevSetpoint = 0;
 
   public ClimberIOTalonFX() {
     // init elevator motor
@@ -52,6 +64,40 @@ public class ClimberIOTalonFX implements ClimberIO {
     elevatorStatorCurrent = elevator.getStatorCurrent();
     elevatorSupplyCurrent = elevator.getSupplyCurrent();
     elevatorTemp = elevator.getDeviceTemp();
+
+    elevatorConfig
+        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+        .withSlot0(
+            new Slot0Configs()
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2)
+                .withKG(0)) /* set upwards PID */
+        .withSlot1(
+            new Slot1Configs()
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2)
+                .withKG(0)) /* set upwards PID */
+        .withMotionMagic(
+          new MotionMagicConfigs()
+          .withMotionMagicExpo_kA(0.0)
+          .withMotionMagicExpo_kV(0.0)
+          .withMotionMagicAcceleration(0.0)
+          .withMotionMagicCruiseVelocity(0.0))
+        .withSoftwareLimitSwitch(
+            /* disabled for now */ new SoftwareLimitSwitchConfigs()
+                .withForwardSoftLimitEnable(false)
+                .withForwardSoftLimitThreshold(30 /* 30 rot */)
+                .withReverseSoftLimitEnable(false)
+                .withReverseSoftLimitThreshold(0 /* 0 rot */)); /* set PID */
+    elevator.getConfigurator().apply(elevatorConfig);
     // add elevatorConfig here
 
     // init hook motor
@@ -63,6 +109,18 @@ public class ClimberIOTalonFX implements ClimberIO {
     hookStatorCurrent = hook.getStatorCurrent();
     hookSupplyCurrent = hook.getSupplyCurrent();
     hookTemp = hook.getDeviceTemp();
+
+    hookConfig
+        .withMotorOutput(new MotorOutputConfigs())
+        .withSlot0(
+            new Slot0Configs()
+                .withKS(1)
+                .withKV(1)
+                .withKA(1)
+                .withKP(1.4)
+                .withKI(0.01)
+                .withKD(0.2)); /* set PID */
+    hook.getConfigurator().apply(hookConfig);
     // add hookConfig here
 
   }
@@ -97,6 +155,7 @@ public class ClimberIOTalonFX implements ClimberIO {
     inputs.elevatorStatorCurrent = elevatorStatorCurrent.getValueAsDouble();
     inputs.elevatorSupplyCurrent = elevatorSupplyCurrent.getValueAsDouble();
     inputs.elevatorTemp = elevatorTemp.getValueAsDouble();
+    inputs.elevatorSetpoint = elevSetpoint;
 
     // hook
     inputs.hookPosition = hookPosition.getValueAsDouble();
@@ -136,6 +195,25 @@ public class ClimberIOTalonFX implements ClimberIO {
   @Override
   public void stopElevator() {
     elevator.stopMotor();
+  }
+
+  /**
+   * Sets the elevator to target a position
+   *
+   * @param pos The position to target, in rotations
+   * @param slot The config slot to use (0: up, 1: down)
+   */
+  @Override
+  public void runPosition(double pos, int slot) {
+    elevSetpoint = pos;
+    elevator.setControl(positionRequest.withPosition(pos).withSlot(slot));
+  }
+
+  @Override
+  public boolean setElevCoastMode(boolean enabled) {
+    return elevator
+        .setNeutralMode(enabled ? NeutralModeValue.Coast : NeutralModeValue.Brake)
+        .isOK();
   }
 
   // @Override

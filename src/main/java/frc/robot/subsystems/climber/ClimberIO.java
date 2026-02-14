@@ -7,9 +7,9 @@ public interface ClimberIO {
 
   default void updateInputs(ClimberIOInputs inputs) {}
 
-  // default boolean setCoastMode(boolean enabled) {
-  //   return true;
-  // }
+  default boolean setElevCoastMode(boolean enabled) {
+    return true;
+  }
 
   default void runDutyCycleHook(double dutyCycle) {}
 
@@ -18,6 +18,8 @@ public interface ClimberIO {
   default void runDutyCycleElevator(double dutyCycle) {}
 
   default void stopElevator() {}
+
+  default void runPosition(double pos, int slot) {}
 
   // default void setShooterMotorsControl(VoltageOut volts) {}
 
@@ -33,6 +35,7 @@ public interface ClimberIO {
     public double elevatorStatorCurrent = 0.0;
     public double elevatorSupplyCurrent = 0.0;
     public double elevatorTemp = 0.0;
+    public double elevatorSetpoint = 0.0;
 
     // hook motor
     public double hookPosition = 0.0;

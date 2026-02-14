@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -53,9 +54,11 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.*;
 import frc.robot.util.ShotInfo.ShotQuality;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -123,6 +126,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.2);
   /**
    * The duty cycle speed to use to flip the intake up/down [-1.0, 1.0]
+   *
    * <p>NOTE: negative is down; positive values will cause the intake to run backwards
    */
   private final LoggedNetworkNumber intakeFlipSpeed =
@@ -139,9 +143,11 @@ public class RobotContainer {
   private final LoggedNetworkNumber chuteSpeed =
       new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
 
-  /** The amount of simulation periodics before another fuel can be shot
+  /**
+   * The amount of simulation periodics before another fuel can be shot
+   *
    * <p>NOTE: negative is down; positive values will cause the indexer to run backwards
-  */
+   */
   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   // auto aim
@@ -186,23 +192,33 @@ public class RobotContainer {
               new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
-        Transform3dFunction[] offsets = {
-          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-          // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
-          // */).plus()
-          (lat) ->
-              new Transform3d(
-                  new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS.in(Meters), 2.0, 3.0)
-                      .rotateAround(
-                          new Translation3d(1.0, 2.0, 3.0),
-                          new Rotation3d(
-                              new Rotation2d(
-                                  turret
-                                      .getTurretAngle()
-                                      .plus(turret.getAngularVelocity().times(lat))))),
-                  new Rotation3d(new Rotation2d(turret.getTurretAngle())))
-        };
+
+        ArrayList<Function<Time, Transform3d>> offsets =
+            new ArrayList<>(
+                List.of(
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
+                    // */).plus()
+                    (lat) ->
+                        new Transform3d(
+                            Constants.TURRET_OFFSET_3D
+                                .plus(
+                                    new Translation3d(
+                                        Constants.TURRET_CAMERA_RADIUS,
+                                        Meters.of(0.0),
+                                        Meters.of(0.0)))
+                                .rotateAround(
+                                    Constants.TURRET_OFFSET_3D,
+                                    new Rotation3d(
+                                        new Rotation2d(
+                                            turret
+                                                .getTurretAngle()
+                                                .plus(turret.getAngularVelocity().times(lat))))),
+                            new Rotation3d(new Rotation2d(turret.getTurretAngle()))
+                                .plus(
+                                    new Rotation3d(
+                                        Degrees.of(0.0), Degrees.of(0.0), Degrees.of(40))))));
         // new Transform3d()
         // Rotation3d turretRot = turret.getRotation();
 
@@ -234,25 +250,25 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOPhotonVisionSim(
-              Constants.CHASSIS_CAMERA_1, new Transform3d(), drive::getPose),
+          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_2, new Transform3d()),
           //     new VisionIOPhotonVisionSim(
           //         Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
           //     new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
           //   drive::getPose)
         };
-        Transform3dFunction[] offsetsSim = {
-          (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
-          //   () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
-          //   () ->
-          //       new Transform3d(
-          //           new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
-          //               .rotateAround(
-          //                   new Translation3d(1.0, 2.0, 3.0),
-          //                   new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
-          //           new Rotation3d(new Rotation2d(turret.getTurretAngle())))
-        };
-
+        ArrayList<Function<Time, Transform3d>> offsetsSim =
+            new ArrayList<>(
+                List.of(
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
+                    //   () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
+                    //   () ->
+                    //       new Transform3d(
+                    //           new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                    //               .rotateAround(
+                    //                   new Translation3d(1.0, 2.0, 3.0),
+                    //                   new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                    //           new Rotation3d(new Rotation2d(turret.getTurretAngle())))
+                    ));
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
         tofTimer = null;
         initFuelSim();
@@ -280,10 +296,11 @@ public class RobotContainer {
           new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
-        Transform3dFunction[] offsetsDef = {
-          (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
-          (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)
-        };
+        ArrayList<Function<Time, Transform3d>> offsetsDef =
+            new ArrayList<>(
+                List.of(
+                    (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
+                    (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)));
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret, drive);
         tofTimer = null;
@@ -377,10 +394,7 @@ public class RobotContainer {
                         () -> {
                           shotInfo =
                               aimer.get(
-                                  drive
-                                      .getPose()
-                                      .getTranslation()
-                                      .plus(Constants.TURRET_OFFSET.getTranslation()),
+                                  drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET),
                                   drive.getFieldRelSpeeds(),
                                   getTarget(drive.getPose()),
                                   Constants.SHOT_LOOKUP,
@@ -457,6 +471,10 @@ public class RobotContainer {
     // raise/lower climber elevator
     controller.y().whileTrue(climber.runElevator(climbSpeedElev));
     controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+
+    // // rotate climber hook
+    // controller.b().whileTrue(climber.runHook(climbSpeedHook));
+    // controller.a().whileTrue(climber.runHook(() -> -climbSpeedHook.getAsDouble()));
   }
 
   /** Initializes fuel simulation */

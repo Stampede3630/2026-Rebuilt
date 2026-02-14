@@ -16,6 +16,7 @@ import frc.robot.Constants;
 public class IntakeIOTalonFX implements IntakeIO {
   private final TalonFX flip;
   private final TalonFX intake;
+  // private final CANcoder encoder;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 

@@ -13,8 +13,6 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -41,7 +39,7 @@ public final class Constants {
   public static final String CHASSIS_CAMERA_2 = "camera_1";
   public static final String TURRET_CAMERA = "camera_turret";
 
-  public static final Distance TURRET_CAMERA_RADIUS = Inches.of(3.5); // wrong
+  public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);
 
   // CAN IDs
   // Swerve IDs are located in frc.robot.generated.TunerConstants.java
@@ -52,10 +50,10 @@ public final class Constants {
   public static final int SHOOTER_FOLLOWER_ID = 19; // x
   public static final int INDEXER_SPIN_ID = 29; // x
   public static final int INDEXER_CHUTE_ID = 34; // x
-  public static final int INDEXER_ENCODER_ID = 38;
-  public static final int INTAKE_ID = 13;
+  public static final int INTAKE_ENCODER_ID = 38;
+  public static final int INTAKE_ID = 55; // x
   public static final int INTAKE_FLIP_ID = 10; // x
-  public static final int CLIMBER_HOOK_ID = 2; // x
+  public static final int CLIMBER_HOOK_ID = 53; // x
   public static final int CLIMBER_ELEVATOR_ID = 57; // x
 
   public static final int STARTING_FUEL_SIM = 0;
@@ -72,10 +70,12 @@ public final class Constants {
   public static final CANBus SWERVE_BUS = new CANBus("Swerve");
 
   /** The position of the turret relative to the center of the robot */
-  public static final Transform2d TURRET_OFFSET =
-      new Transform2d(
-          new Translation2d(Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0)),
-          new Rotation2d());
+  public static final Translation2d TURRET_OFFSET =
+      new Translation2d(Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0));
+
+  public static final Translation3d TURRET_OFFSET_3D =
+      new Translation3d(
+          Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0), Units.inchesToMeters(-21.604500));
 
   public static final LerpTable<Distance, ShooterParameters> SHOT_LOOKUP =
       new LerpTable<Distance, ShooterParameters>() {

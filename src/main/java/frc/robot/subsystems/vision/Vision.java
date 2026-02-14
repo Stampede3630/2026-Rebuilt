@@ -14,6 +14,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Time;
@@ -23,9 +24,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
-import frc.robot.util.Transform3dFunction;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -33,20 +35,20 @@ public class Vision extends SubsystemBase {
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
-  private final Transform3dFunction[] offsets;
+  private final ArrayList<Function<Time, Transform3d>> offsets;
   private final Turret turret;
   private final Drive drive;
 
   public Vision(
       VisionConsumer consumer,
       VisionIO[] io,
-      Transform3dFunction[] offsets,
+      ArrayList<Function<Time, Transform3d>> offsets,
       Turret turret,
       Drive drive) {
     this.consumer = consumer;
     this.io = io;
     this.offsets = offsets;
-    if (io.length != offsets.length) {
+    if (io.length != offsets.size()) {
       // System.out.println("Array lengths don't match!");
     }
     this.turret = turret;
@@ -113,7 +115,7 @@ public class Vision extends SubsystemBase {
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
         Pose3d transformedPose =
-            observation.pose().transformBy(offsets[cameraIndex].apply(latency));
+            observation.pose().transformBy(offsets.get(cameraIndex).apply(latency));
 
         // Check whether to reject pose
         boolean rejectPose =
@@ -165,7 +167,7 @@ public class Vision extends SubsystemBase {
                   .minus(drive.getPose().getRotation())
                   .getMeasure());
         }
-        System.out.println("ACCEPTED");
+        // System.out.println("ACCEPTED");
 
         // Send vision observation
         consumer.accept(
