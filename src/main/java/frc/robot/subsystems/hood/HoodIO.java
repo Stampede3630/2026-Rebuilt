@@ -1,8 +1,6 @@
 package frc.robot.subsystems.hood;
 
-import static edu.wpi.first.units.Units.Radians;
-
-import edu.wpi.first.units.measure.Angle;
+import frc.robot.subsystems.hood.HoodIO.HoodIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface HoodIO {
@@ -12,24 +10,6 @@ public interface HoodIO {
     return true;
   }
 
-  default void setHoodAngle(Angle angle) {}
-
-  /**
-   * @return The current angle of the turret's hood
-   */
-  default Angle getHoodAngle() {
-    return Radians.of(0);
-  }
-
-  default void resetAnglePos(Angle newAngle) {}
-
-  /**
-   * A method to be used in case turret auto aim is disabled
-   *
-   * @param speed The speed to turn at [-1, 1]
-   */
-  default void runHood(double speed) {}
-
   default void stopHood() {}
 
   default double getHoodPos() {
@@ -38,15 +18,17 @@ public interface HoodIO {
 
   default void setHoodPos(double pos) {}
 
+  default void setMicroseconds(int max) {}
+
   @AutoLog
   class HoodIOInputs {
     // public boolean connected = false;
 
     // hood motor
-    public double position = 0.0;
-    public double angle = 0.0;
+    public double positionEstimate = 0.0;
+    // public double angle = 0.0;
     public double positionSetpoint = 0.0;
-    public double angleSetpoint = 0.0;
+    // public double angleSetpoint = 0.0;
 
     // public double velocity = 0.0;
     // // public double torqueCurrent = 0.0;

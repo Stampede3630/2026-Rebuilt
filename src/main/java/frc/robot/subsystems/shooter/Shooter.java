@@ -3,7 +3,7 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -24,7 +24,7 @@ public class Shooter extends SubsystemBase {
 
   private final SysIdRoutine routine;
 
-  private final VoltageOut req = new VoltageOut(0.0);
+  private final TorqueCurrentFOC req = new TorqueCurrentFOC(0.0);
 
   public Shooter(ShooterIO io, Supplier<Pose2d> pose) {
     this.io = io;

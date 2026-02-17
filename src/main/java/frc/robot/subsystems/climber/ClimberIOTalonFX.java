@@ -52,7 +52,8 @@ public class ClimberIOTalonFX implements ClimberIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
-  private double elevSetpoint = 0;
+  private double elevSetpoint = 0.0;
+  private double hookSetpoint = 0.0;
 
   public ClimberIOTalonFX() {
     // init elevator motor
@@ -86,11 +87,11 @@ public class ClimberIOTalonFX implements ClimberIO {
                 .withKD(0.2)
                 .withKG(0)) /* set upwards PID */
         .withMotionMagic(
-          new MotionMagicConfigs()
-          .withMotionMagicExpo_kA(0.0)
-          .withMotionMagicExpo_kV(0.0)
-          .withMotionMagicAcceleration(0.0)
-          .withMotionMagicCruiseVelocity(0.0))
+            new MotionMagicConfigs()
+                .withMotionMagicExpo_kA(0.0)
+                .withMotionMagicExpo_kV(0.0)
+                .withMotionMagicAcceleration(0.0)
+                .withMotionMagicCruiseVelocity(0.0))
         .withSoftwareLimitSwitch(
             /* disabled for now */ new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(false)
@@ -165,6 +166,7 @@ public class ClimberIOTalonFX implements ClimberIO {
     inputs.hookStatorCurrent = hookStatorCurrent.getValueAsDouble();
     inputs.hookSupplyCurrent = hookSupplyCurrent.getValueAsDouble();
     inputs.hookTemp = hookTemp.getValueAsDouble();
+    inputs.hookSetpoint = hookSetpoint;
   }
 
   // @Override
@@ -204,7 +206,7 @@ public class ClimberIOTalonFX implements ClimberIO {
    * @param slot The config slot to use (0: up, 1: down)
    */
   @Override
-  public void runPosition(double pos, int slot) {
+  public void runElevPos(double pos, int slot) {
     elevSetpoint = pos;
     elevator.setControl(positionRequest.withPosition(pos).withSlot(slot));
   }
@@ -216,14 +218,9 @@ public class ClimberIOTalonFX implements ClimberIO {
         .isOK();
   }
 
-  // @Override
-  // public double getShooterSpeed() {
-  //   return elevator.getVelocity().getValueAsDouble() * elevator.WHEEL_RADIUS_METERS;
-  // }
-
-  // @Override
-  // public void setShooterMotorsControl(VoltageOut volts) {
-  //   elevator.setControl(volts);
-  //   hook.setControl(volts);
-  // }
+  @Override
+  public void runHookPos(double pos) {
+    hookSetpoint = pos;
+    hook.setControl(positionRequest.withPosition(pos).withSlot(0));
+  }
 }

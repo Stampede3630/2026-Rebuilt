@@ -1,6 +1,6 @@
 package frc.robot.subsystems.shooter;
 
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.ControlRequest;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ShooterIO {
@@ -18,7 +18,7 @@ public interface ShooterIO {
     return 0.0;
   }
 
-  default void setShooterMotorsControl(VoltageOut volts) {}
+  default void setShooterMotorsControl(ControlRequest control) {}
 
   @AutoLog
   class ShooterIOInputs {

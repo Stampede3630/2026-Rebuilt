@@ -19,7 +19,20 @@ public interface ClimberIO {
 
   default void stopElevator() {}
 
-  default void runPosition(double pos, int slot) {}
+  /**
+   * Sets the elevator to target a position
+   *
+   * @param pos The position to target, in rotations
+   * @param slot The config slot to use (0: up, 1: down)
+   */
+  default void runElevPos(double pos, int slot) {}
+
+  /**
+   * Sets the hook to target a position
+   *
+   * @param pos The position to target, in rotations
+   */
+  default void runHookPos(double pos) {}
 
   // default void setShooterMotorsControl(VoltageOut volts) {}
 
@@ -45,5 +58,6 @@ public interface ClimberIO {
     public double hookStatorCurrent = 0.0;
     public double hookSupplyCurrent = 0.0;
     public double hookTemp = 0.0;
+    public double hookSetpoint = 0.0;
   }
 }

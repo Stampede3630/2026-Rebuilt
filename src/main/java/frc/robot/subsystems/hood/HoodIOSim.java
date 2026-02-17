@@ -1,11 +1,8 @@
 package frc.robot.subsystems.hood;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -55,33 +52,8 @@ public class HoodIOSim implements HoodIO {
   }
 
   @Override
-  public void setHoodAngle(Angle angle) {
-    // hoodMotor.setAngle(angle.in(Radians)); // temp for fuel sim
-    if (!disablePID.getAsBoolean()) {
-      hoodActive = true;
-      controller.setSetpoint(angle.in(Radians));
-    } else {
-      hoodMotor.setAngle(angle.magnitude());
-    }
-  }
-
-  @Override
-  public void runHood(double speed) {
-    hoodMotor.setAngularVelocity(speed);
-  }
-
-  @Override
   public void stopHood() {
     hoodActive = false;
     hoodMotor.setAngularVelocity(0);
-  }
-
-  /**
-   * @return The current angle of the hood
-   */
-  @Override
-  public Angle getHoodAngle() {
-    // return null;
-    return hoodMotor.getAngularPosition();
   }
 }

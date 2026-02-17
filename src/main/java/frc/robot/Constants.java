@@ -55,19 +55,23 @@ public final class Constants {
   public static final int INTAKE_FLIP_ID = 10; // x
   public static final int CLIMBER_HOOK_ID = 53; // x
   public static final int CLIMBER_ELEVATOR_ID = 57; // x
+  // need to activate back left module's pass
 
   public static final int STARTING_FUEL_SIM = 0;
 
   public static final int LED_PORT = 0;
-  public static final int HOOD_PORT = 1;
+  public static final int HOOD_PORT = 9;
 
   public static final int HUB_PORT = 0;
-  public static final int SHOOTER_CANRANGE = 100;
+  public static final int SHOOTER_CANRANGE = 0;
+
+  public static final double TURRET_GEAR_RATIO = 48;
 
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
 
   public static final CANBus SWERVE_BUS = new CANBus("Swerve");
+  public static final CANBus SHOOTER_BUS = new CANBus("rio");
 
   /** The position of the turret relative to the center of the robot */
   public static final Translation2d TURRET_OFFSET =

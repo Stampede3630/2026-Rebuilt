@@ -3,12 +3,14 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.controls.VoltageOut;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Hood extends SubsystemBase {
   // temp
@@ -28,7 +30,9 @@ public class Hood extends SubsystemBase {
   //  private final SysIdRoutine routine;
 
   private Angle setpoint = Degrees.of(0);
+  private double setpointPos = 0;
 
+ 
   public Hood(HoodIO io) {
     this.io = io;
     //    routine =
@@ -46,17 +50,9 @@ public class Hood extends SubsystemBase {
     // need to change to reset for real robot
 
     // need to figure out pre-init for real matches
-    runSetHoodAngle(Degrees.of(80));
+    // runSetHoodAngle(Degrees.of(80));
     // turretMechanism = new Mechanism2d(0.05, 0.05);
   }
-
-  //  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //    return routine.quasistatic(direction);
-  //  }
-  //
-  //  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  //    return routine.quasistatic(direction);
-  //  }
 
   @Override
   public void periodic() {
@@ -74,38 +70,35 @@ public class Hood extends SubsystemBase {
   //    io.setHoodAngle(Radians.of(ANGLE_DATA.apply(dist.getAsDouble())));
   //  }
 
-  public Angle getHoodAngle() {
-    return io.getHoodAngle();
-  }
-
-  public Command setHoodAngle(Supplier<Angle> angle) {
+  public Command setHood(DoubleSupplier pos) {
     return runOnce(
         () -> {
-          setpoint = angle.get();
-          io.setHoodAngle(setpoint);
+          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 1);
+          io.setHoodPos(setpointPos);
+          System.out.println(setpointPos);
+          // 0.35-0.7
         });
   }
 
-  public void runSetHoodAngle(Angle angle) {
-    setpoint = angle;
-    io.setHoodAngle(angle);
+  public Command hoodUp() {
+    return setHood(
+        () -> {
+          setpointPos += 0.05;
+          setpointPos = Math.min(setpointPos, 1);
+          return setpointPos;
+        });
   }
 
-  public Command runHood(DoubleSupplier speed) {
-    return run(() -> io.runHood(speed.getAsDouble()));
+  public Command hoodDown() {
+    return setHood(
+        () -> {
+          setpointPos -= 0.05;
+          setpointPos = Math.max(setpointPos, 0);
+          return setpointPos;
+        });
   }
 
-  public Command spin(DoubleSupplier dutyCycleSpeed) {
-    return run(() -> io.runHood(dutyCycleSpeed.getAsDouble()));
+  public double getHood() {
+    return io.getHoodPos();
   }
-
-  public boolean isAtSetpoint(Angle tolerance) {
-    return setpoint.isNear(getHoodAngle(), tolerance);
-  }
-
-  // public double getOptimalVelocity(Pose2d pose, Pose2d target) {
-  //   double xGoal = pose.getTranslation().getDistance(target.getTranslation());
-  //   double yGoal = FieldConstants.HUB_HEIGHT;
-
-  // }
 }

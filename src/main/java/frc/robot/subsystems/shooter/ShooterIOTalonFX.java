@@ -5,10 +5,11 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -51,7 +52,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   public ShooterIOTalonFX() {
     // init leader motor
-    leader = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SWERVE_BUS);
+    leader = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_BUS);
     leaderPosition = leader.getPosition();
     leaderVelocity = leader.getVelocity();
     leaderTorqueCurrent = leader.getTorqueCurrent();
@@ -61,7 +62,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leaderTemp = leader.getDeviceTemp();
 
     // init follower motor
-    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID, Constants.SWERVE_BUS);
+    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID, Constants.SHOOTER_BUS);
     followerPosition = follower.getPosition();
     followerVelocity = follower.getVelocity();
     followerTorqueCurrent = follower.getTorqueCurrent();
@@ -71,15 +72,15 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerTemp = follower.getDeviceTemp();
 
     config
-        .withMotorOutput(new MotorOutputConfigs())
+        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withSlot0(
             new Slot0Configs()
-                .withKS(1)
-                .withKV(0.1)
-                .withKA(0.01)
-                .withKP(1.4)
-                .withKI(0.01)
-                .withKD(0.2));
+                .withKS(2.1)
+                .withKV(0.01)
+                .withKA(0.0)
+                .withKP(5.0)
+                .withKI(0.0)
+                .withKD(0.0));
     leader.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
 
@@ -147,8 +148,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   }
 
   @Override
-  public void setShooterMotorsControl(VoltageOut volts) {
-    leader.setControl(volts);
+  public void setShooterMotorsControl(ControlRequest control) {
+    leader.setControl(control);
   }
 
   @Override

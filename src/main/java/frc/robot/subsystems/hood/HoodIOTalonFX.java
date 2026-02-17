@@ -1,11 +1,10 @@
 package frc.robot.subsystems.hood;
 
-import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.units.measure.Angle;
 import frc.robot.Constants;
 
+@Deprecated
 public class HoodIOTalonFX implements HoodIO {
   private final TalonFX hoodMotor;
   // private final CANcoder cancoder;
@@ -68,26 +67,6 @@ public class HoodIOTalonFX implements HoodIO {
     // inputs.supplyCurrent = supplyCurrent.getValueAsDouble();
     // inputs.temp = temp.getValueAsDouble();
     // inputs.setpoint = setpoint.magnitude();
-  }
-
-  @Override
-  public void setHoodAngle(Angle angle) {
-    // setpoint = angle;
-    hoodMotor.setControl(new PositionTorqueCurrentFOC(angle));
-  }
-
-  /**
-   * @return The current angle of the hood, in rotations NOTE: need to initialize at a specific
-   *     angle
-   */
-  @Override
-  public Angle getHoodAngle() {
-    return hoodMotor.getPosition().getValue();
-  }
-
-  @Override
-  public void runHood(double speed) {
-    hoodMotor.set(speed);
   }
 
   @Override

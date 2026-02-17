@@ -23,7 +23,7 @@ public class TofTimer extends SubsystemBase {
     return finishedShots;
   }
 
-  private double timeoutThreshold = 100000;
+  private double timeoutThreshold = 30;
 
   public TofTimer(TofTimerIO io) {
     this.io = io;
@@ -49,6 +49,7 @@ public class TofTimer extends SubsystemBase {
 
       if (ballShot) {
         activeShots.add(new Shot(Timer.getFPGATimestamp()));
+        state = State.NOT_READY;
       }
 
       if (hubTriggered) {
@@ -68,8 +69,9 @@ public class TofTimer extends SubsystemBase {
             return false;
           });
     } else {
-      if (!hubTriggered
-          && activeShots.size() == 0) { // if hub is ready and there are no shots in progress
+      // if hub is ready and there are no shots in progress OR if there is an active shot and the
+      // sensor is ready again
+      if (!hubTriggered && activeShots.size() == 0 || !ballShot && activeShots.size() > 0) {
         state = State.READY;
         return;
       }

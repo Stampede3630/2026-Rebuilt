@@ -4,12 +4,14 @@ import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -50,15 +52,22 @@ public class TurretIOTalonFX implements TurretIO {
     turretTemp = turretMotor.getDeviceTemp();
 
     turretConfig
-        .withMotorOutput(new MotorOutputConfigs())
-        .withSlot0(
-            new Slot0Configs()
-                .withKS(1)
-                .withKV(1)
-                .withKA(1)
-                .withKP(1.4)
-                .withKI(0.01)
-                .withKD(0.2)); /* set PID */
+        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+        // .withSlot0(
+        //     new Slot0Configs()
+        //         .withKS()
+        //         .withKV()
+        //         .withKA()
+        //         .withKP(1.4)
+        //         .withKI(0.01)
+        //         .withKD(0.2)) /* set PID */
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(Constants.TURRET_GEAR_RATIO))
+        .withSoftwareLimitSwitch(
+            new SoftwareLimitSwitchConfigs()
+                .withForwardSoftLimitEnable(false)
+                .withForwardSoftLimitThreshold(0.0)
+                .withReverseSoftLimitEnable(false)
+                .withReverseSoftLimitThreshold(0.0)); // tune numbers later
     turretMotor.getConfigurator().apply(turretConfig);
   }
 

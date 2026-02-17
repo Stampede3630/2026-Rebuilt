@@ -124,7 +124,7 @@ public class NamedCommands {
         "aimAndShoot",
         Commands.parallel(
             Commands.parallel(
-                hood.setHoodAngle(() -> Radians.of(shotInfo.shooterParameters().hood()))
+                hood.setHood(() -> shotInfo.shooterParameters().hood())
                     .onlyIf(
                         () ->
                             !isHoodAngleRight(
@@ -152,8 +152,9 @@ public class NamedCommands {
         .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
   }
 
+  @Deprecated
   public boolean isHoodAngleRight(Pose2d pose, ChassisSpeeds vel, double latency) {
-    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHoodAngle().magnitude())
+    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood())
         < Degrees.of(hoodTolDeg.getAsDouble()).baseUnitMagnitude();
     // temporary while hood chaos gets sorted out
   }

@@ -51,13 +51,21 @@ public class Climber extends SubsystemBase {
     return runOnce(() -> io.stopElevator());
   }
 
-  public Command runPosition(DoubleSupplier pos) {
-    return runOnce(() -> {
-    if (pos.getAsDouble() < inputs.elevatorSetpoint) { // use down PID if going down
-      io.runPosition(pos.getAsDouble(), 1);
-    } else { // use up PID otherwise
-      io.runPosition(pos.getAsDouble(), 0);
-    }});
+  public Command setElevPos(DoubleSupplier pos) {
+    return runOnce(
+        () -> {
+          if (pos.getAsDouble() < inputs.elevatorSetpoint) { // use down PID if going down
+            io.runElevPos(pos.getAsDouble(), 1);
+          } else { // use up PID otherwise
+            io.runElevPos(pos.getAsDouble(), 0);
+          }
+        });
+  }
+
+  public Command setHoodPos(DoubleSupplier pos) {
+    return runOnce(
+      () -> io.runHookPos(pos.getAsDouble())
+    );
   }
 
   @Override
