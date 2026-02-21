@@ -1,11 +1,9 @@
 package frc.robot.subsystems.hood;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class HoodIOServo implements HoodIO {

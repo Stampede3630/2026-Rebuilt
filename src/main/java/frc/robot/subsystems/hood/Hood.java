@@ -3,14 +3,12 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.controls.VoltageOut;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Hood extends SubsystemBase {
   // temp
@@ -32,7 +30,6 @@ public class Hood extends SubsystemBase {
   private Angle setpoint = Degrees.of(0);
   private double setpointPos = 0;
 
- 
   public Hood(HoodIO io) {
     this.io = io;
     //    routine =

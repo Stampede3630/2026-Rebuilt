@@ -2,9 +2,11 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -64,6 +66,8 @@ public class IntakeIOTalonFX implements IntakeIO {
     flipStatorCurrent = flip.getStatorCurrent();
     flipSupplyCurrent = flip.getSupplyCurrent();
     flipTemp = flip.getDeviceTemp();
+    flipConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+    flip.getConfigurator().apply(flipConfig);
     // add flipConfig here
 
   }

@@ -24,6 +24,7 @@ public class TofTimerIOHardware implements TofTimerIO {
             .withMinSignalStrengthForValidMeasurement(1000)
             .withProximityHysteresis(0.001)
             .withProximityThreshold(0.1));
+    canRange.getConfigurator().apply(configuration);
     ballShotSignal = canRange.getIsDetected();
   }
 

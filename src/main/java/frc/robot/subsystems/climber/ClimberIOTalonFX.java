@@ -112,7 +112,7 @@ public class ClimberIOTalonFX implements ClimberIO {
     hookTemp = hook.getDeviceTemp();
 
     hookConfig
-        .withMotorOutput(new MotorOutputConfigs())
+        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
         .withSlot0(
             new Slot0Configs()
                 .withKS(1)

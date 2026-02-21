@@ -35,7 +35,7 @@ public class Climber extends SubsystemBase {
   // }
 
   public Command runHook(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleHook(dutyCycle.getAsDouble()));
+    return startEnd(() -> io.runDutyCycleHook(dutyCycle.getAsDouble()), () -> io.stopHook());
   }
 
   public Command stopHook() {
@@ -63,9 +63,7 @@ public class Climber extends SubsystemBase {
   }
 
   public Command setHoodPos(DoubleSupplier pos) {
-    return runOnce(
-      () -> io.runHookPos(pos.getAsDouble())
-    );
+    return runOnce(() -> io.runHookPos(pos.getAsDouble()));
   }
 
   @Override

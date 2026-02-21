@@ -64,10 +64,10 @@ public class TurretIOTalonFX implements TurretIO {
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(Constants.TURRET_GEAR_RATIO))
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
-                .withForwardSoftLimitEnable(false)
-                .withForwardSoftLimitThreshold(0.0)
-                .withReverseSoftLimitEnable(false)
-                .withReverseSoftLimitThreshold(0.0)); // tune numbers later
+                .withForwardSoftLimitEnable(true)
+                .withForwardSoftLimitThreshold(1.0) // roughly 1.0
+                .withReverseSoftLimitEnable(true)
+                .withReverseSoftLimitThreshold(-0.11)); // could be adjusted slightly
     turretMotor.getConfigurator().apply(turretConfig);
   }
 

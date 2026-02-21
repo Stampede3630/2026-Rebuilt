@@ -2,12 +2,13 @@ package frc.robot.util;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
 import frc.robot.Constants;
 import frc.robot.util.ShotInfo.ShotQuality;
@@ -37,7 +38,6 @@ public class NewtonAutoAim implements AutoAimer {
    *     if the robot were still, then accounting for the robot's current velocity
    */
   // @Override
-
   public ShotInfo get(
       Translation2d turretPosition,
       ChassisSpeeds chassisSpeeds,
@@ -53,7 +53,14 @@ public class NewtonAutoAim implements AutoAimer {
             -chassisSpeeds.omegaRadiansPerSecond * Constants.TURRET_OFFSET.getY(),
             chassisSpeeds.omegaRadiansPerSecond * Constants.TURRET_OFFSET.getX());
     robotVelocity = robotVelocity.plus(rotationVelocity);
-    double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
+    // use constant projectile velocity model for initial guess
+    // angle between robot velocity and target
+    Rotation2d angle = robotVelocity.getAngle().minus(goal.getAngle());
+    // velocity of shot from current position
+    LinearVelocity vel = shotLookup.apply(Meters.of(dist.getNorm())).shooterVelocity();
+    double time =
+        dist.getNorm() / (vel.in(MetersPerSecond) + robotVelocity.times(angle.getCos()).getNorm());
+    // double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
     Translation2d virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
 
     // newton's method

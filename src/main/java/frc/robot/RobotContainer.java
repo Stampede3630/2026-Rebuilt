@@ -115,9 +115,9 @@ public class RobotContainer {
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 0.5);
-  /** The speed target to set the shooter to while auto aim is disabled, in m/s */
+  /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 1.0);
+      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 40.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
@@ -130,10 +130,10 @@ public class RobotContainer {
    * <p>NOTE: negative is down; positive values will cause the intake to run backwards
    */
   private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("Intake/intakeFlipSpeed", -0.2);
+      new LoggedNetworkNumber("Intake/intakeFlipSpeed", -0.1);
   /** The duty cycle speed to use to climb with the elevator */
   private final LoggedNetworkNumber climbSpeedElev =
-      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.8);
+      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.2);
   /** The duty cycle speed to use to climb with the hooks */
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
@@ -441,12 +441,12 @@ public class RobotContainer {
         .whileFalse(intake.runIntake(intakeIdleSpeed));
 
     // // flip intake down
-    // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
+    controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
-    controller.leftBumper().onTrue(hood.hoodUp());
-    controller.rightBumper().onTrue(hood.hoodDown());
+    // controller.leftBumper().onTrue(hood.hoodUp());
+    // controller.rightBumper().onTrue(hood.hoodDown());
 
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));

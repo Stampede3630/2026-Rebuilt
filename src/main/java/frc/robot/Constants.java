@@ -37,7 +37,7 @@ public final class Constants {
 
   public static final String CHASSIS_CAMERA_1 = "camera_0";
   public static final String CHASSIS_CAMERA_2 = "camera_1";
-  public static final String TURRET_CAMERA = "camera_turret";
+  public static final String TURRET_CAMERA = "limelight-turret";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);
 
@@ -54,7 +54,7 @@ public final class Constants {
   public static final int INTAKE_ID = 55; // x
   public static final int INTAKE_FLIP_ID = 10; // x
   public static final int CLIMBER_HOOK_ID = 53; // x
-  public static final int CLIMBER_ELEVATOR_ID = 57; // x
+  public static final int CLIMBER_ELEVATOR_ID = 17; // x
   // need to activate back left module's pass
 
   public static final int STARTING_FUEL_SIM = 0;
