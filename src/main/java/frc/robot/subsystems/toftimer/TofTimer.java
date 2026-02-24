@@ -3,6 +3,9 @@ package frc.robot.subsystems.toftimer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.toftimer.TofTimer.Shot.ShotState;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import org.littletonrobotics.junction.Logger;
@@ -78,9 +81,74 @@ public class TofTimer extends SubsystemBase {
     }
   }
 
+  public void initFile(String path) {
+    File file = new File(path);
+    if (!file.exists()) {
+      try (FileWriter writer = new FileWriter(path)) {
+        file.createNewFile();
+        System.out.println("Creating new file at " + path);
+        String headers = "distMeters,tofSec,hoodPerc,shootSetRPS,shootRealRPS\n";
+        writer.append(headers);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } else {
+      System.out.println("File already exists at " + path + "! Skipping...");
+    }
+  }
+
+  public void writeCSV(
+      double distMeters, double hoodPerc, double shootSetRPS, double shootRealRPS, String path) {
+    try (FileWriter writer = new FileWriter(path)) {
+      // dist.in(Meters);
+      double time = this.getFinishedShots().remove().getTof();
+      String data =
+          ""
+              + distMeters
+              + ","
+              + time
+              + ","
+              + hoodPerc
+              + ","
+              + shootSetRPS
+              + ","
+              + shootRealRPS
+              + "\n";
+      writer.append(data);
+      System.out.println("wrote data " + data);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public class Shot {
     private double shotTime;
     private double landTime;
+
+    public double getShotTime() {
+      return shotTime;
+    }
+
+    public void setShotTime(double shotTime) {
+      this.shotTime = shotTime;
+    }
+
+    public double getLandTime() {
+      return landTime;
+    }
+
+    public void setLandTime(double landTime) {
+      this.landTime = landTime;
+    }
+
+    public ShotState getState() {
+      return state;
+    }
+
+    public void setState(ShotState state) {
+      this.state = state;
+    }
+
     private ShotState state;
 
     public enum ShotState {
@@ -92,6 +160,10 @@ public class TofTimer extends SubsystemBase {
     Shot(double shotTime) {
       this.shotTime = shotTime;
       state = ShotState.SHOT;
+    }
+
+    public double getTof() {
+      return landTime - shotTime;
     }
   }
 

@@ -6,9 +6,12 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -35,6 +38,11 @@ public class TurretIOTalonFX implements TurretIO {
   private final StatusSignal<Current> turretStatorCurrent;
   private final StatusSignal<Current> turretSupplyCurrent;
   private final StatusSignal<Temperature> turretTemp;
+
+  private final PositionVoltage posRequestVoltage = new PositionVoltage(0.0);
+  private final PositionTorqueCurrentFOC posRequestTorqueCurrent =
+      new PositionTorqueCurrentFOC(0.0);
+
   private Angle turretSetpoint = Radians.of(0);
 
   // whether the angle offset has been set since the robot's code last booted
@@ -53,14 +61,22 @@ public class TurretIOTalonFX implements TurretIO {
 
     turretConfig
         .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
-        // .withSlot0(
-        //     new Slot0Configs()
-        //         .withKS()
-        //         .withKV()
-        //         .withKA()
-        //         .withKP(1.4)
-        //         .withKI(0.01)
-        //         .withKD(0.2)) /* set PID */
+        .withSlot0(
+            new Slot0Configs() // set PID for PositionVoltage
+                .withKS(2.0)
+                .withKV(0.0)
+                .withKA(0.0)
+                .withKP(100)
+                .withKI(0.0)
+                .withKD(0.0))
+        .withSlot1(
+            new Slot1Configs() // set PID for PositionTorqueCurrentFOC
+                .withKS(0.0)
+                .withKV(0.0)
+                .withKA(0.0)
+                .withKP(0.0)
+                .withKI(0.0)
+                .withKD(0.0))
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(Constants.TURRET_GEAR_RATIO))
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
@@ -110,7 +126,13 @@ public class TurretIOTalonFX implements TurretIO {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
     turretSetpoint = angle;
-    turretMotor.setControl(new PositionTorqueCurrentFOC(angle));
+    turretMotor.setControl(posRequestVoltage.withPosition(angle).withSlot(0));
+  }
+
+  @Override
+  public void setTurretAngleTorqueCurrent(Angle angle) {
+    turretSetpoint = angle;
+    turretMotor.setControl(posRequestTorqueCurrent.withPosition(angle).withSlot(1));
   }
 
   /**

@@ -1,6 +1,9 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.ctre.phoenix6.controls.ControlRequest;
+import edu.wpi.first.units.measure.AngularVelocity;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ShooterIO {
@@ -19,6 +22,14 @@ public interface ShooterIO {
   }
 
   default void setShooterMotorsControl(ControlRequest control) {}
+
+  default AngularVelocity getSpeedSetpoint() {
+    return RadiansPerSecond.of(0);
+  }
+
+  default AngularVelocity getSpeedReal() {
+    return RadiansPerSecond.of(0);
+  }
 
   @AutoLog
   class ShooterIOInputs {

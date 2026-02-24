@@ -19,6 +19,8 @@ public class Turret extends SubsystemBase {
   // temp
   // change
 
+  // 100 voltage kP 2 voltage kS
+
   private final TurretIO io;
 
   public static final double WHEEL_RADIUS_METERS = 0.06;
@@ -33,6 +35,8 @@ public class Turret extends SubsystemBase {
   private final SysIdRoutine routine;
 
   private Angle setpoint = Degrees.of(0);
+
+  private Angle testSetpoint = Degrees.of(0);
 
   public Turret(TurretIO io) {
     this.io = io;
@@ -117,6 +121,24 @@ public class Turret extends SubsystemBase {
         () -> {
           setpoint = angle;
           io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
+        });
+  }
+
+  public Command moveTurretRight() {
+    return runOnce(
+        () -> {
+          testSetpoint = testSetpoint.plus(Degrees.of(5));
+          System.out.println(testSetpoint);
+          runSetTurretAngle(testSetpoint);
+        });
+  }
+
+  public Command moveTurretLeft() {
+    return runOnce(
+        () -> {
+          testSetpoint = testSetpoint.minus(Degrees.of(5));
+          System.out.println(testSetpoint);
+          runSetTurretAngle(testSetpoint);
         });
   }
 

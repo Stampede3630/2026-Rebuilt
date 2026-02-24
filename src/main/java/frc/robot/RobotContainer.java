@@ -38,7 +38,6 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIOServo;
 import frc.robot.subsystems.hood.HoodIOSim;
-import frc.robot.subsystems.hood.HoodIOTalonFX;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
@@ -63,6 +62,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -81,7 +81,7 @@ public class RobotContainer {
   private final Climber climber;
   private final Indexer indexer;
   private final Hood hood;
-  private final TofTimer tofTimer;
+  private final TofTimer tofDataLog;
 
   //   private final Leds leds = Leds.getInstance();
 
@@ -108,7 +108,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber hoodTolDeg = new LoggedNetworkNumber("Hood/hoodTolDeg", 0.5);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
-      new LoggedNetworkBoolean("Turret/enableAutoAim", true);
+      new LoggedNetworkBoolean("Turret/enableAutoAim", false); // change b4 comp
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
   private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.1);
@@ -138,7 +138,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
   /** The duty cycle speed to run the spindexer with */
-  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.3);
+  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.45);
   /** The duty cycle speed to run the chute with */
   private final LoggedNetworkNumber chuteSpeed =
       new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
@@ -153,6 +153,10 @@ public class RobotContainer {
    * <p>NOTE: negative is down; positive values will cause the indexer to run backwards
    */
   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
+
+  private final LoggedNetworkNumber dist = new LoggedNetworkNumber("Tof/dist", 0.0);
+  private final LoggedNetworkString path =
+      new LoggedNetworkString("Tof/path", "/home/lvuser/deploy/data_1");
 
   // auto aim
   private AutoAimer aimer = new NewtonAutoAim();
@@ -227,7 +231,8 @@ public class RobotContainer {
         // Rotation3d turretRot = turret.getRotation();
 
         vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
-        tofTimer = new TofTimer(new TofTimerIOHardware());
+        tofDataLog = new TofTimer(new TofTimerIOHardware());
+        tofDataLog.initFile(path.get());
         // turretVision = new Vision(null, new VisionIOLimelight(Constants.TURRET_CAMERA,
         // outtake::getTurretRotation));
         break;
@@ -274,7 +279,7 @@ public class RobotContainer {
                     //           new Rotation3d(new Rotation2d(turret.getTurretAngle())))
                     ));
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
-        tofTimer = null;
+        tofDataLog = null;
         initFuelSim();
 
         break;
@@ -293,7 +298,7 @@ public class RobotContainer {
         turret = new Turret(new TurretIOTalonFX());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
-        hood = new Hood(new HoodIOTalonFX());
+        hood = new Hood(new HoodIOServo());
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsDef = {
@@ -307,7 +312,7 @@ public class RobotContainer {
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)));
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret, drive);
-        tofTimer = null;
+        tofDataLog = null;
 
         break;
     }
@@ -441,25 +446,28 @@ public class RobotContainer {
         .whileFalse(intake.runIntake(intakeIdleSpeed));
 
     // // flip intake down
-    controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
+    // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
-    // controller.leftBumper().onTrue(hood.hoodUp());
-    // controller.rightBumper().onTrue(hood.hoodDown());
+    controller.leftBumper().onTrue(hood.hoodUp());
+    controller.rightBumper().onTrue(hood.hoodDown());
 
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // turn turret if auto aim is disabled
-    controller
-        .povLeft()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
-    controller
-        .povRight()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+    // controller
+    //     .povLeft()
+    //     .and(() -> !enableAutoAim.getAsBoolean())
+    //     .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
+    // controller
+    //     .povRight()
+    //     .and(() -> !enableAutoAim.getAsBoolean())
+    //     .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+
+    controller.povLeft().onTrue(turret.moveTurretLeft());
+    controller.povRight().onTrue(turret.moveTurretRight());
 
     // raise/lower hood if auto aim is disabled
     // commented out to test other things and bc hood does not currently work
@@ -473,11 +481,25 @@ public class RobotContainer {
     //     .whileTrue(hood.spin(() -> -0.1));
 
     // run the indexer
-    controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
+    // controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
+    controller.b().onTrue(indexer.runChute(chuteSpeed).andThen(indexer.runSpin(spinSpeed)));
+    controller.b().onFalse(indexer.stopChute().andThen(indexer.stopSpin()));
 
     // raise/lower climber elevator
     controller.y().whileTrue(climber.runElevator(climbSpeedElev));
     controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+
+    controller
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () ->
+                    tofDataLog.writeCSV(
+                        dist.get(),
+                        hood.getHood(),
+                        shooter.getSpeedSetpoint().in(RotationsPerSecond),
+                        shooter.getSpeedReal().in(RotationsPerSecond),
+                        path.get())));
 
     // // rotate climber hook
     // controller.b().whileTrue(climber.runHook(climbSpeedHook));

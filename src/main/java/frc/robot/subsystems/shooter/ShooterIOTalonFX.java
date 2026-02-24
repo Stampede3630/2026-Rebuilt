@@ -6,7 +6,6 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -84,8 +83,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     leader.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
 
-    follower.setControl(
-        new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
+    // follower.setControl(
+    //     new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
   }
 
   @Override
@@ -142,10 +141,10 @@ public class ShooterIOTalonFX implements ShooterIO {
     leader.setControl(velocityRequest.withVelocity(vel));
   }
 
-  @Override
-  public double getShooterSpeed() {
-    return leader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
-  }
+  // @Override
+  // public double getShooterSpeed() {
+  //   return leader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
+  // }
 
   @Override
   public void setShooterMotorsControl(ControlRequest control) {

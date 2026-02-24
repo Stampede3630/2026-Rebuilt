@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import frc.robot.subsystems.turret.TurretIO.TurretIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface TurretIO {
@@ -49,6 +50,8 @@ public interface TurretIO {
   default AngularVelocity getAngularVelocity() {
     return RadiansPerSecond.of(0.0);
   }
+
+  default void setTurretAngleTorqueCurrent(Angle angle) {}
 
   @AutoLog
   class TurretIOInputs {
