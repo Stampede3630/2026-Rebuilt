@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -45,6 +46,9 @@ public class TurretIOTalonFX implements TurretIO {
 
   private Angle turretSetpoint = Radians.of(0);
 
+  private final double LEFT_LIMIT = -0.11; // rotations
+  private final double RIGHT_LIMIT = 1.0; // rotations
+
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
 
@@ -81,9 +85,9 @@ public class TurretIOTalonFX implements TurretIO {
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(true)
-                .withForwardSoftLimitThreshold(1.0) // roughly 1.0
+                .withForwardSoftLimitThreshold(RIGHT_LIMIT) // roughly 1.0
                 .withReverseSoftLimitEnable(true)
-                .withReverseSoftLimitThreshold(-0.11)); // could be adjusted slightly
+                .withReverseSoftLimitThreshold(LEFT_LIMIT)); // could be adjusted slightly
     turretMotor.getConfigurator().apply(turretConfig);
   }
 
@@ -125,6 +129,14 @@ public class TurretIOTalonFX implements TurretIO {
   public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
+    Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
+    // shouldn't have to worry about rightAngle
+    Angle currentAngle = turretMotor.getPosition().getValue();
+    // find if leftAngle or angle is closer to currentAngle
+    if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)) {
+      // if leftAngle is closer
+      angle = leftAngle;
+    }
     turretSetpoint = angle;
     turretMotor.setControl(posRequestVoltage.withPosition(angle).withSlot(0));
   }

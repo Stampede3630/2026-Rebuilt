@@ -45,6 +45,7 @@ import frc.robot.subsystems.intake.IntakeIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.toftimer.TofTimer;
+import frc.robot.subsystems.toftimer.TofTimer.Shot;
 import frc.robot.subsystems.toftimer.TofTimerIOHardware;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIOSim;
@@ -55,8 +56,11 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.util.*;
 import frc.robot.util.ShotInfo.ShotQuality;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -73,7 +77,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  //   private final Outtake outtake;
+  // private final Outtake outtake;
   private final Vision vision;
   private final Shooter shooter;
   private final Turret turret;
@@ -83,11 +87,12 @@ public class RobotContainer {
   private final Hood hood;
   private final TofTimer tofDataLog;
 
-  //   private final Leds leds = Leds.getInstance();
+  // private final Leds leds = Leds.getInstance();
 
-  // create a second Vision object to avoid making significant changes to the open ended-ness of
+  // create a second Vision object to avoid making significant changes to the open
+  // ended-ness of
   // Vision's constructor
-  //   private final Vision turretVision;
+  // private final Vision turretVision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -154,9 +159,14 @@ public class RobotContainer {
    */
   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
+  // for lerp data
+  /** The measured distance from target (hub) */
   private final LoggedNetworkNumber dist = new LoggedNetworkNumber("Tof/dist", 0.0);
+  /** The path to write to */
   private final LoggedNetworkString path =
       new LoggedNetworkString("Tof/path", "/home/lvuser/deploy/data_1");
+  /** The place to set the hood to [0, 1] */
+  private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
 
   // auto aim
   private AutoAimer aimer = new NewtonAutoAim();
@@ -168,6 +178,8 @@ public class RobotContainer {
 
   // fuel sim
   private int fuelStored = Constants.STARTING_FUEL_SIM;
+  private Map<Shot, ShotDataTof> tofMap = new TreeMap<>();
+  private final LoggedNetworkBoolean autoSaveLerp = new LoggedNetworkBoolean("Tof/autoSave", false);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -232,8 +244,9 @@ public class RobotContainer {
 
         vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
         tofDataLog = new TofTimer(new TofTimerIOHardware());
-        tofDataLog.initFile(path.get());
-        // turretVision = new Vision(null, new VisionIOLimelight(Constants.TURRET_CAMERA,
+        // tofDataLog.initFile(path.get());
+        // turretVision = new Vision(null, new
+        // VisionIOLimelight(Constants.TURRET_CAMERA,
         // outtake::getTurretRotation));
         break;
 
@@ -260,23 +273,23 @@ public class RobotContainer {
 
         VisionIO[] visionIOsSim = {
           new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_2, new Transform3d()),
-          //     new VisionIOPhotonVisionSim(
-          //         Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
-          //     new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
-          //   drive::getPose)
+          // new VisionIOPhotonVisionSim(
+          // Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
+          // new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
+          // drive::getPose)
         };
         ArrayList<Function<Time, Transform3d>> offsetsSim =
             new ArrayList<>(
                 List.of(
                     (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
-                    //   () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
-                    //   () ->
-                    //       new Transform3d(
-                    //           new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
-                    //               .rotateAround(
-                    //                   new Translation3d(1.0, 2.0, 3.0),
-                    //                   new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
-                    //           new Rotation3d(new Rotation2d(turret.getTurretAngle())))
+                    // () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
+                    // () ->
+                    // new Transform3d(
+                    // new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                    // .rotateAround(
+                    // new Translation3d(1.0, 2.0, 3.0),
+                    // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                    // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
                     ));
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
         tofDataLog = null;
@@ -315,6 +328,26 @@ public class RobotContainer {
         tofDataLog = null;
 
         break;
+    }
+
+    if (tofDataLog != null) { // set up data logging
+      tofDataLog.registerShotCallback(
+          (shot) -> {
+            if (autoSaveLerp.get())
+              tofMap.put(
+                  shot,
+                  new ShotDataTof(
+                      /* with measured dist*/ dist
+                          .get() /* with pose estimation AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE).getDistance(drive.getPose().getTranslation())*/,
+                      hood.getHood(),
+                      shooter.getSpeedSetpoint().in(RotationsPerSecond),
+                      shooter.getSpeedReal().in(RotationsPerSecond),
+                      -1));
+          });
+      tofDataLog.registerLandedCallback(
+          (shot) -> {
+            if (autoSaveLerp.get()) tofMap.get(shot).setTof(shot.getTof());
+          });
     }
 
     new NamedCommands(climber, drive, hood, turret, indexer, intake, shooter, vision);
@@ -361,20 +394,7 @@ public class RobotContainer {
             () -> ySlewRateLimiter.calculate(-controller.getLeftX()),
             () -> angularSlewRateLimiter.calculate(-controller.getRightX())));
 
-    // Lock to 0° when A button is held
-    // controller
-    //     .a()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveAtAngle(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> Rotation2d.kZero));
-
-    // Switch to X pattern when X button is pressed
-    // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0° when right bumper is pressed
     controller
         .rightBumper()
         .onTrue(
@@ -448,7 +468,8 @@ public class RobotContainer {
     // // flip intake down
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 *
+    // intakeFlipSpeed.getAsDouble()));
 
     controller.leftBumper().onTrue(hood.hoodUp());
     controller.rightBumper().onTrue(hood.hoodDown());
@@ -458,13 +479,13 @@ public class RobotContainer {
 
     // turn turret if auto aim is disabled
     // controller
-    //     .povLeft()
-    //     .and(() -> !enableAutoAim.getAsBoolean())
-    //     .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
+    // .povLeft()
+    // .and(() -> !enableAutoAim.getAsBoolean())
+    // .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
     // controller
-    //     .povRight()
-    //     .and(() -> !enableAutoAim.getAsBoolean())
-    //     .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+    // .povRight()
+    // .and(() -> !enableAutoAim.getAsBoolean())
+    // .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
 
     controller.povLeft().onTrue(turret.moveTurretLeft());
     controller.povRight().onTrue(turret.moveTurretRight());
@@ -472,13 +493,13 @@ public class RobotContainer {
     // raise/lower hood if auto aim is disabled
     // commented out to test other things and bc hood does not currently work
     // controller
-    //     .leftBumper()
-    //     .and(() -> !enableAutoAim.getAsBoolean())
-    //     .whileTrue(hood.spin(() -> 0.1));
+    // .leftBumper()
+    // .and(() -> !enableAutoAim.getAsBoolean())
+    // .whileTrue(hood.spin(() -> 0.1));
     // controller
-    //     .rightBumper()
-    //     .and(() -> !enableAutoAim.getAsBoolean())
-    //     .whileTrue(hood.spin(() -> -0.1));
+    // .rightBumper()
+    // .and(() -> !enableAutoAim.getAsBoolean())
+    // .whileTrue(hood.spin(() -> -0.1));
 
     // run the indexer
     // controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
@@ -489,21 +510,27 @@ public class RobotContainer {
     controller.y().whileTrue(climber.runElevator(climbSpeedElev));
     controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
 
-    controller
-        .a()
-        .onTrue(
-            Commands.runOnce(
-                () ->
-                    tofDataLog.writeCSV(
-                        dist.get(),
-                        hood.getHood(),
-                        shooter.getSpeedSetpoint().in(RotationsPerSecond),
-                        shooter.getSpeedReal().in(RotationsPerSecond),
-                        path.get())));
+    controller.a().whileTrue(hood.setHood(hoodSetpoint));
+
+    SmartDashboard.putData(
+        Commands.runOnce(
+                () -> {
+                  try {
+                    CsvSerializable.writeMany(
+                        path.get(), (CsvSerializable[]) tofMap.values().toArray());
+                    System.out.println("wrote " + tofMap + " to " + path.get());
+                    tofMap.clear();
+                  } catch (IOException e) {
+                    e.printStackTrace();
+                  }
+                })
+            .withName("Write data")
+            .ignoringDisable(false));
 
     // // rotate climber hook
     // controller.b().whileTrue(climber.runHook(climbSpeedHook));
-    // controller.a().whileTrue(climber.runHook(() -> -climbSpeedHook.getAsDouble()));
+    // controller.a().whileTrue(climber.runHook(() ->
+    // -climbSpeedHook.getAsDouble()));
   }
 
   /** Initializes fuel simulation */
@@ -579,7 +606,8 @@ public class RobotContainer {
             Radians.of(
                 Math.asin(
                     (robot.getY() - corner.getY()) / corner.getDistance(robot.getTranslation())));
-        // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 / Math.PI);
+        // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 /
+        // Math.PI);
         target = target.rotateBy(new Rotation2d(adjustment));
       }
       return target;

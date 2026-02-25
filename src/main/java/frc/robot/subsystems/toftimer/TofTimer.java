@@ -3,11 +3,11 @@ package frc.robot.subsystems.toftimer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.toftimer.TofTimer.Shot.ShotState;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.function.Consumer;
 import org.littletonrobotics.junction.Logger;
 
 public class TofTimer extends SubsystemBase {
@@ -17,6 +17,23 @@ public class TofTimer extends SubsystemBase {
   private State state = State.READY;
   private Queue<Shot> activeShots = new LinkedList<>();
   private Queue<Shot> finishedShots = new LinkedList<>();
+
+  private List<Consumer<Shot>> ballShotConsumers = new ArrayList<>();
+  private List<Consumer<Shot>> ballLandedConsumers = new ArrayList<>();
+
+  public void registerShotCallback(Consumer<Shot> callback) {
+    if (ballShotConsumers.contains(callback)) {
+      throw new IllegalArgumentException("Consumer already exists");
+    }
+    ballShotConsumers.add(callback);
+  }
+
+  public void registerLandedCallback(Consumer<Shot> callback) {
+    if (ballLandedConsumers.contains(callback)) {
+      throw new IllegalArgumentException("Consumer already exists");
+    }
+    ballLandedConsumers.add(callback);
+  }
 
   public Queue<Shot> getActiveShots() {
     return activeShots;
@@ -51,7 +68,9 @@ public class TofTimer extends SubsystemBase {
       }
 
       if (ballShot) {
-        activeShots.add(new Shot(Timer.getFPGATimestamp()));
+        Shot active = new Shot(Timer.getFPGATimestamp());
+        activeShots.add(active);
+        ballShotConsumers.forEach(c -> c.accept(active));
         state = State.NOT_READY;
       }
 
@@ -61,6 +80,7 @@ public class TofTimer extends SubsystemBase {
           landed.landTime = Timer.getFPGATimestamp();
           landed.state = ShotState.LANDED;
           finishedShots.add(landed);
+          ballLandedConsumers.forEach(c -> c.accept(landed));
         }
       }
       activeShots.removeIf(
@@ -78,46 +98,6 @@ public class TofTimer extends SubsystemBase {
         state = State.READY;
         return;
       }
-    }
-  }
-
-  public void initFile(String path) {
-    File file = new File(path);
-    if (!file.exists()) {
-      try (FileWriter writer = new FileWriter(path)) {
-        file.createNewFile();
-        System.out.println("Creating new file at " + path);
-        String headers = "distMeters,tofSec,hoodPerc,shootSetRPS,shootRealRPS\n";
-        writer.append(headers);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } else {
-      System.out.println("File already exists at " + path + "! Skipping...");
-    }
-  }
-
-  public void writeCSV(
-      double distMeters, double hoodPerc, double shootSetRPS, double shootRealRPS, String path) {
-    try (FileWriter writer = new FileWriter(path)) {
-      // dist.in(Meters);
-      double time = this.getFinishedShots().remove().getTof();
-      String data =
-          ""
-              + distMeters
-              + ","
-              + time
-              + ","
-              + hoodPerc
-              + ","
-              + shootSetRPS
-              + ","
-              + shootRealRPS
-              + "\n";
-      writer.append(data);
-      System.out.println("wrote data " + data);
-    } catch (IOException e) {
-      e.printStackTrace();
     }
   }
 
