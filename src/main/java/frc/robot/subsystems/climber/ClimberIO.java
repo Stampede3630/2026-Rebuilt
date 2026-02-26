@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ClimberIO {
@@ -32,7 +33,7 @@ public interface ClimberIO {
    *
    * @param pos The position to target, in rotations
    */
-  default void runHookPos(double pos) {}
+  default void runHookPos(Angle pos) {}
 
   // default void setShooterMotorsControl(VoltageOut volts) {}
 

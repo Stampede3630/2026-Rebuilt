@@ -1,5 +1,9 @@
 package frc.robot.util;
 
+import edu.wpi.first.units.Unit;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -11,6 +15,47 @@ public abstract class LerpTable<K extends Comparable<?>, V> implements Function<
 
   public void put(K key, V value) {
     data.put(key, value);
+  }
+
+  public LerpTable<? extends Unit, ? extends Unit> fromCSV(
+      String path, Unit keyType, Unit valType, String keyColumn, String valColumn) {
+    // LerpTable<? extends Unit, ? extends Unit> table = new LerpTable<Unit,Unit>() {
+
+    // };
+    try (BufferedReader buff = new BufferedReader(new FileReader(path))) {
+      String[] headers = buff.readLine().split(",");
+      int keyIndex = -1;
+      int valIndex = -1;
+      for (int i = 0;
+          i < headers.length;
+          i++) { // note does not check for instances where multiple columns have same name
+        if (headers[i].equals(keyColumn)) {
+          keyIndex = i;
+        }
+        if (headers[i].equals(valColumn)) {
+          valIndex = i;
+        }
+      }
+      if (keyIndex == -1 || valIndex == -1) { // throw exception if columns don't exist
+        throw new IllegalArgumentException(
+            "Columns "
+                + keyColumn
+                + " or "
+                + valColumn
+                + " could not be found in the header of path "
+                + path);
+      }
+      String[] lineVals = null;
+      do {
+        lineVals = buff.readLine().split(",");
+        double key = Double.parseDouble(lineVals[keyIndex]);
+        double val = Double.parseDouble(lineVals[valIndex]);
+        // put val here
+      } while (lineVals != null);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Override

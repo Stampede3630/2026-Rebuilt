@@ -1,8 +1,8 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -49,7 +49,7 @@ public class NamedCommands {
 
   private ShotInfo shotInfo =
       new ShotInfo(
-          new ShooterParameters(0.0, MetersPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
+          new ShooterParameters(0.0, RadiansPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
 
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeDutyCycle", 0.3);
@@ -181,7 +181,7 @@ public class NamedCommands {
 
     Translation3d shootVector =
         new Translation3d(
-            params.shooterVelocity().in(MetersPerSecond),
+            params.shooterVelocity().in(RadiansPerSecond),
             new Rotation3d(0, params.hood(), info.get().turretAngle().in(Radians)));
 
     Translation3d initialPosition = robot.getTranslation();

@@ -8,7 +8,6 @@ import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -19,7 +18,6 @@ import org.littletonrobotics.junction.Logger;
 public class Shooter extends SubsystemBase {
   // temp
   // change
-  public static final double WHEEL_RADIUS_METERS = 0.06;
   private final ShooterIO io;
 
   private final ShooterIOInputsAutoLogged inputs = new ShooterIOInputsAutoLogged();
@@ -77,14 +75,14 @@ public class Shooter extends SubsystemBase {
   //   return run(() -> runOuttakeWithVector(vector));
   // }
 
-  public void runOuttakeWithVel(Supplier<LinearVelocity> vel) {
+  public void runOuttakeWithVel(Supplier<AngularVelocity> vel) {
     // if (Constants.currentMode == Constants.Mode.SIM) {
     //   launchFuel(vel.get());
     // }
     io.runVelocity(vel.get().magnitude());
   }
 
-  public Command shoot(Supplier<LinearVelocity> vel) {
+  public Command shoot(Supplier<AngularVelocity> vel) {
     return run(() -> runOuttakeWithVel(vel));
   }
 

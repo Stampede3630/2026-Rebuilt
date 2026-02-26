@@ -96,6 +96,10 @@ public class ShotDataTof implements CsvSerializable {
     return "distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed";
   }
 
+  // public static ShotDataTof fromCsv(String csv) {
+
+  // }
+
   @Override
   public String toCsv() {
     return ""

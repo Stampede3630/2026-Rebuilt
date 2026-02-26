@@ -128,7 +128,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.2);
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
   /**
    * The duty cycle speed to use to flip the intake up/down [-1.0, 1.0]
    *
@@ -163,7 +163,7 @@ public class RobotContainer {
   /** The measured distance from target (hub) */
   private final LoggedNetworkNumber dist = new LoggedNetworkNumber("Tof/dist", 0.0);
   /** The path to write to */
-  private final LoggedNetworkString path =
+  public static final LoggedNetworkString path =
       new LoggedNetworkString("Tof/path", "/home/lvuser/deploy/data_1");
   /** The place to set the hood to [0, 1] */
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
@@ -174,7 +174,7 @@ public class RobotContainer {
   /* @AutoLogOutput */
   private ShotInfo shotInfo =
       new ShotInfo(
-          new ShooterParameters(0.0, MetersPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
+          new ShooterParameters(0.0, RadiansPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
 
   // fuel sim
   private int fuelStored = Constants.STARTING_FUEL_SIM;
@@ -645,7 +645,7 @@ public class RobotContainer {
 
     Translation3d shootVector =
         new Translation3d(
-            params.shooterVelocity().in(MetersPerSecond),
+            params.shooterVelocity().in(RadiansPerSecond), // CHANGE LATER
             new Rotation3d(0, params.hood(), info.get().turretAngle().in(Radians)));
 
     Translation3d initialPosition = robot.getTranslation();

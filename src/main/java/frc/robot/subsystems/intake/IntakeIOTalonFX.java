@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -146,6 +147,11 @@ public class IntakeIOTalonFX implements IntakeIO {
   @Override
   public boolean isRunning() {
     return intake.getVelocity().getValueAsDouble() > 0;
+  }
+
+  @Override
+  public void setFlipPosition(Angle pos) {
+    intake.setControl(new PositionVoltage(pos));
   }
 
   // @Override

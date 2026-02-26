@@ -8,8 +8,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Meters;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -17,12 +16,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.util.LerpTable;
-import frc.robot.util.ShooterParameters;
-import java.util.Map;
+import frc.robot.util.DistanceShooterParametersLerpTable;
+import frc.robot.util.DistanceTimeLerpTable;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -40,6 +36,8 @@ public final class Constants {
   public static final String TURRET_CAMERA = "limelight-turret";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);
+
+  public static final Distance SHOOTER_WHEEL_RADIUS = Meters.of(0.06);
 
   // CAN IDs
   // Swerve IDs are located in frc.robot.generated.TunerConstants.java
@@ -81,41 +79,49 @@ public final class Constants {
       new Translation3d(
           Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0), Units.inchesToMeters(-21.604500));
 
-  public static final LerpTable<Distance, ShooterParameters> SHOT_LOOKUP =
-      new LerpTable<Distance, ShooterParameters>() {
-        @Override
-        public ShooterParameters interpolate(
-            Map.Entry<Distance, ShooterParameters> high,
-            Map.Entry<Distance, ShooterParameters> low,
-            Distance key) {
-          double hood =
-              ((high.getValue().hood() - low.getValue().hood())
-                      / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-                      * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-                  + low.getKey().baseUnitMagnitude();
-          double velo =
-              ((high.getValue().shooterVelocity().baseUnitMagnitude()
-                          - low.getValue().shooterVelocity().baseUnitMagnitude())
-                      / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-                      * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-                  + low.getKey().baseUnitMagnitude();
+  // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
+  public static final DistanceShooterParametersLerpTable SHOT_LOOKUP =
+      DistanceShooterParametersLerpTable.fromCSV(
+          RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
+  public static final DistanceTimeLerpTable TOF_LOOKUP =
+      DistanceTimeLerpTable.fromCSV(RobotContainer.path.get(), "distMeters", "tof");
 
-          return new ShooterParameters(hood, LinearVelocity.ofBaseUnits(velo, MetersPerSecond));
-        }
-      };
+  // public static final LerpTable<Distance, ShooterParameters> SHOT_LOOKUP =
+  //     new LerpTable<Distance, ShooterParameters>() {
+  //       @Override
+  //       public ShooterParameters interpolate(
+  //           Map.Entry<Distance, ShooterParameters> high,
+  //           Map.Entry<Distance, ShooterParameters> low,
+  //           Distance key) {
+  //         double hood =
+  //             ((high.getValue().hood() - low.getValue().hood())
+  //                     / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
+  //                     * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
+  //                 + low.getKey().baseUnitMagnitude();
+  //         double velo =
+  //             ((high.getValue().shooterVelocity().baseUnitMagnitude()
+  //                         - low.getValue().shooterVelocity().baseUnitMagnitude())
+  //                     / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
+  //                     * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
+  //                 + low.getKey().baseUnitMagnitude();
 
-  public static final LerpTable<Distance, Time> TOF_LOOKUP =
-      new LerpTable<Distance, Time>() {
-        @Override
-        public Time interpolate(
-            Map.Entry<Distance, Time> high, Map.Entry<Distance, Time> low, Distance key) {
-          return Seconds.of(0);
-        }
-      };
+  //         return new ShooterParameters(hood, AngularVelocity.ofBaseUnits(velo,
+  // RadiansPerSecond));
+  //       }
+  //     };
 
-  static {
-    // add lerp data here
-  }
+  // public static final LerpTable<Distance, Time> TOF_LOOKUP =
+  //     new LerpTable<Distance, Time>() {
+  //       @Override
+  //       public Time interpolate(
+  //           Map.Entry<Distance, Time> high, Map.Entry<Distance, Time> low, Distance key) {
+  //         return Seconds.of(0);
+  //       }
+  //     };
+
+  // static {
+  //   // add lerp data here
+  // }
 
   // temp
   /***

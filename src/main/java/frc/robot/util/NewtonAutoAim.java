@@ -2,11 +2,13 @@ package frc.robot.util;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
@@ -57,7 +59,9 @@ public class NewtonAutoAim implements AutoAimer {
     // angle between robot velocity and target
     Rotation2d angle = robotVelocity.getAngle().minus(goal.getAngle());
     // velocity of shot from current position
-    LinearVelocity vel = shotLookup.apply(Meters.of(dist.getNorm())).shooterVelocity();
+    AngularVelocity angVel = shotLookup.apply(Meters.of(dist.getNorm())).shooterVelocity();
+    LinearVelocity vel =
+        MetersPerSecond.of(angVel.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters));
     double time =
         dist.getNorm() / (vel.in(MetersPerSecond) + robotVelocity.times(angle.getCos()).getNorm());
     // double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
@@ -66,11 +70,15 @@ public class NewtonAutoAim implements AutoAimer {
     // newton's method
     for (int i = 0; i < 3; i++) {
       // / virtual_target.getTranslation().getNorm(); // derivative of error
-      double vp =
-          shotLookup
-              .apply(Meters.of(virtual_target.getNorm()))
-              .shooterVelocity()
-              .in(MetersPerSecond);
+      AngularVelocity angVel2 =
+          shotLookup.apply(Meters.of(virtual_target.getNorm())).shooterVelocity();
+
+      double vp = angVel.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters);
+      // double vp =
+      //     shotLookup
+      //         .apply(Meters.of(virtual_target.getNorm()))
+      //         .shooterVelocity()
+      //         .in(MetersPerSecond);
       time =
           time
               - (time - virtual_target.getNorm() / vp)
@@ -93,7 +101,8 @@ public class NewtonAutoAim implements AutoAimer {
         1.0
             - Math.abs(
                 radialVelocity
-                    / params.shooterVelocity().in(MetersPerSecond) /* need solution for this */);
+                    / (params.shooterVelocity().in(RadiansPerSecond)
+                        * Constants.SHOOTER_WHEEL_RADIUS.in(Meters)) /* need solution for this */);
     quality = MathUtil.clamp(quality, 0, 1);
     ShotQuality theQuality = ShotQuality.UNKNOWN;
     if (quality > .9) {

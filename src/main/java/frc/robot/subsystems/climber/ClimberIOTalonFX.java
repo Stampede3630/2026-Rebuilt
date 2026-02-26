@@ -1,7 +1,10 @@
 package frc.robot.subsystems.climber;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -113,14 +116,15 @@ public class ClimberIOTalonFX implements ClimberIO {
 
     hookConfig
         .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(100.0)) // 100:1 ratio
         .withSlot0(
             new Slot0Configs()
-                .withKS(1)
-                .withKV(1)
-                .withKA(1)
-                .withKP(1.4)
-                .withKI(0.01)
-                .withKD(0.2)); /* set PID */
+                .withKS(2.0)
+                .withKV(0.0)
+                .withKA(0.0)
+                .withKP(0.0)
+                .withKI(0.0)
+                .withKD(0.0)); /* set PID */
     hook.getConfigurator().apply(hookConfig);
     // add hookConfig here
 
@@ -219,8 +223,8 @@ public class ClimberIOTalonFX implements ClimberIO {
   }
 
   @Override
-  public void runHookPos(double pos) {
-    hookSetpoint = pos;
+  public void runHookPos(Angle pos) {
+    hookSetpoint = pos.in(Radians);
     hook.setControl(positionRequest.withPosition(pos).withSlot(0));
   }
 }

@@ -31,7 +31,7 @@ public interface CsvSerializable {
         String headers = getHeaders() + "\n";
         writer.append(headers);
       }
-      writer.append(toCsv());
+      writer.append(toCsv() + "\n");
     } catch (IOException e) {
       throw new IOException(e);
     }
@@ -51,7 +51,7 @@ public interface CsvSerializable {
         writer.append(headers);
       }
       for (CsvSerializable item : items) {
-        writer.append(item.toCsv());
+        writer.append(item.toCsv() + "\n");
       }
     } catch (IOException e) {
       throw new IOException(e);

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
@@ -22,6 +23,8 @@ public interface IntakeIO {
   default boolean isRunning() {
     return true;
   }
+
+  default void setFlipPosition(Angle pos) {}
 
   // default double getShooterSpeed() {
   //   return 0.0;
