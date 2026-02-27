@@ -1,10 +1,7 @@
 package frc.robot.subsystems.climber;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -12,7 +9,6 @@ import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -24,7 +20,7 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
 public class ClimberIOTalonFX implements ClimberIO {
-  private final TalonFX hook;
+  // private final TalonFX hook;
   private final TalonFX elevator;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
@@ -40,23 +36,23 @@ public class ClimberIOTalonFX implements ClimberIO {
   private final StatusSignal<Temperature> elevatorTemp;
 
   // hook motor
-  private final TalonFXConfiguration hookConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> hookPosition;
-  private final StatusSignal<AngularVelocity> hookVelocity;
-  private final StatusSignal<Current> hookTorqueCurrent;
-  private final StatusSignal<Voltage> hookVoltage;
-  private final StatusSignal<Current> hookStatorCurrent;
-  private final StatusSignal<Current> hookSupplyCurrent;
-  private final StatusSignal<Temperature> hookTemp;
+  // private final TalonFXConfiguration hookConfig = new TalonFXConfiguration();
+  // private final StatusSignal<Angle> hookPosition;
+  // private final StatusSignal<AngularVelocity> hookVelocity;
+  // private final StatusSignal<Current> hookTorqueCurrent;
+  // private final StatusSignal<Voltage> hookVoltage;
+  // private final StatusSignal<Current> hookStatorCurrent;
+  // private final StatusSignal<Current> hookSupplyCurrent;
+  // private final StatusSignal<Temperature> hookTemp;
 
   private final MotionMagicExpoVoltage positionRequest =
       new MotionMagicExpoVoltage(0.0).withEnableFOC(true);
 
-  private final VelocityTorqueCurrentFOC velocityRequest =
-      new VelocityTorqueCurrentFOC(0).withSlot(0);
+  // private final VelocityTorqueCurrentFOC velocityRequest =
+  //     new VelocityTorqueCurrentFOC(0).withSlot(0);
 
   private double elevSetpoint = 0.0;
-  private double hookSetpoint = 0.0;
+  // private double hookSetpoint = 0.0;
 
   public ClimberIOTalonFX() {
     // init elevator motor
@@ -105,27 +101,27 @@ public class ClimberIOTalonFX implements ClimberIO {
     // add elevatorConfig here
 
     // init hook motor
-    hook = new TalonFX(Constants.CLIMBER_HOOK_ID, Constants.SWERVE_BUS);
-    hookPosition = hook.getPosition();
-    hookVelocity = hook.getVelocity();
-    hookTorqueCurrent = hook.getTorqueCurrent();
-    hookVoltage = hook.getMotorVoltage();
-    hookStatorCurrent = hook.getStatorCurrent();
-    hookSupplyCurrent = hook.getSupplyCurrent();
-    hookTemp = hook.getDeviceTemp();
+    // hook = new TalonFX(Constants.CLIMBER_HOOK_ID, Constants.SWERVE_BUS);
+    // hookPosition = hook.getPosition();
+    // hookVelocity = hook.getVelocity();
+    // hookTorqueCurrent = hook.getTorqueCurrent();
+    // hookVoltage = hook.getMotorVoltage();
+    // hookStatorCurrent = hook.getStatorCurrent();
+    // hookSupplyCurrent = hook.getSupplyCurrent();
+    // hookTemp = hook.getDeviceTemp();
 
-    hookConfig
-        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
-        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(100.0)) // 100:1 ratio
-        .withSlot0(
-            new Slot0Configs()
-                .withKS(2.0)
-                .withKV(0.0)
-                .withKA(0.0)
-                .withKP(0.0)
-                .withKI(0.0)
-                .withKD(0.0)); /* set PID */
-    hook.getConfigurator().apply(hookConfig);
+    // hookConfig
+    //     .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+    //     .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(100.0)) // 100:1 ratio
+    //     .withSlot0(
+    //         new Slot0Configs()
+    //             .withKS(2.0)
+    //             .withKV(0.0)
+    //             .withKA(0.0)
+    //             .withKP(0.0)
+    //             .withKI(0.0)
+    //             .withKD(0.0)); /* set PID */
+    // hook.getConfigurator().apply(hookConfig);
     // add hookConfig here
 
   }
@@ -140,14 +136,14 @@ public class ClimberIOTalonFX implements ClimberIO {
                 elevatorVoltage,
                 elevatorStatorCurrent,
                 elevatorSupplyCurrent,
-                elevatorTemp,
-                hookPosition,
-                hookVelocity,
-                hookTorqueCurrent,
-                hookVoltage,
-                hookStatorCurrent,
-                hookSupplyCurrent,
-                hookTemp)
+                elevatorTemp)
+            // hookPosition,
+            // hookVelocity,
+            // hookTorqueCurrent,
+            // hookVoltage,
+            // hookStatorCurrent,
+            // hookSupplyCurrent,
+            // hookTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
@@ -162,15 +158,15 @@ public class ClimberIOTalonFX implements ClimberIO {
     inputs.elevatorTemp = elevatorTemp.getValueAsDouble();
     inputs.elevatorSetpoint = elevSetpoint;
 
-    // hook
-    inputs.hookPosition = hookPosition.getValueAsDouble();
-    inputs.hookVelocity = hookVelocity.getValueAsDouble();
-    inputs.hookTorqueCurrent = hookTorqueCurrent.getValueAsDouble();
-    inputs.hookVoltage = hookVoltage.getValueAsDouble();
-    inputs.hookStatorCurrent = hookStatorCurrent.getValueAsDouble();
-    inputs.hookSupplyCurrent = hookSupplyCurrent.getValueAsDouble();
-    inputs.hookTemp = hookTemp.getValueAsDouble();
-    inputs.hookSetpoint = hookSetpoint;
+    // // hook
+    // inputs.hookPosition = hookPosition.getValueAsDouble();
+    // inputs.hookVelocity = hookVelocity.getValueAsDouble();
+    // inputs.hookTorqueCurrent = hookTorqueCurrent.getValueAsDouble();
+    // inputs.hookVoltage = hookVoltage.getValueAsDouble();
+    // inputs.hookStatorCurrent = hookStatorCurrent.getValueAsDouble();
+    // inputs.hookSupplyCurrent = hookSupplyCurrent.getValueAsDouble();
+    // inputs.hookTemp = hookTemp.getValueAsDouble();
+    // inputs.hookSetpoint = hookSetpoint;
   }
 
   // @Override
@@ -185,12 +181,12 @@ public class ClimberIOTalonFX implements ClimberIO {
 
   @Override
   public void runDutyCycleHook(double dutyCycle) {
-    hook.set(dutyCycle);
+    // hook.set(dutyCycle);
   }
 
   @Override
   public void stopHook() {
-    hook.stopMotor();
+    // hook.stopMotor();
   }
 
   @Override
@@ -224,7 +220,7 @@ public class ClimberIOTalonFX implements ClimberIO {
 
   @Override
   public void runHookPos(Angle pos) {
-    hookSetpoint = pos.in(Radians);
-    hook.setControl(positionRequest.withPosition(pos).withSlot(0));
+    // hookSetpoint = pos.in(Radians);
+    // hook.setControl(positionRequest.withPosition(pos).withSlot(0));
   }
 }

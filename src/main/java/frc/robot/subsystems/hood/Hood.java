@@ -70,7 +70,7 @@ public class Hood extends SubsystemBase {
   public Command setHood(DoubleSupplier pos) {
     return runOnce(
         () -> {
-          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 1);
+          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
           io.setHoodPos(setpointPos);
           System.out.println(setpointPos);
           // 0.35-0.7

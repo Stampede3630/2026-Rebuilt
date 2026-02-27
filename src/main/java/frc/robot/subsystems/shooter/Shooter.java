@@ -1,6 +1,6 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -11,6 +11,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -105,10 +106,14 @@ public class Shooter extends SubsystemBase {
   }
 
   public AngularVelocity getSpeedSetpoint() {
-    return RadiansPerSecond.of(inputs.leaderVelocity);
+    return RotationsPerSecond.of(inputs.velSetpoint);
   }
 
   public AngularVelocity getSpeedReal() {
-    return RadiansPerSecond.of(inputs.velSetpoint);
+    return RotationsPerSecond.of(inputs.leaderVelocity);
+  }
+
+  public BooleanSupplier meetsSetpoint(DoubleSupplier tol) {
+    return () -> Math.abs(inputs.velSetpoint - inputs.leaderVelocity) < tol.getAsDouble();
   }
 }

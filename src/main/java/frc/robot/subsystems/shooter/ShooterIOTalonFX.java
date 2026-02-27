@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -51,7 +52,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   public ShooterIOTalonFX() {
     // init leader motor
-    leader = new TalonFX(Constants.SHOOTER_FOLLOWER_ID, Constants.SHOOTER_BUS);
+    leader = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_BUS);
     leaderPosition = leader.getPosition();
     leaderVelocity = leader.getVelocity();
     leaderTorqueCurrent = leader.getTorqueCurrent();
@@ -61,7 +62,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     leaderTemp = leader.getDeviceTemp();
 
     // init follower motor
-    follower = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_BUS);
+    follower = new TalonFX(Constants.SHOOTER_FOLLOWER_ID, Constants.SHOOTER_BUS);
     followerPosition = follower.getPosition();
     followerVelocity = follower.getVelocity();
     followerTorqueCurrent = follower.getTorqueCurrent();
@@ -74,10 +75,10 @@ public class ShooterIOTalonFX implements ShooterIO {
         .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withSlot0(
             new Slot0Configs()
-                .withKS(2.1)
+                .withKS(6.5)
                 .withKV(0.01)
                 .withKA(0.0)
-                .withKP(10) // prev 5, with single motor needs to be higher
+                .withKP(11.5) // 10 w/ single motor - 5 formerly
                 .withKI(0.0)
                 .withKD(0.0));
     leader.getConfigurator().apply(config);
@@ -85,8 +86,8 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     // also switched ids
     // off since missing leader
-    // follower.setControl(
-    // new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
+    follower.setControl(
+        new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
   }
 
   @Override

@@ -1,3 +1,4 @@
+
 // Copyright (c) 2021-2026 Littleton Robotics
 // http://github.com/Mechanical-Advantage
 //
@@ -58,9 +59,10 @@ import frc.robot.util.*;
 import frc.robot.util.ShotInfo.ShotQuality;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -122,7 +124,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 0.5);
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 40.0);
+      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
@@ -135,7 +137,7 @@ public class RobotContainer {
    * <p>NOTE: negative is down; positive values will cause the intake to run backwards
    */
   private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("Intake/intakeFlipSpeed", -0.1);
+      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.1);
   /** The duty cycle speed to use to climb with the elevator */
   private final LoggedNetworkNumber climbSpeedElev =
       new LoggedNetworkNumber("Climber/climbSpeedElev", 0.2);
@@ -163,8 +165,7 @@ public class RobotContainer {
   /** The measured distance from target (hub) */
   private final LoggedNetworkNumber dist = new LoggedNetworkNumber("Tof/dist", 0.0);
   /** The path to write to */
-  public static final LoggedNetworkString path =
-      new LoggedNetworkString("Tof/path", "/home/lvuser/deploy/data_1");
+  public static final LoggedNetworkString path = new LoggedNetworkString("Tof/path", "/U/data.csv");
   /** The place to set the hood to [0, 1] */
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
 
@@ -178,7 +179,7 @@ public class RobotContainer {
 
   // fuel sim
   private int fuelStored = Constants.STARTING_FUEL_SIM;
-  private Map<Shot, ShotDataTof> tofMap = new TreeMap<>();
+  private Map<Shot, ShotDataTof> tofMap = new HashMap<>();
   private final LoggedNetworkBoolean autoSaveLerp = new LoggedNetworkBoolean("Tof/autoSave", false);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -220,25 +221,29 @@ public class RobotContainer {
                     (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
                     // */).plus()
-                    (lat) ->
-                        new Transform3d(
-                            Constants.TURRET_OFFSET_3D
-                                .plus(
-                                    new Translation3d(
-                                        Constants.TURRET_CAMERA_RADIUS,
-                                        Meters.of(0.0),
-                                        Meters.of(0.0)))
-                                .rotateAround(
-                                    Constants.TURRET_OFFSET_3D,
-                                    new Rotation3d(
-                                        new Rotation2d(
-                                            turret
-                                                .getTurretAngle()
-                                                .plus(turret.getAngularVelocity().times(lat))))),
-                            new Rotation3d(new Rotation2d(turret.getTurretAngle()))
-                                .plus(
-                                    new Rotation3d(
-                                        Degrees.of(0.0), Degrees.of(0.0), Degrees.of(40))))));
+                    (lat) -> {
+                      var test =
+                          new Transform3d(
+                              Constants.TURRET_OFFSET_3D
+                                  .plus(
+                                      new Translation3d(
+                                          Constants.TURRET_CAMERA_RADIUS,
+                                          Meters.of(0.0),
+                                          Meters.of(0.0)))
+                                  .rotateAround(
+                                      Constants.TURRET_OFFSET_3D,
+                                      new Rotation3d(
+                                          new Rotation2d(
+                                              turret
+                                                  .getTurretAngle()
+                                                  .plus(turret.getAngularVelocity().times(lat))))),
+                              new Rotation3d(new Rotation2d(turret.getTurretAngle()))
+                                  .plus(
+                                      new Rotation3d(
+                                          Degrees.of(0.0), Degrees.of(0.0), Degrees.of(40))));
+                      //   System.out.println("camera pose " + test);
+                      return test;
+                    }));
         // new Transform3d()
         // Rotation3d turretRot = turret.getRotation();
 
@@ -337,8 +342,8 @@ public class RobotContainer {
               tofMap.put(
                   shot,
                   new ShotDataTof(
-                      /* with measured dist*/ dist
-                          .get() /* with pose estimation AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE).getDistance(drive.getPose().getTranslation())*/,
+                      /* with measured dist*/ dist.get()
+                      /* with pose estimation AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE).getDistance(drive.getPose().getTranslation())*/ ,
                       hood.getHood(),
                       shooter.getSpeedSetpoint().in(RotationsPerSecond),
                       shooter.getSpeedReal().in(RotationsPerSecond),
@@ -346,7 +351,8 @@ public class RobotContainer {
           });
       tofDataLog.registerLandedCallback(
           (shot) -> {
-            if (autoSaveLerp.get()) tofMap.get(shot).setTof(shot.getTof());
+            if (autoSaveLerp.get() && tofMap.containsKey(shot))
+              tofMap.get(shot).setTof(shot.getTof());
           });
     }
 
@@ -396,7 +402,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when right bumper is pressed
     controller
-        .rightBumper()
+        .povDown()
         .onTrue(
             Commands.runOnce(
                     () ->
@@ -462,14 +468,13 @@ public class RobotContainer {
     // run intake
     controller
         .leftTrigger()
-        .whileTrue(intake.runIntake(intakeSpeed))
-        .whileFalse(intake.runIntake(intakeIdleSpeed));
+        .onTrue(intake.runIntake(intakeSpeed))
+        .onFalse(intake.runIntake(intakeIdleSpeed));
 
     // // flip intake down
-    // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
+    controller.x().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 *
-    // intakeFlipSpeed.getAsDouble()));
+    controller.y().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     controller.leftBumper().onTrue(hood.hoodUp());
     controller.rightBumper().onTrue(hood.hoodDown());
@@ -478,17 +483,17 @@ public class RobotContainer {
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // turn turret if auto aim is disabled
-    // controller
-    // .povLeft()
-    // .and(() -> !enableAutoAim.getAsBoolean())
-    // .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
-    // controller
-    // .povRight()
-    // .and(() -> !enableAutoAim.getAsBoolean())
-    // .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+    controller
+        .povLeft()
+        .and(() -> !enableAutoAim.getAsBoolean())
+        .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
+    controller
+        .povRight()
+        .and(() -> !enableAutoAim.getAsBoolean())
+        .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
 
-    controller.povLeft().onTrue(turret.moveTurretLeft());
-    controller.povRight().onTrue(turret.moveTurretRight());
+    // controller.povLeft().onTrue(turret.moveTurretLeft());
+    // controller.povRight().onTrue(turret.moveTurretRight());
 
     // raise/lower hood if auto aim is disabled
     // commented out to test other things and bc hood does not currently work
@@ -503,29 +508,49 @@ public class RobotContainer {
 
     // run the indexer
     // controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
-    controller.b().onTrue(indexer.runChute(chuteSpeed).andThen(indexer.runSpin(spinSpeed)));
+    controller
+        .b()
+        .whileTrue(
+            indexer
+                .runBoth(chuteSpeed, spinSpeed)
+                .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+                .repeatedly());
     controller.b().onFalse(indexer.stopChute().andThen(indexer.stopSpin()));
 
     // raise/lower climber elevator
-    controller.y().whileTrue(climber.runElevator(climbSpeedElev));
-    controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+    // controller.y().whileTrue(climber.runElevator(climbSpeedElev));
+    // controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
 
-    controller.a().whileTrue(hood.setHood(hoodSetpoint));
+    // controller
+    //     .y()
+    //     .whileTrue(
+    //         Commands.runOnce(
+    //             () ->
+    //                 System.out.println(
+    //                     "stored: " + tofMap.values().toArray() + " to " + path.get())));
+    // controller.x().whileTrue(Commands.runOnce(() -> tofMap.clear()));
+
+    controller
+        .a()
+        .whileTrue(hood.setHood(() -> Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
 
     SmartDashboard.putData(
         Commands.runOnce(
                 () -> {
                   try {
-                    CsvSerializable.writeMany(
-                        path.get(), (CsvSerializable[]) tofMap.values().toArray());
-                    System.out.println("wrote " + tofMap + " to " + path.get());
+                    CsvSerializable[] array = new CsvSerializable[tofMap.size()];
+                    array = tofMap.values().toArray(array);
+                    System.out.println(Arrays.toString(array));
+                    System.out.println(tofMap.values());
+                    CsvSerializable.writeMany(path.get(), array);
+                    System.out.println("wrote " + tofMap.values().toArray() + " to " + path.get());
                     tofMap.clear();
                   } catch (IOException e) {
                     e.printStackTrace();
                   }
                 })
             .withName("Write data")
-            .ignoringDisable(false));
+            .ignoringDisable(true));
 
     // // rotate climber hook
     // controller.b().whileTrue(climber.runHook(climbSpeedHook));

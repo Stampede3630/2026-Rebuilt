@@ -19,6 +19,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.DistanceShooterParametersLerpTable;
 import frc.robot.util.DistanceTimeLerpTable;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -33,7 +34,7 @@ public final class Constants {
 
   public static final String CHASSIS_CAMERA_1 = "camera_0";
   public static final String CHASSIS_CAMERA_2 = "camera_1";
-  public static final String TURRET_CAMERA = "limelight-turret";
+  public static final String TURRET_CAMERA = "limelight";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);
 
@@ -82,9 +83,23 @@ public final class Constants {
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP =
       DistanceShooterParametersLerpTable.fromCSV(
-          RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
-  public static final DistanceTimeLerpTable TOF_LOOKUP =
-      DistanceTimeLerpTable.fromCSV(RobotContainer.path.get(), "distMeters", "tof");
+          "/home/lvuser/deploy/shot.csv", "distance", "hood", "shooter");
+
+  // DistanceShooterParametersLerpTable.fromCSV(
+  // RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
+  public static final DistanceTimeLerpTable TOF_LOOKUP = new DistanceTimeLerpTable();
+
+  public static final LoggedNetworkBoolean VISION_ENABLED =
+      new LoggedNetworkBoolean("Vision/visionEnabled", true);
+  // DistanceTimeLerpTable.fromCSV(RobotContainer.path.get(), "distMeters", "tof");
+
+  // static {
+  //   SHOT_LOOKUP.put(Inches.of(103.5), new ShooterParameters(0.05, RotationsPerSecond.of(65)));
+  //   TOF_LOOKUP.put(Inches.of(103.5), Seconds.of(1.233));
+  //   SHOT_LOOKUP.put(Inches.of(77.5), new ShooterParameters(0.0, RotationsPerSecond.of(60)));
+  //   TOF_LOOKUP.put(Inches.of(77.5), Seconds.of(1.165));
+  //   SHOT_LOOKUP.put(Inches.of());
+  // }
 
   // public static final LerpTable<Distance, ShooterParameters> SHOT_LOOKUP =
   //     new LerpTable<Distance, ShooterParameters>() {

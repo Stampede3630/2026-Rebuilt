@@ -9,6 +9,6 @@ public class DoubleLerpTable extends LerpTable<Double, Double> {
     return ((high.getValue() - low.getValue())
             / (high.getKey() - low.getKey())
             * (key - low.getKey()))
-        + low.getKey();
+        + low.getValue();
   }
 }

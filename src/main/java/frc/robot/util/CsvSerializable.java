@@ -3,6 +3,7 @@ package frc.robot.util;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public interface CsvSerializable {
   /**
@@ -24,9 +25,12 @@ public interface CsvSerializable {
   default void write(String path) throws IOException {
     File file = new File(path);
 
-    try (FileWriter writer = new FileWriter(path)) {
-      if (!file.exists()) {
-        file.createNewFile();
+    boolean fileExist = file.exists();
+    if (!fileExist) {
+      file.createNewFile();
+    }
+    try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+      if (!fileExist) {
         System.out.println("Creating new file at " + path);
         String headers = getHeaders() + "\n";
         writer.append(headers);
@@ -38,21 +42,26 @@ public interface CsvSerializable {
   }
 
   static void writeMany(String path, CsvSerializable... items) throws IOException {
-    if (items.length == 0) {
-      throw new IllegalArgumentException("Must provide at least 1 item.");
-    }
+    // if (items.length == 0) {
+    //   throw new IllegalArgumentException("Must provide at least 1 item.");
+    // }
     File file = new File(path);
+    boolean fileExist = file.exists();
+    if (!fileExist) {
+      file.createNewFile();
+    }
+    try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+      if (!fileExist) {
 
-    try (FileWriter writer = new FileWriter(path)) {
-      if (!file.exists()) {
-        file.createNewFile();
         System.out.println("Creating new file at " + path);
         String headers = items[0].getHeaders() + "\n";
         writer.append(headers);
       }
+
       for (CsvSerializable item : items) {
         writer.append(item.toCsv() + "\n");
       }
+      writer.flush();
     } catch (IOException e) {
       throw new IOException(e);
     }

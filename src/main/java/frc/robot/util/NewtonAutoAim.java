@@ -70,7 +70,7 @@ public class NewtonAutoAim implements AutoAimer {
     // newton's method
     for (int i = 0; i < 3; i++) {
       // / virtual_target.getTranslation().getNorm(); // derivative of error
-      AngularVelocity angVel2 =
+      AngularVelocity angVel2 = // need to use
           shotLookup.apply(Meters.of(virtual_target.getNorm())).shooterVelocity();
 
       double vp = angVel.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters);

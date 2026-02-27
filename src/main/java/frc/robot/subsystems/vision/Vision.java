@@ -141,7 +141,8 @@ public class Vision extends SubsystemBase {
 
         // Skip if rejected
         if (Constants.currentMode != Constants.Mode.SIM /* maybe remove for optimization */
-            && rejectPose) {
+                && rejectPose
+            || !Constants.VISION_ENABLED.get()) {
           // System.out.println("REJECTED");
           continue;
         }

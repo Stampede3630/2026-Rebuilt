@@ -35,7 +35,7 @@ public class HoodIOServo implements HoodIO {
     pos = () -> hood.get();
 
     // hood.setBoundsMicroseconds(1970, 0, 0, 0, 1150);
-    hood.setBoundsMicroseconds(2000, 1550, 1500, 1450, 1000);
+    hood.setBoundsMicroseconds(1970, 0, 0, 0, 1150); // prev 2000, 1550, 1500, 1450, 1000
   }
 
   @Override

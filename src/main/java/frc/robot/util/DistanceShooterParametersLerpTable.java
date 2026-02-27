@@ -17,15 +17,17 @@ public class DistanceShooterParametersLerpTable extends LerpTable<Distance, Shoo
       Distance key) {
     double hood =
         ((high.getValue().hood() - low.getValue().hood())
-                / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-                * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-            + low.getKey().baseUnitMagnitude();
+                / (high.getKey().in(Meters) - low.getKey().in(Meters))
+                * (key.in(Meters) - low.getKey().in(Meters)))
+            + low.getValue().hood();
     double velo =
-        ((high.getValue().shooterVelocity().baseUnitMagnitude()
-                    - low.getValue().shooterVelocity().baseUnitMagnitude())
-                / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-                * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-            + low.getKey().baseUnitMagnitude();
+        ((high.getValue().shooterVelocity().in(RotationsPerSecond)
+                        - low.getValue().shooterVelocity().in(RotationsPerSecond))
+                    / (high.getKey().in(Meters) - low.getKey().in(Meters))
+                    * (key.in(Meters))
+                - low.getKey().in(Meters))
+            + low.getValue().shooterVelocity().in(RotationsPerSecond);
+    System.out.println("shot " + hood + " speed " + velo);
 
     // return null;
     return new ShooterParameters(hood, RotationsPerSecond.of(velo));
@@ -66,15 +68,18 @@ public class DistanceShooterParametersLerpTable extends LerpTable<Distance, Shoo
                 + " could not be found in the header of path "
                 + path);
       }
-      String[] lineVals = null;
-      do {
-        lineVals = buff.readLine().split(",");
+      String[] lineVals = buff.readLine().split(",");
+      while (lineVals != null) {
+
         double key = Double.parseDouble(lineVals[keyIndex]);
         double hood = Double.parseDouble(lineVals[hoodIndex]);
         double vel = Double.parseDouble(lineVals[velIndex]);
         table.put(Meters.of(key), new ShooterParameters(hood, RotationsPerSecond.of(vel)));
+        String theLine = buff.readLine();
+        if (theLine != null) lineVals = theLine.split(",");
+        else lineVals = null;
         // put val here
-      } while (lineVals != null);
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }

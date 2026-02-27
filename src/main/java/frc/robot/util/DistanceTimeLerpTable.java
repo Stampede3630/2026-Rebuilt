@@ -18,7 +18,7 @@ public class DistanceTimeLerpTable extends LerpTable<Distance, Time> {
         ((high.getValue().in(Seconds) - low.getValue().in(Seconds))
                 / (high.getKey().in(Meters) - low.getKey().in(Meters))
                 * (key.in(Meters) - low.getKey().in(Meters)))
-            + low.getKey().in(Meters);
+            + low.getValue().in(Seconds);
     return Seconds.of(time);
   }
 
@@ -48,14 +48,16 @@ public class DistanceTimeLerpTable extends LerpTable<Distance, Time> {
                 + " could not be found in the header of path "
                 + path);
       }
-      String[] lineVals = null;
-      do {
-        lineVals = buff.readLine().split(",");
+      String[] lineVals = buff.readLine().split(",");
+      while (lineVals != null) {
         double key = Double.parseDouble(lineVals[keyIndex]);
         double val = Double.parseDouble(lineVals[valIndex]);
         table.put(Meters.of(key), Seconds.of(val));
-        // put val here
-      } while (lineVals != null);
+        String theLine = buff.readLine();
+        if (theLine != null) lineVals = theLine.split(",");
+        else lineVals = null;
+      }
+
     } catch (IOException e) {
       e.printStackTrace();
     }
