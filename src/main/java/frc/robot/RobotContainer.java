@@ -447,8 +447,7 @@ public class RobotContainer {
                                   /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
                                       FieldConstants.HUB_POSE_BLUE),
                                   Constants.SHOT_LOOKUP,
-                                  Constants.TOF_LOOKUP,
-                                  turret.getTurretAngle());
+                                  Constants.TOF_LOOKUP);
                         })
                     .alongWith(
                         Commands.parallel(
@@ -456,7 +455,7 @@ public class RobotContainer {
                             //     .onlyIf(() -> !isHoodAngleRight())
                             //     .repeatedly(),
                             turret
-                                .setTurretAngle(() -> shotInfo.turretAngle())
+                                .setTurretAngle(() -> shotInfo.turretAngle().plus(drive.getPose().getRotation().getMeasure())
                                 .onlyIf(() -> !isFacingRightWay())
                                 .repeatedly() /* ,*/)),
                 // onShoot
