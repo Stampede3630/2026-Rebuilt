@@ -24,6 +24,5 @@ public interface AutoAimer {
       ChassisSpeeds robotVelocity,
       Translation2d goal,
       Function<Distance, ShooterParameters> shotLookup,
-      Function<Distance, Time> tofLookup,
-      Angle offset);
+      Function<Distance, Time> tofLookup);
 }
