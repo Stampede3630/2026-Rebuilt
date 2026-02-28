@@ -32,8 +32,8 @@ public final class Constants {
 
   /* middle: from DS: 182.11in (4.625594m) from side: 158.85in (4.03479m) */
 
-  public static final String CHASSIS_CAMERA_1 = "camera_0";
-  public static final String CHASSIS_CAMERA_2 = "camera_1";
+  public static final String CHASSIS_CAMERA_0 = "camera_0";
+  public static final String CHASSIS_CAMERA_1 = "camera_1";
   public static final String TURRET_CAMERA = "limelight";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);

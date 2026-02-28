@@ -8,6 +8,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -45,7 +46,8 @@ public class NewtonAutoAim implements AutoAimer {
       ChassisSpeeds chassisSpeeds,
       Translation2d goal,
       Function<Distance, ShooterParameters> shotLookup,
-      Function<Distance, Time> tofLookup) {
+      Function<Distance, Time> tofLookup,
+      Angle offset) {
     // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
     Translation2d robotVelocity =
         new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
@@ -85,6 +87,7 @@ public class NewtonAutoAim implements AutoAimer {
                   / (1 + virtual_target.dot(robotVelocity) / (vp * virtual_target.getNorm()));
 
       virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
+      System.out.println(virtual_target);
     }
 
     // // fixed point method
@@ -115,6 +118,6 @@ public class NewtonAutoAim implements AutoAimer {
       theQuality = ShotQuality.IMPOSSIBLE;
     }
 
-    return new ShotInfo(params, virtual_target.getAngle().getMeasure(), theQuality);
+    return new ShotInfo(params, virtual_target.getAngle().getMeasure().plus(offset), theQuality);
   }
 }

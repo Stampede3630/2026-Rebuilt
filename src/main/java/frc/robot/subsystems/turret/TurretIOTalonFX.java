@@ -46,8 +46,8 @@ public class TurretIOTalonFX implements TurretIO {
 
   private Angle turretSetpoint = Radians.of(0);
 
-  private final double LEFT_LIMIT = -0.11; // rotations
-  private final double RIGHT_LIMIT = 1.0; // rotations
+  private final double LEFT_LIMIT = -0.61; // rotations
+  private final double RIGHT_LIMIT = 0.5; // rotations
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;

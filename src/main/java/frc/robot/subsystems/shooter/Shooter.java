@@ -84,7 +84,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command shoot(Supplier<AngularVelocity> vel) {
-    return run(() -> runOuttakeWithVel(vel));
+    return run(() -> io.runVelocity(vel.get().magnitude()));
   }
 
   public Command stop() {

@@ -2,6 +2,7 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import java.util.function.Function;
@@ -23,5 +24,6 @@ public interface AutoAimer {
       ChassisSpeeds robotVelocity,
       Translation2d goal,
       Function<Distance, ShooterParameters> shotLookup,
-      Function<Distance, Time> tofLookup);
+      Function<Distance, Time> tofLookup,
+      Angle offset);
 }

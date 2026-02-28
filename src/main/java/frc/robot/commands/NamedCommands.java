@@ -117,7 +117,8 @@ public class NamedCommands {
                       drive.getFieldRelSpeeds(),
                       AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE),
                       Constants.SHOT_LOOKUP,
-                      Constants.TOF_LOOKUP);
+                      Constants.TOF_LOOKUP,
+                      turret.getTurretAngle());
             }));
 
     commands.put(

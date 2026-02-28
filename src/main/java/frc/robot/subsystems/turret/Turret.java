@@ -38,7 +38,9 @@ public class Turret extends SubsystemBase {
 
   private Angle testSetpoint = Degrees.of(0);
 
-  public Turret(TurretIO io) {
+  private final Supplier<Pose2d> poseSupplier;
+
+  public Turret(TurretIO io, Supplier<Pose2d> poseSupplier) {
     this.io = io;
     routine =
         new SysIdRoutine(
@@ -50,6 +52,8 @@ public class Turret extends SubsystemBase {
             new SysIdRoutine.Mechanism(
                 (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null, this));
     // turretMechanism = new Mechanism2d(0.05, 0.05);
+
+    this.poseSupplier = poseSupplier;
   }
 
   //  public Command setAngle(Angle angle) {
@@ -83,8 +87,9 @@ public class Turret extends SubsystemBase {
     return runOnce(io::stopTurret);
   }
 
+  /** in field relative coordinates */
   public Angle getTurretAngle() {
-    return io.getTurretAngle();
+    return io.getTurretAngle().plus(poseSupplier.get().getRotation().getMeasure());
   }
 
   public Command setTurretAngle(Supplier<Angle> angle) {

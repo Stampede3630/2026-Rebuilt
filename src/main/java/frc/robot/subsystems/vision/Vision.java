@@ -20,6 +20,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
@@ -119,6 +120,7 @@ public class Vision extends SubsystemBase {
             observation.pose().transformBy(offsets.get(cameraIndex).apply(latency));
 
         // Check whether to reject pose
+        boolean disabledRejection = observation.tagCount() == 0;
         boolean rejectPose =
             observation.tagCount() == 0 // Must have at least one tag
                 || (observation.tagCount() == 1
@@ -142,6 +144,7 @@ public class Vision extends SubsystemBase {
         // Skip if rejected
         if (Constants.currentMode != Constants.Mode.SIM /* maybe remove for optimization */
                 && rejectPose
+                && (DriverStation.isDisabled() == false || disabledRejection)
             || !Constants.VISION_ENABLED.get()) {
           // System.out.println("REJECTED");
           continue;
@@ -161,19 +164,20 @@ public class Vision extends SubsystemBase {
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
 
-        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
-          // might need to be converted to robot-relative coordinates
-          turret.resetAnglePos(
-              observation
-                  .pose()
-                  .toPose2d()
-                  .getRotation()
-                  .minus(drive.getPose().getRotation())
-                  .getMeasure());
-        }
+        // if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
+        //   // might need to be converted to robot-relative coordinates
+        //   turret.resetAnglePos(
+        //       observation
+        //           .pose()
+        //           .toPose2d()
+        //           .getRotation()
+        //           .minus(drive.getPose().getRotation())
+        //           .getMeasure());
+        // }
         // System.out.println("ACCEPTED");
 
         // Send vision observation
+        // System.out.println("camera #" + cameraIndex + ", pose " + transformedPose.toPose2d());
         consumer.accept(
             transformedPose.toPose2d(),
             observation.timestamp(),
