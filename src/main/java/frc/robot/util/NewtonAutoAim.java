@@ -46,8 +46,7 @@ public class NewtonAutoAim implements AutoAimer {
       ChassisSpeeds chassisSpeeds,
       Translation2d goal,
       Function<Distance, ShooterParameters> shotLookup,
-      Function<Distance, Time> tofLookup,
-      Angle offset) {
+      Function<Distance, Time> tofLookup) {
     // ChassisSpeeds.fromRobotRelativeSpeeds(vel.get(), pose.get().getRotation());
     Translation2d robotVelocity =
         new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
@@ -118,6 +117,6 @@ public class NewtonAutoAim implements AutoAimer {
       theQuality = ShotQuality.IMPOSSIBLE;
     }
 
-    return new ShotInfo(params, virtual_target.getAngle().getMeasure().plus(offset), theQuality);
+    return new ShotInfo(params, virtual_target.getAngle().getMeasure(), theQuality);
   }
 }
