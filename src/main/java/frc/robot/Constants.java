@@ -45,8 +45,8 @@ public final class Constants {
   // IDs with an X should be accurate
   public static final int TURRET_ID = 54; // changed
   public static final int HOOD_ID = 31; // now defunct
-  public static final int SHOOTER_LEADER_ID = 20; // x
-  public static final int SHOOTER_FOLLOWER_ID = 19; // x
+  public static final int SHOOTER_LEADER_ID = 19; // x
+  public static final int SHOOTER_FOLLOWER_ID = 20; // x
   public static final int INDEXER_SPIN_ID = 29; // x
   public static final int INDEXER_CHUTE_ID = 34; // x
   public static final int INTAKE_ENCODER_ID = 38;
@@ -78,7 +78,7 @@ public final class Constants {
 
   public static final Translation3d TURRET_OFFSET_3D =
       new Translation3d(
-          Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0), Units.inchesToMeters(-21.604500));
+          Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0), Units.inchesToMeters(21.604500));
 
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP =
@@ -87,7 +87,8 @@ public final class Constants {
 
   // DistanceShooterParametersLerpTable.fromCSV(
   // RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
-  public static final DistanceTimeLerpTable TOF_LOOKUP = new DistanceTimeLerpTable();
+  public static final DistanceTimeLerpTable TOF_LOOKUP =
+      DistanceTimeLerpTable.fromCSV("/home/lvuser/deploy/tof.csv", "distance", "tof");
 
   public static final LoggedNetworkBoolean VISION_ENABLED =
       new LoggedNetworkBoolean("Vision/visionEnabled", true);

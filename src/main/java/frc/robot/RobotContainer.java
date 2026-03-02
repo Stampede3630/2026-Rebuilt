@@ -9,18 +9,21 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
@@ -63,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -113,7 +117,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Hood/hoodTol", 0.1);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
-      new LoggedNetworkBoolean("Turret/enableAutoAim", false); // change b4 comp
+      new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
   private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.1);
@@ -170,7 +174,6 @@ public class RobotContainer {
   // auto aim
   private AutoAimer aimer = new NewtonAutoAim();
 
-  /* @AutoLogOutput */
   private ShotInfo shotInfo =
       new ShotInfo(
           new ShooterParameters(0.0, RadiansPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
@@ -195,7 +198,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         SmartDashboard.putData(drive);
-        turret = new Turret(new TurretIOTalonFX(), drive::getPose);
+        turret = new Turret(new TurretIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
@@ -203,26 +206,26 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
-          new VisionIOPhotonVision(
-              Constants.CHASSIS_CAMERA_0,
-              new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
+          //   new VisionIOPhotonVision(
+          //       Constants.CHASSIS_CAMERA_0,
+          //       new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
           new VisionIOPhotonVision(
               Constants.CHASSIS_CAMERA_1,
               new Transform3d(
-                  Units.inchesToMeters(11),
-                  Units.inchesToMeters(12),
-                  Units.inchesToMeters(8.5),
+                  Units.inchesToMeters(10.75),
+                  Units.inchesToMeters(11.25),
+                  Units.inchesToMeters(7.25),
                   new Rotation3d(
                       0,
-                      Units.degreesToRadians(25),
-                      Units.degreesToRadians(-45)) /* dummy points */)),
+                      Units.degreesToRadians(-30),
+                      Units.degreesToRadians(45)) /* dummy points */)),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
 
         ArrayList<Function<Time, Transform3d>> offsets =
             new ArrayList<>(
                 List.of(
-                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
                     // */).plus()
@@ -241,20 +244,19 @@ public class RobotContainer {
                                           new Rotation2d(
                                               turret
                                                   .getTurretAngle()
-                                                  .plus(turret.getAngularVelocity().times(lat))))),
+                                                  .plus(turret.getAngularVelocity().times(lat)))
+                                          /*.plus(drive.getRotation()) */ )),
                               new Rotation3d(
                                       new Rotation2d(
                                           turret
                                               .getTurretAngle()
-                                              .plus(
-                                                  turret
-                                                      .getAngularVelocity()
-                                                      .times(
-                                                          lat)) /* maybe not account for latency here */))
+                                              .plus(turret.getAngularVelocity().times(lat)))
+                                      /*.plus(drive.getRotation()) */ )
                                   .plus(
                                       new Rotation3d(
-                                          Degrees.of(0.0), Degrees.of(40.0), Degrees.of(0))));
+                                          Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
                       //   System.out.println("camera pose " + test);
+                      Logger.recordOutput("LL/transformOffset", transform);
                       return transform;
                     }));
         // new Transform3d()
@@ -282,7 +284,7 @@ public class RobotContainer {
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
 
-        turret = new Turret(new TurretIOSim(), drive::getPose);
+        turret = new Turret(new TurretIOSim());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
@@ -326,7 +328,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
-        turret = new Turret(new TurretIOTalonFX(), drive::getPose);
+        turret = new Turret(new TurretIOTalonFX());
         intake = new Intake(new IntakeIOTalonFX());
         climber = new Climber(new ClimberIOTalonFX());
         hood = new Hood(new HoodIOServo());
@@ -442,26 +444,39 @@ public class RobotContainer {
                         () -> {
                           shotInfo =
                               aimer.get(
-                                  drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET),
+                                  drive
+                                      .getPose()
+                                      .getTranslation()
+                                      .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
                                   drive.getFieldRelSpeeds(),
                                   /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
                                       FieldConstants.HUB_POSE_BLUE),
                                   Constants.SHOT_LOOKUP,
                                   Constants.TOF_LOOKUP);
+                          Logger.recordOutput(
+                              "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
+                          Logger.recordOutput(
+                              "targetShot/hood", shotInfo.shooterParameters().hood());
+                          Logger.recordOutput("targetShot/turret", shotInfo.turretAngle());
+                          Logger.recordOutput("targetShot/quality", shotInfo.quality());
                         })
                     .alongWith(
                         Commands.parallel(
-                            // hood.setHood(() -> shotInfo.shooterParameters().hood())
-                            //     .onlyIf(() -> !isHoodAngleRight())
-                            //     .repeatedly(),
+                            hood.setHood(() -> shotInfo.shooterParameters().hood())
+                                // .onlyIf(() -> !isHoodAngleRight())
+                                .repeatedly(),
                             turret
-                                .setTurretAngle(() -> shotInfo.turretAngle().plus(drive.getPose().getRotation().getMeasure())
-                                .onlyIf(() -> !isFacingRightWay())
-                                .repeatedly() /* ,*/)),
-                // onShoot
-                //     .onlyIf(this::isFacingRightWay)
-                //     .onlyIf(() -> isHoodAngleRight())
-                //     .repeatedly())),
+                                .setTurretAngle(
+                                    () ->
+                                        shotInfo
+                                            .turretAngle()
+                                            .minus(drive.getRotation().getMeasure()))
+                                // .onlyIf(() -> !isFacingRightWay())
+                                .repeatedly() /* ,*/),
+                        onShoot
+                            .onlyIf(this::isFacingRightWay)
+                            .onlyIf(() -> isHoodAngleRight())
+                            .repeatedly()),
                 shooter.runVelocity(shooterAutoAimDisabledSpeed),
                 enableAutoAim))
         .whileFalse(
@@ -566,6 +581,10 @@ public class RobotContainer {
             .withName("Reset turret angle")
             .ignoringDisable(false));
 
+    new Trigger(() -> DriverStation.isDisabled())
+        .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
+        .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
+
     // // rotate climber hook
     // controller.b().whileTrue(climber.runHook(climbSpeedHook));
     // controller.a().whileTrue(climber.runHook(() ->
@@ -656,13 +675,13 @@ public class RobotContainer {
   public boolean isFacingRightWay() {
     return shotInfo
         .turretAngle()
-        .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
+        .isNear(
+            turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
+            Degrees.of(turretTolDeg.getAsDouble()));
   }
 
-  @Deprecated
   public boolean isHoodAngleRight() {
     return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood()) < hoodTol.get();
-    // temporary while hood chaos gets sorted out
   }
 
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {

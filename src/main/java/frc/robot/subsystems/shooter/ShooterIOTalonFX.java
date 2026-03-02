@@ -72,7 +72,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     followerTemp = follower.getDeviceTemp();
 
     config
-        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
+        .withMotorOutput(
+            new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
         .withSlot0(
             new Slot0Configs()
                 .withKS(6.5)

@@ -1,7 +1,7 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -46,8 +46,8 @@ public class TurretIOTalonFX implements TurretIO {
 
   private Angle turretSetpoint = Radians.of(0);
 
-  private final double LEFT_LIMIT = -0.61; // rotations
-  private final double RIGHT_LIMIT = 0.5; // rotations
+  private final double LEFT_LIMIT = -0.25; // rotations was -0.15
+  private final double RIGHT_LIMIT = 0.25; // rotations was 1.11
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
@@ -89,6 +89,7 @@ public class TurretIOTalonFX implements TurretIO {
                 .withReverseSoftLimitEnable(true)
                 .withReverseSoftLimitThreshold(LEFT_LIMIT)); // could be adjusted slightly
     turretMotor.getConfigurator().apply(turretConfig);
+    turretMotor.setPosition(0);
   }
 
   @Override
@@ -107,14 +108,14 @@ public class TurretIOTalonFX implements TurretIO {
     inputs.connected = connDebouncer.calculate(connected);
 
     // turretMotor
-    inputs.position = turretPosition.getValueAsDouble();
-    inputs.velocity = turretVelocity.getValueAsDouble();
+    inputs.position = turretPosition.getValue();
+    inputs.velocity = turretVelocity.getValue();
     inputs.torqueCurrent = turretTorqueCurrent.getValueAsDouble();
-    inputs.voltage = turretVoltage.getValueAsDouble();
+    inputs.voltage = turretVoltage.getValue();
     inputs.statorCurrent = turretStatorCurrent.getValueAsDouble();
     inputs.supplyCurrent = turretSupplyCurrent.getValueAsDouble();
     inputs.temp = turretTemp.getValueAsDouble();
-    inputs.setpoint = turretSetpoint.magnitude();
+    inputs.setpoint = turretSetpoint;
   }
 
   /**
@@ -129,16 +130,17 @@ public class TurretIOTalonFX implements TurretIO {
   public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
-    Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
-    // shouldn't have to worry about rightAngle
-    Angle currentAngle = turretMotor.getPosition().getValue();
-    // find if leftAngle or angle is closer to currentAngle
-    if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)) {
-      // if leftAngle is closer
-      angle = leftAngle;
-    }
+
+    // Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
+    // Angle rightAngle = angle.plus(Degrees.of(360));
+    // Angle currentAngle = turretMotor.getPosition().getValue();
+    // // find if leftAngle or angle is closer to currentAngle
+    // if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)) {
+    //   // if leftAngle is closer
+    //   angle = leftAngle;
+    // }
     turretSetpoint = angle;
-    turretMotor.setControl(posRequestVoltage.withPosition(angle).withSlot(0));
+    turretMotor.setControl(posRequestVoltage.withPosition(angle.in(Rotations)).withSlot(0));
   }
 
   @Override
@@ -183,5 +185,11 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public AngularVelocity getAngularVelocity() {
     return turretMotor.getVelocity().getValue();
+  }
+
+  @Override
+  public void setNeutralMode(NeutralModeValue val) {
+    // turretConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(val));
+    turretMotor.getConfigurator().apply(new MotorOutputConfigs().withNeutralMode(val));
   }
 }

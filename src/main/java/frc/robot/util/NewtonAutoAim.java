@@ -3,19 +3,22 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.util.ShotInfo.ShotQuality;
 import java.util.function.Function;
+import org.littletonrobotics.junction.Logger;
 
 public class NewtonAutoAim implements AutoAimer {
   // meters -> rad
@@ -40,7 +43,7 @@ public class NewtonAutoAim implements AutoAimer {
    * @return A Translation3d, created from finding the vector that would be required to hit the hub
    *     if the robot were still, then accounting for the robot's current velocity
    */
-  // @Override
+  @Override
   public ShotInfo get(
       Translation2d turretPosition,
       ChassisSpeeds chassisSpeeds,
@@ -58,35 +61,33 @@ public class NewtonAutoAim implements AutoAimer {
     robotVelocity = robotVelocity.plus(rotationVelocity);
     // use constant projectile velocity model for initial guess
     // angle between robot velocity and target
-    Rotation2d angle = robotVelocity.getAngle().minus(goal.getAngle());
+    Rotation2d angle = turretPosition.minus(goal).getAngle();
     // velocity of shot from current position
     AngularVelocity angVel = shotLookup.apply(Meters.of(dist.getNorm())).shooterVelocity();
-    LinearVelocity vel =
+    LinearVelocity shootVel =
         MetersPerSecond.of(angVel.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters));
     double time =
-        dist.getNorm() / (vel.in(MetersPerSecond) + robotVelocity.times(angle.getCos()).getNorm());
+        dist.getNorm()
+            / (shootVel.in(MetersPerSecond) + robotVelocity.times(angle.getCos()).getNorm());
     // double time = tofLookup.apply(Meters.of(dist.getNorm())).in(Seconds);
-    Translation2d virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
+    Translation2d virtual_target = goal.minus(robotVelocity.times(time));
 
+    Logger.recordOutput("omgthisbad/virtual_target", new Pose2d(virtual_target, Rotation2d.kZero));
     // newton's method
     for (int i = 0; i < 3; i++) {
-      // / virtual_target.getTranslation().getNorm(); // derivative of error
+      //   // / virtual_target.getTranslation().getNorm(); // derivative of error
+      Translation2d d = virtual_target.minus(turretPosition);
       AngularVelocity angVel2 = // need to use
-          shotLookup.apply(Meters.of(virtual_target.getNorm())).shooterVelocity();
+          shotLookup.apply(Meters.of(d.getNorm())).shooterVelocity();
 
-      double vp = angVel.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters);
-      // double vp =
-      //     shotLookup
-      //         .apply(Meters.of(virtual_target.getNorm()))
-      //         .shooterVelocity()
-      //         .in(MetersPerSecond);
-      time =
-          time
-              - (time - virtual_target.getNorm() / vp)
-                  / (1 + virtual_target.dot(robotVelocity) / (vp * virtual_target.getNorm()));
+      double vp = d.getNorm() / time;
+      // double vp = angVel2.in(RadiansPerSecond) * Constants.SHOOTER_WHEEL_RADIUS.in(Meters);
+      double E = time - d.getNorm() / vp;
+      double Eprime = 1 + d.dot(robotVelocity) / (vp * d.getNorm());
+      time = time - E / Eprime;
 
-      virtual_target = goal.minus(turretPosition).minus(robotVelocity.times(time));
-      System.out.println(virtual_target);
+      virtual_target = goal.minus(robotVelocity.times(time));
+      // System.out.println(virtual_target);
     }
 
     // // fixed point method
@@ -96,7 +97,8 @@ public class NewtonAutoAim implements AutoAimer {
     //   fpvirtual_target = goal.minus(turretPosition).minus(robotVelocity.times(fptime));
     // }
 
-    ShooterParameters params = shotLookup.apply(Meters.of(virtual_target.getNorm()));
+    ShooterParameters params =
+        shotLookup.apply(Meters.of(virtual_target.minus(turretPosition).getNorm()));
 
     double radialVelocity = robotVelocity.dot(dist.div(dist.getNorm()));
     double quality =
@@ -117,6 +119,8 @@ public class NewtonAutoAim implements AutoAimer {
       theQuality = ShotQuality.IMPOSSIBLE;
     }
 
-    return new ShotInfo(params, virtual_target.getAngle().getMeasure(), theQuality);
+    SmartDashboard.putNumber("turretNumber", virtual_target.getAngle().getMeasure().in(Rotations));
+    return new ShotInfo(
+        params, virtual_target.minus(turretPosition).getAngle().getMeasure(), theQuality);
   }
 }

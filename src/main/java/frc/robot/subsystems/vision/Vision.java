@@ -117,7 +117,7 @@ public class Vision extends SubsystemBase {
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
         Pose3d transformedPose =
-            observation.pose().transformBy(offsets.get(cameraIndex).apply(latency));
+            observation.pose().transformBy(offsets.get(cameraIndex).apply(latency).inverse());
 
         // Check whether to reject pose
         boolean disabledRejection = observation.tagCount() == 0;
@@ -125,7 +125,8 @@ public class Vision extends SubsystemBase {
             observation.tagCount() == 0 // Must have at least one tag
                 || (observation.tagCount() == 1
                     && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-                || Math.abs(transformedPose.getZ()) > maxZError // Must have realistic Z coordinate
+                || Math.abs(transformedPose.getZ()) > maxZError // Must have realistic Z
+                // coordinate
 
                 // Must be within the field boundaries
                 || transformedPose.getX() < 0.0

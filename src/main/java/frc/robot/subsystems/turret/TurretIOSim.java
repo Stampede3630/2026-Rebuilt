@@ -1,6 +1,8 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.controller.PIDController;
@@ -51,15 +53,20 @@ public class TurretIOSim implements TurretIO {
 
     // turretMotor
     inputs.position =
-        turretMotor.getAngularPositionRad() / Math.PI * 180 /* convert to degrees cuz why not */;
+        Degrees.of(
+            turretMotor.getAngularPositionRad()
+                / Math.PI
+                * 180) /* convert to degrees cuz why not */;
     // System.out.println(turretMotor.getInputVoltage());
-    inputs.velocity = turretMotor.getAngularVelocityRadPerSec();
+    inputs.velocity = turretMotor.getAngularVelocity();
     inputs.torqueCurrent = turretMotor.getTorqueNewtonMeters();
-    inputs.voltage = turretMotor.getInputVoltage();
+    inputs.voltage = Volts.of(turretMotor.getInputVoltage());
     inputs.statorCurrent = turretMotor.getCurrentDrawAmps();
     inputs.supplyCurrent = turretMotor.getCurrentDrawAmps();
     inputs.temp = 1.0;
-    inputs.setpoint = controller.getSetpoint() / Math.PI * 180 /* convert to degrees cuz why not */;
+    inputs.setpoint =
+        Degrees.of(controller.getSetpoint() / Math.PI * 180); /* convert to degrees cuz why not */
+    ;
   }
 
   // @Override

@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -65,8 +64,7 @@ public class NamedCommands {
   private final LoggedNetworkNumber turretTolDeg =
       new LoggedNetworkNumber("Auto/Turret/turretTolDeg", 0.5);
   /** The tolerance of the turret's hood, in degrees */
-  private final LoggedNetworkNumber hoodTolDeg =
-      new LoggedNetworkNumber("Auto/Hood/hoodTolDeg", 0.5);
+  private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Auto/Hood/hoodTol", 0.5);
 
   /**
    * The amount of simulation periodics before another fuel can be shot - seperate from
@@ -117,32 +115,46 @@ public class NamedCommands {
                       drive.getFieldRelSpeeds(),
                       AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE),
                       Constants.SHOT_LOOKUP,
-                      Constants.TOF_LOOKUP,
-                      turret.getTurretAngle());
+                      Constants.TOF_LOOKUP);
             }));
 
     commands.put(
         "aimAndShoot",
-        Commands.parallel(
-            Commands.parallel(
-                hood.setHood(() -> shotInfo.shooterParameters().hood())
-                    .onlyIf(
-                        () ->
-                            !isHoodAngleRight(
-                                drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
-                    .repeatedly(),
-                turret
-                    .setTurretAngle(() -> shotInfo.turretAngle())
-                    .onlyIf(() -> !isFacingRightWay())
-                    .repeatedly(),
+        Commands.run(
+                () -> {
+                  shotInfo =
+                      aimer.get(
+                          drive
+                              .getPose()
+                              .getTranslation()
+                              .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+                          drive.getFieldRelSpeeds(),
+                          /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
+                              FieldConstants.HUB_POSE_BLUE),
+                          Constants.SHOT_LOOKUP,
+                          Constants.TOF_LOOKUP);
+                  //   Logger.recordOutput(
+                  //       "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
+                  //   Logger.recordOutput(
+                  //       "targetShot/hood", shotInfo.shooterParameters().hood());
+                  //   Logger.recordOutput("targetShot/turret", shotInfo.turretAngle());
+                  //   Logger.recordOutput("targetShot/quality", shotInfo.quality());
+                })
+            .alongWith(
+                Commands.parallel(
+                    hood.setHood(() -> shotInfo.shooterParameters().hood())
+                        // .onlyIf(() -> !isHoodAngleRight())
+                        .repeatedly(),
+                    turret
+                        .setTurretAngle(
+                            () -> shotInfo.turretAngle().minus(drive.getRotation().getMeasure()))
+                        // .onlyIf(() -> !isFacingRightWay())
+                        .repeatedly() /* ,*/),
                 shooter
                     .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
                     .onlyIf(this::isFacingRightWay)
-                    .onlyIf(
-                        () ->
-                            isHoodAngleRight(
-                                drive.getPose(), drive.getFieldRelSpeeds(), latency.getAsDouble()))
-                    .repeatedly())));
+                    .onlyIf(() -> isHoodAngleRight())
+                    .repeatedly()));
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }
@@ -150,14 +162,13 @@ public class NamedCommands {
   public boolean isFacingRightWay() {
     return shotInfo
         .turretAngle()
-        .isNear(turret.getTurretAngle(), Degrees.of(turretTolDeg.getAsDouble()));
+        .isNear(
+            turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
+            Degrees.of(turretTolDeg.getAsDouble()));
   }
 
-  @Deprecated
-  public boolean isHoodAngleRight(Pose2d pose, ChassisSpeeds vel, double latency) {
-    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood())
-        < Degrees.of(hoodTolDeg.getAsDouble()).baseUnitMagnitude();
-    // temporary while hood chaos gets sorted out
+  public boolean isHoodAngleRight() {
+    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood()) < hoodTol.get();
   }
 
   public void resetOdometry() {

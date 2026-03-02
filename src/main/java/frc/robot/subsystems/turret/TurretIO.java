@@ -4,8 +4,10 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.turret.TurretIO.TurretIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -53,18 +55,20 @@ public interface TurretIO {
 
   default void setTurretAngleTorqueCurrent(Angle angle) {}
 
+  default void setNeutralMode(NeutralModeValue val) {}
+
   @AutoLog
   class TurretIOInputs {
     public boolean connected = false;
 
     // turret motor
-    public double position = 0.0;
-    public double velocity = 0.0;
+    public Angle position;
+    public AngularVelocity velocity;
     public double torqueCurrent = 0.0;
-    public double voltage = 0.0;
+    public Voltage voltage;
     public double statorCurrent = 0.0;
     public double supplyCurrent = 0.0;
     public double temp = 0.0;
-    public double setpoint = 0.0;
+    public Angle setpoint;
   }
 }
