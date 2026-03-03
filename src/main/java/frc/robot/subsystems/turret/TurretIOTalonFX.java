@@ -149,14 +149,6 @@ public class TurretIOTalonFX implements TurretIO {
     turretMotor.setControl(posRequestTorqueCurrent.withPosition(angle).withSlot(1));
   }
 
-  /**
-   * @return The current angle of the turret, in radians
-   */
-  @Override
-  public Angle getTurretAngle() {
-    return turretMotor.getPosition().getValue();
-  }
-
   @Override
   public boolean isInitSet() {
     return initSet;
@@ -180,11 +172,6 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public void runTurret(double speed) {
     turretMotor.set(speed);
-  }
-
-  @Override
-  public AngularVelocity getAngularVelocity() {
-    return turretMotor.getVelocity().getValue();
   }
 
   @Override

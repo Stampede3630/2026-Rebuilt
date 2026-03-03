@@ -1,8 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
@@ -22,13 +19,6 @@ public interface TurretIO {
     return true;
   }
 
-  /**
-   * @return The current angle of the turret, in robot-relative coordinates
-   */
-  default Angle getTurretAngle() {
-    return Radians.of(0);
-  }
-
   default void resetAnglePos(Angle newAngle) {}
 
   default boolean isInitSet() {
@@ -45,13 +35,6 @@ public interface TurretIO {
    * @param speed The speed to turn at [-1, 1]
    */
   default void runTurret(double speed) {}
-
-  /**
-   * @return The current angular velocity of the turret
-   */
-  default AngularVelocity getAngularVelocity() {
-    return RadiansPerSecond.of(0.0);
-  }
 
   default void setTurretAngleTorqueCurrent(Angle angle) {}
 

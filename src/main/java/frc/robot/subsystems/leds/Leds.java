@@ -6,13 +6,13 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.TimedSubsystem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-public class Leds extends SubsystemBase {
+public class Leds extends TimedSubsystem {
   private static Leds instance;
 
   // constants
@@ -37,6 +37,7 @@ public class Leds extends SubsystemBase {
   private final SlewRateLimiter blueLimiter = new SlewRateLimiter(limiterSpeed);
 
   private Leds() {
+    super("Leds");
     leds = new AddressableLED(Constants.LED_PORT);
     leds.setLength(length);
     buffer = new AddressableLEDBuffer(length);
@@ -64,7 +65,7 @@ public class Leds extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     if (gameData.charAt(0) != 'R' && gameData.charAt(0) != 'B') {
       String gameMessage = DriverStation.getGameSpecificMessage();
       if (gameMessage.length() > 0) {

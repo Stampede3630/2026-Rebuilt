@@ -90,6 +90,7 @@ public class RobotContainer {
   private final Indexer indexer;
   private final Hood hood;
   private final TofTimer tofDataLog;
+  private final SuperStructure structure;
 
   // private final Leds leds = Leds.getInstance();
 
@@ -110,11 +111,6 @@ public class RobotContainer {
 
   /** The amount of time for the indexer to index another fuel, in seconds */
   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
-  /** The tolerance of the turret, in degrees */
-  private final LoggedNetworkNumber turretTolDeg =
-      new LoggedNetworkNumber("Turret/turretTolDeg", 2.0);
-  /** The tolerance of the turret's hood, in degrees */
-  private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Hood/hoodTol", 0.1);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
@@ -123,7 +119,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.1);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 0.5);
+      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 10);
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
@@ -146,15 +142,6 @@ public class RobotContainer {
   /** The duty cycle speed to use to climb with the hooks */
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
-  /** The duty cycle speed to run the spindexer with */
-  private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.45);
-  /** The duty cycle speed to run the chute with */
-  private final LoggedNetworkNumber chuteSpeed =
-      new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
-  /**
-   * The duty cycle speed to set the hood to while auto aim is disabled and for testing [-1.0, 1.0]
-   */
-  private final LoggedNetworkNumber hoodSpeed = new LoggedNetworkNumber("Hood/hoodSpeed", 0.2);
 
   /**
    * The amount of simulation periodics before another fuel can be shot
@@ -371,7 +358,8 @@ public class RobotContainer {
           });
     }
 
-    new NamedCommands(climber, drive, hood, turret, indexer, intake, shooter, vision);
+    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer);
+    new NamedCommands(climber, intake, vision, structure);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -440,45 +428,7 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(
             Commands.either(
-                Commands.run(
-                        () -> {
-                          shotInfo =
-                              aimer.get(
-                                  drive
-                                      .getPose()
-                                      .getTranslation()
-                                      .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-                                  drive.getFieldRelSpeeds(),
-                                  /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
-                                      FieldConstants.HUB_POSE_BLUE),
-                                  Constants.SHOT_LOOKUP,
-                                  Constants.TOF_LOOKUP);
-                          Logger.recordOutput(
-                              "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
-                          Logger.recordOutput(
-                              "targetShot/hood", shotInfo.shooterParameters().hood());
-                          Logger.recordOutput("targetShot/turret", shotInfo.turretAngle());
-                          Logger.recordOutput("targetShot/quality", shotInfo.quality());
-                        })
-                    .alongWith(
-                        Commands.parallel(
-                            hood.setHood(() -> shotInfo.shooterParameters().hood())
-                                // .onlyIf(() -> !isHoodAngleRight())
-                                .repeatedly(),
-                            turret
-                                .setTurretAngle(
-                                    () ->
-                                        shotInfo
-                                            .turretAngle()
-                                            .minus(drive.getRotation().getMeasure()))
-                                // .onlyIf(() -> !isFacingRightWay())
-                                .repeatedly() /* ,*/),
-                        onShoot
-                            .onlyIf(this::isFacingRightWay)
-                            .onlyIf(() -> isHoodAngleRight())
-                            .repeatedly()),
-                shooter.runVelocity(shooterAutoAimDisabledSpeed),
-                enableAutoAim))
+                structure.shoot(), shooter.runVelocity(shooterAutoAimDisabledSpeed), enableAutoAim))
         .whileFalse(
             shooter
                 .runVelocity(shooterIdleSpeed)
@@ -491,12 +441,12 @@ public class RobotContainer {
         .onFalse(intake.runIntake(intakeIdleSpeed));
 
     // // flip intake down
-    // controller.x().whileTrue(intake.runFlip(intakeFlipSpeed));
+    controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    // controller.y().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
-    controller.leftBumper().onTrue(hood.hoodUp());
-    controller.rightBumper().onTrue(hood.hoodDown());
+    // controller.leftBumper().onTrue(hood.hoodUp());
+    // controller.rightBumper().onTrue(hood.hoodDown());
 
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
@@ -510,6 +460,13 @@ public class RobotContainer {
         .povRight()
         .and(() -> !enableAutoAim.getAsBoolean())
         .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+
+    // raise/lower climber elevator
+    controller.y().whileTrue(climber.runElevator(climbSpeedElev));
+    controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+
+    controller.a().whileTrue(intake.runIntake(() -> -1 * intakeSpeed.get()));
+    controller.a().onFalse(intake.runIntake(intakeIdleSpeed));
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
     // controller.povRight().onTrue(turret.moveTurretRight());
@@ -527,31 +484,19 @@ public class RobotContainer {
 
     // run the indexer
     // controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
-    controller
-        .b()
-        .whileTrue(
-            indexer
-                .runBoth(chuteSpeed, spinSpeed)
-                .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
-                .repeatedly());
-    controller.b().onFalse(indexer.stopChute().andThen(indexer.stopSpin()));
-
-    // raise/lower climber elevator
-    controller.y().whileTrue(climber.runElevator(climbSpeedElev));
-    controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+    // controller
+    // .b()
+    // .whileTrue(
+    // indexer
+    //     .runBoth(chuteSpeed, spinSpeed)
+    //     .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+    // .repeatedly());
+    // controller.b().onFalse(indexer.stopChute().andThen(indexer.stopSpin()));
 
     // controller
-    //     .y()
-    //     .whileTrue(
-    //         Commands.runOnce(
-    //             () ->
-    //                 System.out.println(
-    //                     "stored: " + tofMap.values().toArray() + " to " + path.get())));
-    // controller.x().whileTrue(Commands.runOnce(() -> tofMap.clear()));
-
-    controller
-        .a()
-        .whileTrue(hood.setHood(() -> Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
+    //     .a()
+    //     .whileTrue(hood.setHood(() ->
+    // Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
 
     SmartDashboard.putData(
         Commands.runOnce(
@@ -670,18 +615,6 @@ public class RobotContainer {
       }
       return target;
     }
-  }
-
-  public boolean isFacingRightWay() {
-    return shotInfo
-        .turretAngle()
-        .isNear(
-            turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
-            Degrees.of(turretTolDeg.getAsDouble()));
-  }
-
-  public boolean isHoodAngleRight() {
-    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood()) < hoodTol.get();
   }
 
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {

@@ -45,13 +45,22 @@ public interface IntakeIO {
     public double intakeSupplyCurrent = 0.0;
     public double intakeTemp = 0.0;
 
-    // flip motor
-    public double flipPosition = 0.0;
-    public double flipVelocity = 0.0;
-    public double flipTorqueCurrent = 0.0;
-    public double flipVoltage = 0.0;
-    public double flipStatorCurrent = 0.0;
-    public double flipSupplyCurrent = 0.0;
-    public double flipTemp = 0.0;
+    // flipLeft motor
+    public double flipLeftPosition = 0.0;
+    public double flipLeftVelocity = 0.0;
+    public double flipLeftTorqueCurrent = 0.0;
+    public double flipLeftVoltage = 0.0;
+    public double flipLeftStatorCurrent = 0.0;
+    public double flipLeftSupplyCurrent = 0.0;
+    public double flipLeftTemp = 0.0;
+
+    // flipRight motor
+    public double flipRightPosition = 0.0;
+    public double flipRightVelocity = 0.0;
+    public double flipRightTorqueCurrent = 0.0;
+    public double flipRightVoltage = 0.0;
+    public double flipRightStatorCurrent = 0.0;
+    public double flipRightSupplyCurrent = 0.0;
+    public double flipRightTemp = 0.0;
   }
 }

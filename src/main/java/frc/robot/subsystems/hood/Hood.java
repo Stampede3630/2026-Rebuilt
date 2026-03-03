@@ -6,11 +6,11 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Hood extends SubsystemBase {
+public class Hood extends TimedSubsystem {
   // temp
   // change
 
@@ -31,6 +31,7 @@ public class Hood extends SubsystemBase {
   private double setpointPos = 0;
 
   public Hood(HoodIO io) {
+    super("Hood");
     this.io = io;
     //    routine =
     //        new SysIdRoutine(
@@ -52,7 +53,7 @@ public class Hood extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Hood", inputs);
   }

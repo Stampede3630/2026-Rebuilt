@@ -1,11 +1,11 @@
 package frc.robot.subsystems.indexer;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Indexer extends SubsystemBase {
+public class Indexer extends TimedSubsystem {
   private final IndexerIO io;
 
   private final IndexerIOInputsAutoLogged inputs = new IndexerIOInputsAutoLogged();
@@ -17,6 +17,7 @@ public class Indexer extends SubsystemBase {
   // private final VoltageOut req = new VoltageOut(0.0);
 
   public Indexer(IndexerIO io) {
+    super("Indexer");
     this.io = io;
 
     // routine =
@@ -69,7 +70,7 @@ public class Indexer extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
   }

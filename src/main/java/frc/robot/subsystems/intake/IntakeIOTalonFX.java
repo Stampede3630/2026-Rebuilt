@@ -4,11 +4,14 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -19,14 +22,17 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
 public class IntakeIOTalonFX implements IntakeIO {
-  private final TalonFX flip;
+  // left (climber) side of robot
+  private final TalonFX flipLeft;
+  // right side of robot
+  private final TalonFX flipRight;
   private final TalonFX intake;
   // private final CANcoder encoder;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
   // intake motor
-  private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
+  // private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
   private final StatusSignal<Angle> intakePosition;
   private final StatusSignal<AngularVelocity> intakeVelocity;
   private final StatusSignal<Current> intakeTorqueCurrent;
@@ -35,15 +41,25 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final StatusSignal<Current> intakeSupplyCurrent;
   private final StatusSignal<Temperature> intakeTemp;
 
-  // flip motor
   private final TalonFXConfiguration flipConfig = new TalonFXConfiguration();
-  private final StatusSignal<Angle> flipPosition;
-  private final StatusSignal<AngularVelocity> flipVelocity;
-  private final StatusSignal<Current> flipTorqueCurrent;
-  private final StatusSignal<Voltage> flipVoltage;
-  private final StatusSignal<Current> flipStatorCurrent;
-  private final StatusSignal<Current> flipSupplyCurrent;
-  private final StatusSignal<Temperature> flipTemp;
+
+  // flipLeft motor
+  private final StatusSignal<Angle> flipLeftPosition;
+  private final StatusSignal<AngularVelocity> flipLeftVelocity;
+  private final StatusSignal<Current> flipLeftTorqueCurrent;
+  private final StatusSignal<Voltage> flipLeftVoltage;
+  private final StatusSignal<Current> flipLeftStatorCurrent;
+  private final StatusSignal<Current> flipLeftSupplyCurrent;
+  private final StatusSignal<Temperature> flipLeftTemp;
+
+  // flipRight motor
+  private final StatusSignal<Angle> flipRightPosition;
+  private final StatusSignal<AngularVelocity> flipRightVelocity;
+  private final StatusSignal<Current> flipRightTorqueCurrent;
+  private final StatusSignal<Voltage> flipRightVoltage;
+  private final StatusSignal<Current> flipRightStatorCurrent;
+  private final StatusSignal<Current> flipRightSupplyCurrent;
+  private final StatusSignal<Temperature> flipRightTemp;
 
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
@@ -60,24 +76,38 @@ public class IntakeIOTalonFX implements IntakeIO {
     intakeTemp = intake.getDeviceTemp();
     // add intakeConfig here
 
-    // init flip motor
-    flip = new TalonFX(Constants.INTAKE_FLIP_ID, Constants.SWERVE_BUS);
-    flipPosition = flip.getPosition();
-    flipVelocity = flip.getVelocity();
-    flipTorqueCurrent = flip.getTorqueCurrent();
-    flipVoltage = flip.getMotorVoltage();
-    flipStatorCurrent = flip.getStatorCurrent();
-    flipSupplyCurrent = flip.getSupplyCurrent();
-    flipTemp = flip.getDeviceTemp();
+    // init flipLeft motor
+    flipLeft = new TalonFX(Constants.INTAKE_FLIP_LEFT_ID, Constants.SWERVE_BUS);
+    flipLeftPosition = flipLeft.getPosition();
+    flipLeftVelocity = flipLeft.getVelocity();
+    flipLeftTorqueCurrent = flipLeft.getTorqueCurrent();
+    flipLeftVoltage = flipLeft.getMotorVoltage();
+    flipLeftStatorCurrent = flipLeft.getStatorCurrent();
+    flipLeftSupplyCurrent = flipLeft.getSupplyCurrent();
+    flipLeftTemp = flipLeft.getDeviceTemp();
+
+    // init flipRight motor
+    flipRight = new TalonFX(Constants.INTAKE_FLIP_RIGHT_ID, Constants.SWERVE_BUS);
+    flipRightPosition = flipRight.getPosition();
+    flipRightVelocity = flipRight.getVelocity();
+    flipRightTorqueCurrent = flipRight.getTorqueCurrent();
+    flipRightVoltage = flipRight.getMotorVoltage();
+    flipRightStatorCurrent = flipRight.getStatorCurrent();
+    flipRightSupplyCurrent = flipRight.getSupplyCurrent();
+    flipRightTemp = flipRight.getDeviceTemp();
+
     flipConfig
         .withMotorOutput(
             new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Brake)
                 .withInverted(InvertedValue.Clockwise_Positive))
-        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(20.0));
-    flip.getConfigurator().apply(flipConfig);
-    // add flipConfig here
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(15.899412))
+        .withSlot0(new Slot0Configs().withKS(3));
+    flipLeft.getConfigurator().apply(flipConfig);
+    flipRight.getConfigurator().apply(flipConfig);
 
+    // flipLeft.setPosition(0.337402);
+    flipRight.setControl(new Follower(Constants.INTAKE_FLIP_LEFT_ID, MotorAlignmentValue.Opposed));
   }
 
   @Override
@@ -91,13 +121,20 @@ public class IntakeIOTalonFX implements IntakeIO {
                 intakeStatorCurrent,
                 intakeSupplyCurrent,
                 intakeTemp,
-                flipPosition,
-                flipVelocity,
-                flipTorqueCurrent,
-                flipVoltage,
-                flipStatorCurrent,
-                flipSupplyCurrent,
-                flipTemp)
+                flipLeftPosition,
+                flipLeftVelocity,
+                flipLeftTorqueCurrent,
+                flipLeftVoltage,
+                flipLeftStatorCurrent,
+                flipLeftSupplyCurrent,
+                flipLeftTemp,
+                flipRightPosition,
+                flipRightVelocity,
+                flipRightTorqueCurrent,
+                flipRightVoltage,
+                flipRightStatorCurrent,
+                flipRightSupplyCurrent,
+                flipRightTemp)
             .isOK();
 
     inputs.connected = connDebouncer.calculate(connected);
@@ -111,14 +148,23 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.intakeSupplyCurrent = intakeSupplyCurrent.getValueAsDouble();
     inputs.intakeTemp = intakeTemp.getValueAsDouble();
 
-    // flip
-    inputs.flipPosition = flipPosition.getValueAsDouble();
-    inputs.flipVelocity = flipVelocity.getValueAsDouble();
-    inputs.flipTorqueCurrent = flipTorqueCurrent.getValueAsDouble();
-    inputs.flipVoltage = flipVoltage.getValueAsDouble();
-    inputs.flipStatorCurrent = flipStatorCurrent.getValueAsDouble();
-    inputs.flipSupplyCurrent = flipSupplyCurrent.getValueAsDouble();
-    inputs.flipTemp = flipTemp.getValueAsDouble();
+    // flipLeft
+    inputs.flipLeftPosition = flipLeftPosition.getValueAsDouble();
+    inputs.flipLeftVelocity = flipLeftVelocity.getValueAsDouble();
+    inputs.flipLeftTorqueCurrent = flipLeftTorqueCurrent.getValueAsDouble();
+    inputs.flipLeftVoltage = flipLeftVoltage.getValueAsDouble();
+    inputs.flipLeftStatorCurrent = flipLeftStatorCurrent.getValueAsDouble();
+    inputs.flipLeftSupplyCurrent = flipLeftSupplyCurrent.getValueAsDouble();
+    inputs.flipLeftTemp = flipLeftTemp.getValueAsDouble();
+
+    // flipRight
+    inputs.flipRightPosition = flipRightPosition.getValueAsDouble();
+    inputs.flipRightVelocity = flipRightVelocity.getValueAsDouble();
+    inputs.flipRightTorqueCurrent = flipRightTorqueCurrent.getValueAsDouble();
+    inputs.flipRightVoltage = flipRightVoltage.getValueAsDouble();
+    inputs.flipRightStatorCurrent = flipRightStatorCurrent.getValueAsDouble();
+    inputs.flipRightSupplyCurrent = flipRightSupplyCurrent.getValueAsDouble();
+    inputs.flipRightTemp = flipRightTemp.getValueAsDouble();
   }
 
   // @Override
@@ -133,12 +179,12 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void runDutyCycleFlip(double dutyCycle) {
-    flip.set(dutyCycle);
+    flipLeft.set(dutyCycle);
   }
 
   @Override
   public void stopFlip() {
-    flip.stopMotor();
+    flipLeft.stopMotor();
   }
 
   @Override
@@ -169,6 +215,6 @@ public class IntakeIOTalonFX implements IntakeIO {
   // @Override
   // public void setShooterMotorsControl(VoltageOut volts) {
   //   intake.setControl(volts);
-  //   flip.setControl(volts);
+  //   flipLeft.setControl(volts);
   // }
 }

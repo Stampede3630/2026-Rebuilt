@@ -10,13 +10,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Turret extends SubsystemBase {
+public class Turret extends TimedSubsystem {
   // temp
   // change
 
@@ -40,6 +40,7 @@ public class Turret extends SubsystemBase {
   private Angle testSetpoint = Degrees.of(0);
 
   public Turret(TurretIO io) {
+    super("Turret");
     this.io = io;
     routine =
         new SysIdRoutine(
@@ -75,7 +76,7 @@ public class Turret extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Turret", inputs);
   }
@@ -86,7 +87,7 @@ public class Turret extends SubsystemBase {
 
   /** in robot relative coordinates */
   public Angle getTurretAngle() {
-    return io.getTurretAngle();
+    return inputs.position;
   }
 
   public Command setTurretAngle(Supplier<Angle> angle) {
@@ -145,7 +146,8 @@ public class Turret extends SubsystemBase {
   }
 
   public AngularVelocity getAngularVelocity() {
-    return io.getAngularVelocity();
+    return inputs.velocity;
+    // return io.getAngularVelocity();
   }
 
   // public double getOptimalVelocity(Pose2d pose, Pose2d target) {

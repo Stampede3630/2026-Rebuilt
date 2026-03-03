@@ -9,14 +9,14 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Shooter extends SubsystemBase {
+public class Shooter extends TimedSubsystem {
   // temp
   // change
   private final ShooterIO io;
@@ -28,6 +28,7 @@ public class Shooter extends SubsystemBase {
   private final TorqueCurrentFOC req = new TorqueCurrentFOC(0.0);
 
   public Shooter(ShooterIO io, Supplier<Pose2d> pose) {
+    super("Shooter");
     this.io = io;
 
     routine =
@@ -92,7 +93,7 @@ public class Shooter extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Shooter", inputs);
   }

@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -12,22 +11,13 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
+import frc.robot.SuperStructure;
 import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.hood.Hood;
-import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.Vision;
-import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.AutoAimer;
-import frc.robot.util.FieldConstants;
 import frc.robot.util.FuelSim;
-import frc.robot.util.NewtonAutoAim;
 import frc.robot.util.ShooterParameters;
 import frc.robot.util.ShotInfo;
-import frc.robot.util.ShotInfo.ShotQuality;
 import java.util.HashMap;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -35,20 +25,9 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class NamedCommands {
   private final HashMap<String, Command> commands = new HashMap<>();
   private final Climber climber;
-  private final Drive drive;
-  private final Hood hood;
-  private final Turret turret;
-  private final Indexer indexer;
   private final Intake intake;
-  private final Shooter shooter;
   private final Vision vision;
-
-  // auto aim
-  private AutoAimer aimer = new NewtonAutoAim();
-
-  private ShotInfo shotInfo =
-      new ShotInfo(
-          new ShooterParameters(0.0, RadiansPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
+  private final SuperStructure structure;
 
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeDutyCycle", 0.3);
@@ -60,11 +39,6 @@ public class NamedCommands {
       new LoggedNetworkNumber("Auto/Turret/correctionDeg", 0.0);
   /** The amount of time for the indexer to index another fuel, in seconds */
   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Auto/Indexer/latency", 0.15);
-  /** The tolerance of the turret, in degrees */
-  private final LoggedNetworkNumber turretTolDeg =
-      new LoggedNetworkNumber("Auto/Turret/turretTolDeg", 0.5);
-  /** The tolerance of the turret's hood, in degrees */
-  private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Auto/Hood/hoodTol", 0.5);
 
   /**
    * The amount of simulation periodics before another fuel can be shot - seperate from
@@ -74,23 +48,11 @@ public class NamedCommands {
   // fuel sim - seperate from RobotContainer
   private int fuelStored = Constants.STARTING_FUEL_SIM;
 
-  public NamedCommands(
-      Climber climber,
-      Drive drive,
-      Hood hood,
-      Turret turret,
-      Indexer indexer,
-      Intake intake,
-      Shooter shooter,
-      Vision vision) {
+  public NamedCommands(Climber climber, Intake intake, Vision vision, SuperStructure structure) {
     this.climber = climber;
-    this.drive = drive;
-    this.hood = hood;
-    this.turret = turret;
-    this.indexer = indexer;
     this.intake = intake;
-    this.shooter = shooter;
     this.vision = vision;
+    this.structure = structure;
 
     if (Constants.currentMode == Constants.Mode.SIM) {
       latency.set(0.0);
@@ -104,76 +66,14 @@ public class NamedCommands {
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
-    // assume target is always hub
-    commands.put(
-        "updateTargetVector",
-        Commands.run(
-            () -> {
-              shotInfo =
-                  aimer.get(
-                      drive.getPose().getTranslation().plus(Constants.TURRET_OFFSET),
-                      drive.getFieldRelSpeeds(),
-                      AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE),
-                      Constants.SHOT_LOOKUP,
-                      Constants.TOF_LOOKUP);
-            }));
-
-    commands.put(
-        "aimAndShoot",
-        Commands.run(
-                () -> {
-                  shotInfo =
-                      aimer.get(
-                          drive
-                              .getPose()
-                              .getTranslation()
-                              .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-                          drive.getFieldRelSpeeds(),
-                          /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
-                              FieldConstants.HUB_POSE_BLUE),
-                          Constants.SHOT_LOOKUP,
-                          Constants.TOF_LOOKUP);
-                  //   Logger.recordOutput(
-                  //       "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
-                  //   Logger.recordOutput(
-                  //       "targetShot/hood", shotInfo.shooterParameters().hood());
-                  //   Logger.recordOutput("targetShot/turret", shotInfo.turretAngle());
-                  //   Logger.recordOutput("targetShot/quality", shotInfo.quality());
-                })
-            .alongWith(
-                Commands.parallel(
-                    hood.setHood(() -> shotInfo.shooterParameters().hood())
-                        // .onlyIf(() -> !isHoodAngleRight())
-                        .repeatedly(),
-                    turret
-                        .setTurretAngle(
-                            () -> shotInfo.turretAngle().minus(drive.getRotation().getMeasure()))
-                        // .onlyIf(() -> !isFacingRightWay())
-                        .repeatedly() /* ,*/),
-                shooter
-                    .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
-                    .onlyIf(this::isFacingRightWay)
-                    .onlyIf(() -> isHoodAngleRight())
-                    .repeatedly()));
+    commands.put("aimAndShoot", structure.shoot());
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }
 
-  public boolean isFacingRightWay() {
-    return shotInfo
-        .turretAngle()
-        .isNear(
-            turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
-            Degrees.of(turretTolDeg.getAsDouble()));
-  }
-
-  public boolean isHoodAngleRight() {
-    return Math.abs(shotInfo.shooterParameters().hood() - hood.getHood()) < hoodTol.get();
-  }
-
-  public void resetOdometry() {
-    drive.setPose(Pose2d.kZero); // temp - this method might be unneeded
-  }
+  //   public void resetOdometry() {
+  //     drive.setPose(Pose2d.kZero); // temp - this method might be unneeded
+  //   }
 
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {
     FuelSim instance = FuelSim.getInstance();

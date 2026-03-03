@@ -2,11 +2,11 @@ package frc.robot.subsystems.intake;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Intake extends SubsystemBase {
+public class Intake extends TimedSubsystem {
   private final IntakeIO io;
 
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -18,6 +18,7 @@ public class Intake extends SubsystemBase {
   // private final VoltageOut req = new VoltageOut(0.0);
 
   public Intake(IntakeIO io) {
+    super("Intake");
     this.io = io;
 
     // routine =
@@ -56,7 +57,7 @@ public class Intake extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
   }

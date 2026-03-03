@@ -1,8 +1,8 @@
 package frc.robot.subsystems.toftimer;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.toftimer.TofTimer.Shot.ShotState;
+import frc.robot.util.TimedSubsystem;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.function.Consumer;
 import org.littletonrobotics.junction.Logger;
 
-public class TofTimer extends SubsystemBase {
+public class TofTimer extends TimedSubsystem {
   private TofTimerIO io;
 
   private final TofTimerIOInputsAutoLogged inputs = new TofTimerIOInputsAutoLogged();
@@ -46,11 +46,12 @@ public class TofTimer extends SubsystemBase {
   private double timeoutThreshold = 30;
 
   public TofTimer(TofTimerIO io) {
+    super("TofTimer");
     this.io = io;
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     boolean hubTriggered = inputs.hubTriggered;
     boolean ballShot = inputs.ballShot;

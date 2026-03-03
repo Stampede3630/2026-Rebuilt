@@ -2,11 +2,11 @@ package frc.robot.subsystems.climber;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Climber extends SubsystemBase {
+public class Climber extends TimedSubsystem {
   private final ClimberIO io;
 
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
@@ -16,6 +16,7 @@ public class Climber extends SubsystemBase {
   // private final VoltageOut req = new VoltageOut(0.0);
 
   public Climber(ClimberIO io) {
+    super("Climber");
     this.io = io;
 
     // routine =
@@ -68,7 +69,7 @@ public class Climber extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {
+  public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
   }
