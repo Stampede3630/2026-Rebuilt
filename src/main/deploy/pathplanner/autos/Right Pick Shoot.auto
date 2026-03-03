@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Start to Middle"
+            "pathName": "Right Bump to Middle"
           }
         },
         {
@@ -25,7 +25,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Bulldoze Left"
+            "pathName": "Bulldoze Right"
           }
         },
         {
@@ -37,26 +37,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Middle to Left Start"
+            "pathName": "Middle to Right Bump"
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "updateTargetVector"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "aimAndShoot"
-                }
-              }
-            ]
+            "name": "aimAndShoot"
           }
         }
       ]

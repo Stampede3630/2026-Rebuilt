@@ -41,41 +41,9 @@
           }
         },
         {
-          "type": "race",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "aimAndShoot"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Left Bump to Climb"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "aimAndShoot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "lowerClimber"
-                }
-              }
-            ]
+            "name": "aimAndShoot"
           }
         }
       ]

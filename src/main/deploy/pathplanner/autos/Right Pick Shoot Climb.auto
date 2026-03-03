@@ -47,12 +47,6 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "updateTargetVector"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
                   "name": "aimAndShoot"
                 }
               },
@@ -69,12 +63,6 @@
           "type": "parallel",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "updateTargetVector"
-                }
-              },
               {
                 "type": "named",
                 "data": {

@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
@@ -41,8 +42,8 @@ public interface IntakeIO {
     public double intakeVelocity = 0.0;
     public double intakeTorqueCurrent = 0.0;
     public double intakeVoltage = 0.0;
-    public double intakeStatorCurrent = 0.0;
-    public double intakeSupplyCurrent = 0.0;
+    public Current intakeStatorCurrent;
+    public Current intakeSupplyCurrent;
     public double intakeTemp = 0.0;
 
     // flipLeft motor
@@ -50,8 +51,8 @@ public interface IntakeIO {
     public double flipLeftVelocity = 0.0;
     public double flipLeftTorqueCurrent = 0.0;
     public double flipLeftVoltage = 0.0;
-    public double flipLeftStatorCurrent = 0.0;
-    public double flipLeftSupplyCurrent = 0.0;
+    public Current flipLeftStatorCurrent;
+    public Current flipLeftSupplyCurrent;
     public double flipLeftTemp = 0.0;
 
     // flipRight motor
@@ -59,8 +60,8 @@ public interface IntakeIO {
     public double flipRightVelocity = 0.0;
     public double flipRightTorqueCurrent = 0.0;
     public double flipRightVoltage = 0.0;
-    public double flipRightStatorCurrent = 0.0;
-    public double flipRightSupplyCurrent = 0.0;
+    public Current flipRightStatorCurrent;
+    public Current flipRightSupplyCurrent;
     public double flipRightTemp = 0.0;
   }
 }

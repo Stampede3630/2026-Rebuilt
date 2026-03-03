@@ -47,12 +47,6 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "updateTargetVector"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
                   "name": "aimAndShoot"
                 }
               },
@@ -96,21 +90,9 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "resetOdometry"
-          }
-        },
-        {
           "type": "race",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "updateTargetVector"
-                }
-              },
               {
                 "type": "named",
                 "data": {

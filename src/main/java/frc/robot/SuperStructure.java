@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.util.AllianceFlipUtil;
@@ -33,6 +35,7 @@ public class SuperStructure {
   private final Turret turret;
   private final Hood hood;
   private final Indexer indexer;
+  private final Intake intake;
 
   // network data
   /** The maximum tolerance of the Turret from the calculated angle, in degrees */
@@ -48,15 +51,34 @@ public class SuperStructure {
   /** The minimum difference to block the indexer from running, in rotations per second */
   private final LoggedNetworkNumber shooterTolRPS =
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 3.0);
+  /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeFlipSpeed =
+      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.1);
+  /** The maximum current to allow the intake's flip to run at before stopping it */
+  private final LoggedNetworkNumber intakeFlipMaxCurrent =
+      new LoggedNetworkNumber("Intake/intakeFlipMaxCurrent", 120);
+  /** The duty cycle speed to use while intaking [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeSpeed =
+      new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
+  /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
+  private final LoggedNetworkNumber intakeIdleSpeed =
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
 
   public SuperStructure(
-      AutoAimer aimer, Drive drive, Shooter shooter, Turret turret, Hood hood, Indexer indexer) {
+      AutoAimer aimer,
+      Drive drive,
+      Shooter shooter,
+      Turret turret,
+      Hood hood,
+      Indexer indexer,
+      Intake intake) {
     this.aimer = aimer;
     this.drive = drive;
     this.shooter = shooter;
     this.turret = turret;
     this.hood = hood;
     this.indexer = indexer;
+    this.intake = intake;
   }
 
   public Command shoot() {
@@ -98,6 +120,38 @@ public class SuperStructure {
                 .onlyIf(isTurretAngleRight())
                 .onlyIf(isHoodAngleRight())
                 .repeatedly());
+  }
+
+  public Command raiseIntake() {
+    return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
+        .until(
+            () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
+        .handleInterrupt(() -> intake.stopFlip());
+  }
+
+  public Command lowerIntake() {
+    return Commands.runOnce(() -> intake.runFlip(() -> -1 * intakeFlipSpeed.get()))
+        .until(
+            () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
+        .handleInterrupt(() -> intake.stopFlip());
+  }
+
+  public Command runIntakeThenIdle() {
+    return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
+        .handleInterrupt(() -> intake.runIntake(intakeIdleSpeed));
+  }
+
+  public Command runIntakeBackThenStop() {
+    return Commands.runOnce(() -> intake.runIntake(() -> -1 * intakeSpeed.getAsDouble()))
+        .handleInterrupt(() -> intake.stopIntake());
+  }
+
+  public Command runIntake() {
+    return Commands.runOnce(() -> intake.runIntake(intakeSpeed));
+  }
+
+  public Command stopIntake() {
+    return Commands.runOnce(() -> intake.stopIntake());
   }
 
   public BooleanSupplier isTurretAngleRight() {

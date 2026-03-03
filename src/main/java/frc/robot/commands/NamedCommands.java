@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
 import frc.robot.SuperStructure;
 import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.FuelSim;
 import frc.robot.util.ShooterParameters;
@@ -25,7 +24,6 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class NamedCommands {
   private final HashMap<String, Command> commands = new HashMap<>();
   private final Climber climber;
-  private final Intake intake;
   private final Vision vision;
   private final SuperStructure structure;
 
@@ -34,35 +32,27 @@ public class NamedCommands {
   private final LoggedNetworkNumber intakeFlipSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeFlipDutyCycle", 0.3);
 
-  /** The correction angle to apply to the turret, in degrees */
-  private final LoggedNetworkNumber correctionDeg =
-      new LoggedNetworkNumber("Auto/Turret/correctionDeg", 0.0);
-  /** The amount of time for the indexer to index another fuel, in seconds */
-  private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Auto/Indexer/latency", 0.15);
+  //   /** The amount of time for the indexer to index another fuel, in seconds */
+  //   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Auto/Indexer/latency",
+  // 0.15);
 
-  /**
-   * The amount of simulation periodics before another fuel can be shot - seperate from
-   * RobotContainer
-   */
-  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
   // fuel sim - seperate from RobotContainer
   private int fuelStored = Constants.STARTING_FUEL_SIM;
 
-  public NamedCommands(Climber climber, Intake intake, Vision vision, SuperStructure structure) {
+  public NamedCommands(Climber climber, Vision vision, SuperStructure structure) {
     this.climber = climber;
-    this.intake = intake;
     this.vision = vision;
     this.structure = structure;
 
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      latency.set(0.0);
-    }
+    // if (Constants.currentMode == Constants.Mode.SIM) {
+    //   latency.set(0.0);
+    // }
 
-    commands.put("startIntake", intake.runIntake(intakeSpeed));
-    commands.put("stopIntake", intake.stopIntake());
+    commands.put("startIntake", structure.runIntake());
+    commands.put("stopIntake", structure.stopIntake());
 
-    commands.put("lowerIntake", intake.runFlip(intakeFlipSpeed));
-    commands.put("raiseIntake", intake.runFlip(() -> -intakeFlipSpeed.getAsDouble()));
+    commands.put("lowerIntake", structure.lowerIntake());
+    commands.put("raiseIntake", structure.raiseIntake());
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
@@ -79,7 +69,7 @@ public class NamedCommands {
     FuelSim instance = FuelSim.getInstance();
     if (fuelStored == 0 || instance.getSimCooldown() > 0) return;
     fuelStored--;
-    instance.setSimCoolown((int) cooldown.getAsDouble());
+    instance.setSimCoolown((int) 8);
     Pose3d robot =
         new Pose3d(
             pose.get().getX(),

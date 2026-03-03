@@ -144,8 +144,8 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.intakeVelocity = intakeVelocity.getValueAsDouble();
     inputs.intakeTorqueCurrent = intakeTorqueCurrent.getValueAsDouble();
     inputs.intakeVoltage = intakeVoltage.getValueAsDouble();
-    inputs.intakeStatorCurrent = intakeStatorCurrent.getValueAsDouble();
-    inputs.intakeSupplyCurrent = intakeSupplyCurrent.getValueAsDouble();
+    inputs.intakeStatorCurrent = intakeStatorCurrent.getValue();
+    inputs.intakeSupplyCurrent = intakeSupplyCurrent.getValue();
     inputs.intakeTemp = intakeTemp.getValueAsDouble();
 
     // flipLeft
@@ -153,8 +153,8 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.flipLeftVelocity = flipLeftVelocity.getValueAsDouble();
     inputs.flipLeftTorqueCurrent = flipLeftTorqueCurrent.getValueAsDouble();
     inputs.flipLeftVoltage = flipLeftVoltage.getValueAsDouble();
-    inputs.flipLeftStatorCurrent = flipLeftStatorCurrent.getValueAsDouble();
-    inputs.flipLeftSupplyCurrent = flipLeftSupplyCurrent.getValueAsDouble();
+    inputs.flipLeftStatorCurrent = flipLeftStatorCurrent.getValue();
+    inputs.flipLeftSupplyCurrent = flipLeftSupplyCurrent.getValue();
     inputs.flipLeftTemp = flipLeftTemp.getValueAsDouble();
 
     // flipRight
@@ -162,8 +162,8 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.flipRightVelocity = flipRightVelocity.getValueAsDouble();
     inputs.flipRightTorqueCurrent = flipRightTorqueCurrent.getValueAsDouble();
     inputs.flipRightVoltage = flipRightVoltage.getValueAsDouble();
-    inputs.flipRightStatorCurrent = flipRightStatorCurrent.getValueAsDouble();
-    inputs.flipRightSupplyCurrent = flipRightSupplyCurrent.getValueAsDouble();
+    inputs.flipRightStatorCurrent = flipRightStatorCurrent.getValue();
+    inputs.flipRightSupplyCurrent = flipRightSupplyCurrent.getValue();
     inputs.flipRightTemp = flipRightTemp.getValueAsDouble();
   }
 

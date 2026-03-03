@@ -109,8 +109,8 @@ public class RobotContainer {
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
 
-  /** The amount of time for the indexer to index another fuel, in seconds */
-  private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
+  //   /** The amount of time for the indexer to index another fuel, in seconds */
+  //   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
@@ -123,19 +123,7 @@ public class RobotContainer {
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
-  /** The duty cycle speed to use while intaking [-1.0, 1.0] */
-  private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
-  /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
-  private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
-  /**
-   * The duty cycle speed to use to flip the intake up/down [-1.0, 1.0]
-   *
-   * <p>NOTE: negative is down; positive values will cause the intake to run backwards
-   */
-  private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.1);
+
   /** The duty cycle speed to use to climb with the elevator */
   private final LoggedNetworkNumber climbSpeedElev =
       new LoggedNetworkNumber("Climber/climbSpeedElev", 0.2);
@@ -148,7 +136,7 @@ public class RobotContainer {
    *
    * <p>NOTE: negative is down; positive values will cause the indexer to run backwards
    */
-  private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
+  //   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   // for lerp data
   /** The measured distance from target (hub) */
@@ -193,26 +181,26 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
-          //   new VisionIOPhotonVision(
-          //       Constants.CHASSIS_CAMERA_0,
-          //       new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)),
+          new VisionIOPhotonVision(
+              Constants.CHASSIS_CAMERA_0,
+              new Transform3d(11.25, -11.0, 7.0, new Rotation3d(0, -30, -45))),
           new VisionIOPhotonVision(
               Constants.CHASSIS_CAMERA_1,
               new Transform3d(
-                  Units.inchesToMeters(10.75),
+                  Units.inchesToMeters(11),
                   Units.inchesToMeters(11.25),
-                  Units.inchesToMeters(7.25),
+                  Units.inchesToMeters(7.0),
                   new Rotation3d(
                       0,
                       Units.degreesToRadians(-30),
-                      Units.degreesToRadians(45)) /* dummy points */)),
+                      Units.degreesToRadians(45)))), // need to remeasure this one
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
 
         ArrayList<Function<Time, Transform3d>> offsets =
             new ArrayList<>(
                 List.of(
-                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
                     // */).plus()
@@ -258,7 +246,7 @@ public class RobotContainer {
         break;
 
       case SIM:
-        latency.set(0.05);
+        // latency.set(0.05);
 
         // Sim robot, instantiate physics sim IO implementations
         drive =
@@ -358,8 +346,8 @@ public class RobotContainer {
           });
     }
 
-    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer);
-    new NamedCommands(climber, intake, vision, structure);
+    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
+    new NamedCommands(climber, vision, structure);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -435,15 +423,14 @@ public class RobotContainer {
                 .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller
-        .leftTrigger()
-        .onTrue(intake.runIntake(intakeSpeed))
-        .onFalse(intake.runIntake(intakeIdleSpeed));
+    controller.leftTrigger().onTrue(structure.runIntakeThenIdle());
 
     // // flip intake down
-    controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
+    controller.leftBumper().whileTrue(structure.lowerIntake());
+    // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
+    controller.rightBumper().whileTrue(structure.raiseIntake());
+    // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller.leftBumper().onTrue(hood.hoodUp());
     // controller.rightBumper().onTrue(hood.hoodDown());
@@ -465,8 +452,7 @@ public class RobotContainer {
     controller.y().whileTrue(climber.runElevator(climbSpeedElev));
     controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
 
-    controller.a().whileTrue(intake.runIntake(() -> -1 * intakeSpeed.get()));
-    controller.a().onFalse(intake.runIntake(intakeIdleSpeed));
+    controller.a().whileTrue(structure.runIntakeBackThenStop());
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
     // controller.povRight().onTrue(turret.moveTurretRight());
@@ -621,7 +607,7 @@ public class RobotContainer {
     FuelSim instance = FuelSim.getInstance();
     if (fuelStored == 0 || instance.getSimCooldown() > 0) return;
     fuelStored--;
-    instance.setSimCoolown((int) cooldown.getAsDouble());
+    instance.setSimCoolown((int) 8);
     Pose3d robot =
         new Pose3d(
             pose.get().getX(),

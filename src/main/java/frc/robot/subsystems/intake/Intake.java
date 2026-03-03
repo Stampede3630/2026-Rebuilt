@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
@@ -68,6 +69,14 @@ public class Intake extends TimedSubsystem {
 
   public Command setIntakePosition(Angle pos) {
     return runOnce(() -> io.setFlipPosition(pos));
+  }
+
+  public Current getFlipLeftStatorCurrent() {
+    return inputs.flipLeftStatorCurrent;
+  }
+
+  public Current getFlipLeftSupplyCurrent() {
+    return inputs.flipLeftSupplyCurrent;
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

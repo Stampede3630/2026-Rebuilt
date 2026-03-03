@@ -19,14 +19,14 @@ public class IterativeAutoAim implements AutoAimer {
       Function<Distance, ShooterParameters> shotLookup,
       Function<Distance, Time> tofLookup) {
     // dist between turret and target
-    Translation2d poseRel = turretPosition.minus(goal);
+    Translation2d poseRel = goal.minus(turretPosition);
     // should be flipped bc target relative
     Translation2d targetVel =
         new Translation2d(-chassisSpeeds.vxMetersPerSecond, -chassisSpeeds.vyMetersPerSecond);
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
       double tof = tofLookup.apply(Meters.of(poseRel.getNorm())).in(Seconds);
       // add velocity times tof to the distance
-      poseRel = poseRel.plus(targetVel.times(tof));
+      poseRel = goal.minus(turretPosition).plus(targetVel.times(tof));
       // targetVel might need to be updates
     }
 
