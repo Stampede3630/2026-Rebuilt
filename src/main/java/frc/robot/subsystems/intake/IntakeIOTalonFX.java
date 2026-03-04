@@ -8,8 +8,10 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -64,6 +66,10 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
+  private final PositionVoltage positionRequest = new PositionVoltage(0.0).withSlot(0);
+
+  private final TorqueCurrentFOC torqueRequest = new TorqueCurrentFOC(0.0);
+
   public IntakeIOTalonFX() {
     // init intake motor
     intake = new TalonFX(Constants.INTAKE_ID, Constants.SWERVE_BUS);
@@ -99,10 +105,10 @@ public class IntakeIOTalonFX implements IntakeIO {
     flipConfig
         .withMotorOutput(
             new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Brake)
+                .withNeutralMode(NeutralModeValue.Coast)
                 .withInverted(InvertedValue.Clockwise_Positive))
-        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(15.899412))
-        .withSlot0(new Slot0Configs().withKS(3));
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(23.0)) //  15.899412
+        .withSlot0(new Slot0Configs().withKG(0.72).withKV(2.25).withKA(0.19).withGravityType(GravityTypeValue.Arm_Cosine));
     flipLeft.getConfigurator().apply(flipConfig);
     flipRight.getConfigurator().apply(flipConfig);
 
@@ -141,7 +147,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
     // intake
     inputs.intakePosition = intakePosition.getValueAsDouble();
-    inputs.intakeVelocity = intakeVelocity.getValueAsDouble();
+    inputs.intakeVelocity = intakeVelocity.getValue();
     inputs.intakeTorqueCurrent = intakeTorqueCurrent.getValueAsDouble();
     inputs.intakeVoltage = intakeVoltage.getValueAsDouble();
     inputs.intakeStatorCurrent = intakeStatorCurrent.getValue();
@@ -150,7 +156,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
     // flipLeft
     inputs.flipLeftPosition = flipLeftPosition.getValueAsDouble();
-    inputs.flipLeftVelocity = flipLeftVelocity.getValueAsDouble();
+    inputs.flipLeftVelocity = flipLeftVelocity.getValue();
     inputs.flipLeftTorqueCurrent = flipLeftTorqueCurrent.getValueAsDouble();
     inputs.flipLeftVoltage = flipLeftVoltage.getValueAsDouble();
     inputs.flipLeftStatorCurrent = flipLeftStatorCurrent.getValue();
@@ -159,7 +165,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
     // flipRight
     inputs.flipRightPosition = flipRightPosition.getValueAsDouble();
-    inputs.flipRightVelocity = flipRightVelocity.getValueAsDouble();
+    inputs.flipRightVelocity = flipRightVelocity.getValue();
     inputs.flipRightTorqueCurrent = flipRightTorqueCurrent.getValueAsDouble();
     inputs.flipRightVoltage = flipRightVoltage.getValueAsDouble();
     inputs.flipRightStatorCurrent = flipRightStatorCurrent.getValue();
@@ -203,8 +209,18 @@ public class IntakeIOTalonFX implements IntakeIO {
   }
 
   @Override
+  public void resetFlipPosition(Angle pos) {
+    flipLeft.setPosition(pos);
+  }
+
+  @Override
   public void setFlipPosition(Angle pos) {
-    intake.setControl(new PositionVoltage(pos));
+    flipLeft.setControl(positionRequest.withPosition(pos));
+  }
+
+  @Override
+  public void runFlipCurrent(Current current) {
+    flipLeft.setControl(torqueRequest.withOutput(current));
   }
 
   // @Override

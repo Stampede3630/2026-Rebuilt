@@ -1,6 +1,9 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.TimedSubsystem;
@@ -41,7 +44,7 @@ public class Intake extends TimedSubsystem {
 
   public Command runIntake(DoubleSupplier dutyCycle) {
     on = true;
-    return runOnce(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
+    return startEnd(() -> io.runDutyCycle(dutyCycle.getAsDouble()), () -> io.stop());
   }
 
   public Command stopIntake() {
@@ -77,6 +80,18 @@ public class Intake extends TimedSubsystem {
 
   public Current getFlipLeftSupplyCurrent() {
     return inputs.flipLeftSupplyCurrent;
+  }
+
+  public void resetFlipPosition(Angle pos) {
+    io.resetFlipPosition(pos);
+  }
+
+  public AngularVelocity getFlipLeftVelocity() {
+    return inputs.flipLeftVelocity;
+  }
+
+  public Command runFlipCurrent(DoubleSupplier current) {
+    return runOnce(() -> io.runFlipCurrent(Amps.of(current.getAsDouble())));
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

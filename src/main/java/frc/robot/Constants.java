@@ -51,8 +51,8 @@ public final class Constants {
   public static final int INDEXER_CHUTE_ID = 34; // x
   public static final int INTAKE_ENCODER_ID = 38;
   public static final int INTAKE_ID = 55; // x
-  public static final int INTAKE_FLIP_LEFT_ID = 10;
-  public static final int INTAKE_FLIP_RIGHT_ID = 10;
+  public static final int INTAKE_FLIP_LEFT_ID = 57; // x
+  public static final int INTAKE_FLIP_RIGHT_ID = 32; // x
   public static final int CLIMBER_HOOK_ID = 53; // x
   public static final int CLIMBER_ELEVATOR_ID = 17; // x
   // need to activate back left module's pass

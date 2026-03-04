@@ -126,7 +126,7 @@ public class RobotContainer {
 
   /** The duty cycle speed to use to climb with the elevator */
   private final LoggedNetworkNumber climbSpeedElev =
-      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.2);
+      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.9);
   /** The duty cycle speed to use to climb with the hooks */
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
@@ -147,7 +147,7 @@ public class RobotContainer {
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
 
   // auto aim
-  private AutoAimer aimer = new NewtonAutoAim();
+  private AutoAimer aimer = new IterativeAutoAim();
 
   private ShotInfo shotInfo =
       new ShotInfo(
@@ -346,6 +346,9 @@ public class RobotContainer {
           });
     }
 
+    // AutoBuilder.configure(
+    //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
+    // drive., null, null, autoSaveLerp, null);
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
     new NamedCommands(climber, vision, structure);
 
@@ -417,19 +420,17 @@ public class RobotContainer {
         .whileTrue(
             Commands.either(
                 structure.shoot(), shooter.runVelocity(shooterAutoAimDisabledSpeed), enableAutoAim))
-        .whileFalse(
-            shooter
-                .runVelocity(shooterIdleSpeed)
-                .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
+        .whileFalse(shooter.runVelocity(shooterIdleSpeed));
+    // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller.leftTrigger().onTrue(structure.runIntakeThenIdle());
+    controller.leftTrigger().onTrue(structure.runIntake());
 
     // // flip intake down
-    controller.leftBumper().whileTrue(structure.lowerIntake());
+    controller.leftBumper().whileTrue(structure.setIntakePos(Degrees.of(0)));
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    controller.rightBumper().whileTrue(structure.raiseIntake());
+    controller.rightBumper().whileTrue(structure.setIntakePos(Degrees.of(-90)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller.leftBumper().onTrue(hood.hoodUp());

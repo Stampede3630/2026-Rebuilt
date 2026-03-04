@@ -72,7 +72,7 @@ public class Indexer extends TimedSubsystem {
   @Override
   public void timedPeriodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
+    Logger.processInputs("Indexer", inputs);
   }
 
   public boolean isIntaking() {

@@ -1,10 +1,11 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
@@ -40,7 +41,7 @@ public class SuperStructure {
   // network data
   /** The maximum tolerance of the Turret from the calculated angle, in degrees */
   private final LoggedNetworkNumber turretTolDeg =
-      new LoggedNetworkNumber("Turret/turretTolDeg", 2);
+      new LoggedNetworkNumber("Turret/turretTolDeg", 4);
   /** The maximum tolerance of the Hood from the calculated value */
   private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Hood/hoodTol", 0.1);
   /** The duty cycle speed to run the spindexer with */
@@ -63,6 +64,9 @@ public class SuperStructure {
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
+  /** The speed to wait for the intake's flip motors to reach for zeroing purposes */
+  private final LoggedNetworkNumber intakeFlipTolRPS =
+      new LoggedNetworkNumber("Intake/intakeFlipTolRPS", 1.0);
 
   public SuperStructure(
       AutoAimer aimer,
@@ -102,43 +106,59 @@ public class SuperStructure {
               Logger.recordOutput("targetShot/quality", shotInfo.quality());
             })
         .alongWith(
-            Commands.parallel(
-                hood.setHood(() -> shotInfo.shooterParameters().hood())
-                    // .onlyIf(() -> !isHoodAngleRight())
-                    .repeatedly(),
-                turret
-                    .setTurretAngle(
-                        () -> shotInfo.turretAngle().minus(drive.getRotation().getMeasure()))
-                    // .onlyIf(() -> !isFacingRightWay())
-                    .repeatedly() /* ,*/),
+            hood.setHood(() -> shotInfo.shooterParameters().hood())
+                // .onlyIf(() -> !isHoodAngleRight())
+                .repeatedly(),
+            turret
+                .setTurretAngle(
+                    () -> shotInfo.turretAngle().minus(drive.getRotation().getMeasure()))
+                // .onlyIf(() -> !isFacingRightWay())
+                .repeatedly() /* ,*/,
             shooter
                 .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
-                .alongWith(
-                    indexer
-                        .runBoth(chuteSpeed, spinSpeed)
-                        .onlyWhile(shooter.meetsSetpoint(shooterTolRPS)))
+                .onlyIf(isTurretAngleRight())
+                .onlyIf(isHoodAngleRight())
+                .repeatedly(),
+            indexer
+                .runBoth(chuteSpeed, spinSpeed)
+                .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
                 .onlyIf(isTurretAngleRight())
                 .onlyIf(isHoodAngleRight())
                 .repeatedly());
   }
 
-  public Command raiseIntake() {
+  /**
+   * Raises the intake. Assumes that the intake was zeroed while down and that -90 degrees is the
+   */
+  public Command setIntakePos(Angle angle) {
+    return Commands.runOnce(() -> intake.resetFlipPosition(angle));
+  }
+  // return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
+  //     .until(
+  //         () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
+  //     .handleInterrupt(() -> intake.stopFlip());
+
+  public Command zeroIntake() {
     return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
         .until(
-            () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
-        .handleInterrupt(() -> intake.stopFlip());
+            () ->
+                intake
+                    .getFlipLeftVelocity()
+                    .lt(RotationsPerSecond.of(intakeFlipTolRPS.getAsDouble())))
+        .andThen(Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(0))));
+    // return Commands.runOnce(() -> intake.runFlip(() -> -1 * intakeFlipSpeed.get()))
+    //     .until(
+    //         () -> intake.getFlipLeftStatorCurrent().in(Amps) >
+    // intakeFlipMaxCurrent.getAsDouble())
+    //     .handleInterrupt(() -> intake.stopFlip());
   }
 
-  public Command lowerIntake() {
-    return Commands.runOnce(() -> intake.runFlip(() -> -1 * intakeFlipSpeed.get()))
-        .until(
-            () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
-        .handleInterrupt(() -> intake.stopFlip());
-  }
-
+  /** Runs the intake and also automatically sets the intake to be down */
   public Command runIntakeThenIdle() {
-    return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
-        .handleInterrupt(() -> intake.runIntake(intakeIdleSpeed));
+    return setIntakePos(Degrees.of(0))
+        .alongWith(
+            Commands.startEnd(
+                () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed)));
   }
 
   public Command runIntakeBackThenStop() {
@@ -147,7 +167,9 @@ public class SuperStructure {
   }
 
   public Command runIntake() {
-    return Commands.runOnce(() -> intake.runIntake(intakeSpeed));
+    return intake.runIntake(intakeSpeed);
+    // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
+    //     .alongWith(setIntakePos(Degrees.of(0)));
   }
 
   public Command stopIntake() {
@@ -156,7 +178,11 @@ public class SuperStructure {
 
   public BooleanSupplier isTurretAngleRight() {
     return () ->
-        turret.getTurretAngle().minus(shotInfo.turretAngle()).abs(Degrees) < turretTolDeg.get();
+        shotInfo
+            .turretAngle()
+            .isNear(
+                turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
+                Degrees.of(turretTolDeg.getAsDouble()));
   }
 
   public BooleanSupplier isHoodAngleRight() {

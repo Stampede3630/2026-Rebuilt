@@ -3,12 +3,15 @@ package frc.robot.util;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import frc.robot.util.ShotInfo.ShotQuality;
 import java.util.function.Function;
+import org.littletonrobotics.junction.Logger;
 
 public class IterativeAutoAim implements AutoAimer {
   @Override
@@ -29,6 +32,9 @@ public class IterativeAutoAim implements AutoAimer {
       poseRel = goal.minus(turretPosition).plus(targetVel.times(tof));
       // targetVel might need to be updates
     }
+
+    Logger.recordOutput(
+        "AutoAim/targetPose", new Pose2d(poseRel.plus(turretPosition), Rotation2d.kZero));
 
     return new ShotInfo(
         shotLookup.apply(Meters.of(poseRel.getNorm())),
