@@ -114,6 +114,7 @@ public class IntakeIOTalonFX implements IntakeIO {
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(23.0)) //  15.899412
         .withSlot0(
             new Slot0Configs()
+            .withKP(20.0).withKS(5.0)
                 .withKG(0.72) // 0.72
                 .withKV(2.25) // 2.25
                 .withKA(0.19) // 0.19
@@ -121,9 +122,9 @@ public class IntakeIOTalonFX implements IntakeIO {
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(true)
-                .withForwardSoftLimitThreshold(0.3)
+                .withForwardSoftLimitThreshold(0.25)
                 .withReverseSoftLimitEnable(true)
-                .withReverseSoftLimitThreshold(-0.05));
+                .withReverseSoftLimitThreshold(0.05));
     flipLeft.getConfigurator().apply(flipConfig);
     flipRight
         .getConfigurator()
