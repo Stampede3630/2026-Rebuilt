@@ -3,6 +3,7 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -52,11 +53,11 @@ public class NamedCommands {
     commands.put("startIntake", structure.runIntake());
     commands.put("stopIntake", structure.stopIntake());
 
-    commands.put("zeroIntake", structure.zeroIntake());
+    // commands.put("zeroIntake", structure.zeroIntake());
     // commands.put("lowerIntake", structure.setIntakePos(Degrees.of(0)));
     // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
-    commands.put("lowerIntake", Commands.none());
-    commands.put("raiseIntake", structure.setIntakePos(Degrees.of(-90)));
+    commands.put("lowerIntake", structure.setIntakePos(Rotations.of(0.05)));
+    commands.put("raiseIntake", structure.setIntakePos(Rotations.of(0.23)));
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 

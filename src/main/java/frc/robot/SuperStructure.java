@@ -3,6 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -156,7 +157,7 @@ public class SuperStructure {
    * Raises the intake. Assumes that the intake was zeroed while down and that -90 degrees is the
    */
   public Command setIntakePos(Angle angle) {
-    return Commands.runOnce(() -> intake.resetFlipPosition(angle));
+    return intake.setIntakePosition(angle);
   }
   // return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
   // .until(
@@ -164,41 +165,14 @@ public class SuperStructure {
   // intakeFlipMaxCurrent.getAsDouble())
   // .handleInterrupt(() -> intake.stopFlip());
 
-  public Command zeroIntake() {
-    return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
-        .until(
-            () ->
-                intake
-                    .getFlipLeftVelocity()
-                    .lt(RotationsPerSecond.of(intakeFlipTolRPS.getAsDouble())))
-        .andThen(Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90))));
-    // return Commands.runOnce(() -> intake.runFlip(() -> -1 *
-    // intakeFlipSpeed.get()))
-    // .until(
-    // () -> intake.getFlipLeftStatorCurrent().in(Amps) >
-    // intakeFlipMaxCurrent.getAsDouble())
-    // .handleInterrupt(() -> intake.stopFlip());
-  }
-
-  /** Runs the intake and also automatically sets the intake to be down */
-  @Deprecated
-  public Command runIntakeThenIdle() {
-    return Commands.startEnd(
-        () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed));
-    // return setIntakePos(Degrees.of(0))
-    // .alongWith(
-    // Commands.startEnd(
-    // () -> intake.runIntake(intakeSpeed), () ->
-    // intake.runIntake(intakeIdleSpeed)));
-  }
-
   public Command runIntakeBackThenStop() {
-    return Commands.runOnce(() -> intake.runIntake(() -> -1 * intakeSpeed.getAsDouble()))
-        .handleInterrupt(() -> intake.stopIntake());
+    return intake.runIntake(() -> -1 * intakeSpeed.getAsDouble());
   }
 
   public Command runIntake() {
-    return intake.runIntake(intakeSpeed);
+    // return intake.runIntake(intakeSpeed);
+    return intake.setIntakePosition(Rotations.of(0.05))
+    .alongWith(intake.runIntake(intakeSpeed));
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
     // .alongWith(setIntakePos(Degrees.of(0)));
   }

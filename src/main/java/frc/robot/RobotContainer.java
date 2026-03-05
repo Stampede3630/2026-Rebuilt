@@ -434,10 +434,10 @@ public class RobotContainer {
     controller.leftTrigger().whileTrue(structure.runIntake());
 
     // // flip intake down
-    // controller.leftBumper().whileTrue(structure.setIntakePos(Degrees.of(0)));
+    controller.x().whileTrue(structure.setIntakePos(Rotations.of(0.05)));
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    // controller.rightBumper().whileTPrue(structure.setIntakePos(Degrees.of(-90)));
+    controller.yw().whileTrue(structure.setIntakePos(Rotations.of(0.23)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller.leftBumper().onTrue(hood.hoodUp());

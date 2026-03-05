@@ -114,7 +114,8 @@ public class IntakeIOTalonFX implements IntakeIO {
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(23.0)) //  15.899412
         .withSlot0(
             new Slot0Configs()
-            .withKP(20.0).withKS(5.0)
+                .withKP(20.0)
+                .withKS(5.0)
                 .withKG(0.72) // 0.72
                 .withKV(2.25) // 2.25
                 .withKA(0.19) // 0.19
@@ -236,17 +237,19 @@ public class IntakeIOTalonFX implements IntakeIO {
   @Override
   public void resetFlipPosition(Angle pos) {
     flipLeft.setPosition(pos);
+    flipRight.setPosition(pos);
   }
 
   @Override
   public void setFlipPosition(Angle pos) {
     flipLeft.setControl(positionRequest.withPosition(pos));
+    flipRight.setControl(positionRequest.withPosition(pos));
   }
 
-  @Override
-  public void runFlipCurrent(Current current) {
-    flipLeft.setControl(torqueRequest.withOutput(current));
-  }
+  // @Override
+  // public void runFlipCurrent(Current current) {
+  //   flipLeft.setControl(torqueRequest.withOutput(current));
+  // }
 
   @Override
   public void runFlipsVoltage(Voltage volts) {
