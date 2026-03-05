@@ -56,7 +56,7 @@ public class NamedCommands {
     // commands.put("lowerIntake", structure.setIntakePos(Degrees.of(0)));
     // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
     commands.put("lowerIntake", structure.setIntakePos(Rotations.of(0.05)));
-    commands.put("raiseIntake", structure.setIntakePos(Rotations.of(0.23)));
+    commands.put("raiseIntake", structure.setIntakePos(Rotations.of(0.245)));
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
