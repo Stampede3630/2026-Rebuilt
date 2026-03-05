@@ -171,7 +171,7 @@ public class SuperStructure {
 
   public Command runIntake() {
     // return intake.runIntake(intakeSpeed);
-    return intake.setIntakePosition(Rotations.of(0.05)).alongWith(intake.runIntake(intakeSpeed));
+    return intake.setIntakePosition(Rotations.of(0.05)).andThen(intake.runIntake(intakeSpeed));
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
     // .alongWith(setIntakePos(Degrees.of(0)));
   }
