@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.775077105575328,
-        "y": 4.535302491103202
+        "x": 2.0,
+        "y": 7.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.09664294187426,
-        "y": 5.5574258600237245
+        "x": 3.0,
+        "y": 7.0
       },
       "isLocked": false,
-      "linkedName": "Bulldoze Left End"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.535954922894425,
-        "y": 5.3960379596678525
+        "x": 3.25,
+        "y": 5.5
       },
       "prevControl": {
-        "x": 5.171678529062872,
-        "y": 5.686536180308421
+        "x": 2.25,
+        "y": 5.5
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Bump"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

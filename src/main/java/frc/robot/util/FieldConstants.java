@@ -47,6 +47,10 @@ public class FieldConstants {
     return AllianceFlipUtil.applyX(pose.getMeasureX().magnitude()) > FieldConstants.NEUTRAL_X_BLUE;
   }
 
+  public static boolean aboveCenterLine(Pose2d pose) {
+    return pose.getY() > fieldWidth / 2;
+  }
+
   public static double getDistanceFromHub(Translation2d pose) {
     return pose.getDistance(HUB_POSE_BLUE);
   }

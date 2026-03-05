@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.816903914590748,
-        "y": 2.458778173190984
+        "x": 6.634602609727166,
+        "y": 2.049928825622776
       },
       "isLocked": false,
       "linkedName": "Bulldoze Right End"
@@ -20,7 +20,7 @@
         "y": 2.512574139976275
       },
       "prevControl": {
-        "x": 5.0963641755634645,
+        "x": 3.9555634638196917,
         "y": 2.512574139976275
       },
       "nextControl": null,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
   "folder": null,

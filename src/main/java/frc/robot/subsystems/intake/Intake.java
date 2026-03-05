@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Amps;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
@@ -43,12 +44,10 @@ public class Intake extends TimedSubsystem {
   // }
 
   public Command runIntake(DoubleSupplier dutyCycle) {
-    on = true;
     return startEnd(() -> io.runDutyCycle(dutyCycle.getAsDouble()), () -> io.stop());
   }
 
   public Command stopIntake() {
-    on = false;
     return runOnce(() -> io.stop());
   }
 
@@ -58,6 +57,10 @@ public class Intake extends TimedSubsystem {
 
   public Command stopFlip() {
     return runOnce(() -> io.stopFlip());
+  }
+
+  public Command stopFlips() {
+    return runOnce(() -> io.stopFlips());
   }
 
   @Override
@@ -92,6 +95,10 @@ public class Intake extends TimedSubsystem {
 
   public Command runFlipCurrent(DoubleSupplier current) {
     return runOnce(() -> io.runFlipCurrent(Amps.of(current.getAsDouble())));
+  }
+
+  public Command runFlipsVoltage(Voltage volts) {
+    return startEnd(() -> io.runFlipsVoltage(volts), () -> io.stopFlips());
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

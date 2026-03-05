@@ -4,7 +4,11 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -67,6 +71,14 @@ public class SuperStructure {
   /** The speed to wait for the intake's flip motors to reach for zeroing purposes */
   private final LoggedNetworkNumber intakeFlipTolRPS =
       new LoggedNetworkNumber("Intake/intakeFlipTolRPS", 1.0);
+  /** Offset for hood. Applied while shooting */
+  private final LoggedNetworkNumber hoodOffset = new LoggedNetworkNumber("Offsets/hoodOffset", 0.0);
+  /** Offset for hood. Applied while shooting */
+  private final LoggedNetworkNumber turretOffset =
+      new LoggedNetworkNumber("Offsets/turretOffset", 0.0);
+  /** Offset for hood. Applied while shooting */
+  private final LoggedNetworkNumber shooterOffset =
+      new LoggedNetworkNumber("Offsets/shooterOffset", 0.0);
 
   public SuperStructure(
       AutoAimer aimer,
@@ -95,8 +107,7 @@ public class SuperStructure {
                           .getTranslation()
                           .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
                       drive.getFieldRelSpeeds(),
-                      /*getTarget(drive.getPose())*/ AllianceFlipUtil.apply(
-                          FieldConstants.HUB_POSE_BLUE),
+                      getTarget(),
                       Constants.SHOT_LOOKUP,
                       Constants.TOF_LOOKUP);
               Logger.recordOutput(
@@ -106,16 +117,25 @@ public class SuperStructure {
               Logger.recordOutput("targetShot/quality", shotInfo.quality());
             })
         .alongWith(
-            hood.setHood(() -> shotInfo.shooterParameters().hood())
+            hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
                 // .onlyIf(() -> !isHoodAngleRight())
                 .repeatedly(),
             turret
                 .setTurretAngle(
-                    () -> shotInfo.turretAngle().minus(drive.getRotation().getMeasure()))
+                    () ->
+                        shotInfo
+                            .turretAngle()
+                            .minus(drive.getRotation().getMeasure())
+                            .plus(Degrees.of(turretOffset.getAsDouble())))
                 // .onlyIf(() -> !isFacingRightWay())
                 .repeatedly() /* ,*/,
             shooter
-                .shoot(() -> shotInfo.shooterParameters().shooterVelocity())
+                .shoot(
+                    () ->
+                        shotInfo
+                            .shooterParameters()
+                            .shooterVelocity()
+                            .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
                 .onlyIf(isTurretAngleRight())
                 .onlyIf(isHoodAngleRight())
                 .repeatedly(),
@@ -145,7 +165,7 @@ public class SuperStructure {
                 intake
                     .getFlipLeftVelocity()
                     .lt(RotationsPerSecond.of(intakeFlipTolRPS.getAsDouble())))
-        .andThen(Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(0))));
+        .andThen(Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90))));
     // return Commands.runOnce(() -> intake.runFlip(() -> -1 * intakeFlipSpeed.get()))
     //     .until(
     //         () -> intake.getFlipLeftStatorCurrent().in(Amps) >
@@ -154,11 +174,14 @@ public class SuperStructure {
   }
 
   /** Runs the intake and also automatically sets the intake to be down */
+  @Deprecated
   public Command runIntakeThenIdle() {
-    return setIntakePos(Degrees.of(0))
-        .alongWith(
-            Commands.startEnd(
-                () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed)));
+    return Commands.startEnd(
+        () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed));
+    //   return setIntakePos(Degrees.of(0))
+    //       .alongWith(
+    //           Commands.startEnd(
+    //               () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed)));
   }
 
   public Command runIntakeBackThenStop() {
@@ -180,16 +203,44 @@ public class SuperStructure {
     return () ->
         shotInfo
             .turretAngle()
+            .plus(Degrees.of(turretOffset.getAsDouble()))
             .isNear(
                 turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
                 Degrees.of(turretTolDeg.getAsDouble()));
   }
 
   public BooleanSupplier isHoodAngleRight() {
-    return () -> Math.abs(hood.getHood() - shotInfo.shooterParameters().hood()) < hoodTol.get();
+    return () ->
+        Math.abs(hood.getHood() - (shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble()))
+            < hoodTol.get();
   }
 
   public void setAutoAimer(AutoAimer newAimer) {
     aimer = newAimer;
+  }
+
+  /**
+   * Computes the position to aim at. If robot is in the alliance zone, the hub's pose will be
+   * returned. If the robot is in the neutral or enemy alliance zone, a pose at (2, y) will be
+   * returned. The pose will be adjusted the line between the robot and it intersects the hub.
+   *
+   * @param robot The robot's current pose
+   * @return The pose to aim at
+   */
+  public Translation2d getTarget() {
+    Pose2d robot = drive.getPose();
+    if (!FieldConstants.checkNeutral(robot)) {
+      return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
+    } else {
+      if (FieldConstants.aboveCenterLine(robot)) {
+        return AllianceFlipUtil.apply(new Translation2d(3.25, 5.5));
+      } else {
+        return AllianceFlipUtil.apply(new Translation2d(3.25, 2.5));
+      }
+    }
+  }
+
+  public Command runFlipsUntilCurrent() {
+    return intake.runFlipsVoltage(Volts.of(12)).withTimeout(Seconds.of(2));
   }
 }

@@ -9,7 +9,7 @@
       "prevControl": null,
       "nextControl": {
         "x": 2.1913819691577716,
-        "y": 3.125848161328588
+        "y": 3.1258481613285873
       },
       "isLocked": false,
       "linkedName": "Right Bump"
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }

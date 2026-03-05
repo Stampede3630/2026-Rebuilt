@@ -1,19 +1,21 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -70,6 +72,8 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   private final TorqueCurrentFOC torqueRequest = new TorqueCurrentFOC(0.0);
 
+  private final VoltageOut voltageRequest = new VoltageOut(0.0);
+
   public IntakeIOTalonFX() {
     // init intake motor
     intake = new TalonFX(Constants.INTAKE_ID, Constants.SWERVE_BUS);
@@ -108,12 +112,31 @@ public class IntakeIOTalonFX implements IntakeIO {
                 .withNeutralMode(NeutralModeValue.Coast)
                 .withInverted(InvertedValue.Clockwise_Positive))
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(23.0)) //  15.899412
-        .withSlot0(new Slot0Configs().withKG(0.72).withKV(2.25).withKA(0.19).withGravityType(GravityTypeValue.Arm_Cosine));
+        .withSlot0(
+            new Slot0Configs()
+                .withKG(0.72) // 0.72
+                .withKV(2.25) // 2.25
+                .withKA(0.19) // 0.19
+                .withGravityType(GravityTypeValue.Arm_Cosine))
+        .withSoftwareLimitSwitch(
+            new SoftwareLimitSwitchConfigs()
+                .withForwardSoftLimitEnable(true)
+                .withForwardSoftLimitThreshold(0.3)
+                .withReverseSoftLimitEnable(true)
+                .withReverseSoftLimitThreshold(-0.05));
     flipLeft.getConfigurator().apply(flipConfig);
-    flipRight.getConfigurator().apply(flipConfig);
+    flipRight
+        .getConfigurator()
+        .apply(
+            flipConfig.withMotorOutput(
+                new MotorOutputConfigs()
+                    .withNeutralMode(NeutralModeValue.Coast)
+                    .withInverted(InvertedValue.CounterClockwise_Positive)));
 
     // flipLeft.setPosition(0.337402);
-    flipRight.setControl(new Follower(Constants.INTAKE_FLIP_LEFT_ID, MotorAlignmentValue.Opposed));
+    // flipRight.setControl(new Follower(Constants.INTAKE_FLIP_LEFT_ID,
+    // MotorAlignmentValue.Opposed));
+    flipLeft.setPosition(Degrees.of(90));
   }
 
   @Override
@@ -221,6 +244,18 @@ public class IntakeIOTalonFX implements IntakeIO {
   @Override
   public void runFlipCurrent(Current current) {
     flipLeft.setControl(torqueRequest.withOutput(current));
+  }
+
+  @Override
+  public void runFlipsVoltage(Voltage volts) {
+    flipLeft.setControl(voltageRequest.withOutput(volts));
+    flipRight.setControl(voltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void stopFlips() {
+    flipLeft.stopMotor();
+    flipRight.stopMotor();
   }
 
   // @Override

@@ -166,16 +166,16 @@ public class Vision extends TimedSubsystem {
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
 
-        // if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
-        //   // might need to be converted to robot-relative coordinates
-        //   turret.resetAnglePos(
-        //       observation
-        //           .pose()
-        //           .toPose2d()
-        //           .getRotation()
-        //           .minus(drive.getPose().getRotation())
-        //           .getMeasure());
-        // }
+        if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
+          // might need to be converted to robot-relative coordinates
+          turret.resetAnglePos(
+              observation
+                  .pose()
+                  .toPose2d()
+                  .getRotation()
+                  .minus(drive.getPose().getRotation())
+                  .getMeasure());
+        }
         // System.out.println("ACCEPTED");
 
         // Send vision observation

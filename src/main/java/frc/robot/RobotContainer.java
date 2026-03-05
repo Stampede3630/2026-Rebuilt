@@ -30,6 +30,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.NamedCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -38,18 +39,23 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOServo;
 import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
 import frc.robot.subsystems.toftimer.TofTimer;
 import frc.robot.subsystems.toftimer.TofTimer.Shot;
 import frc.robot.subsystems.toftimer.TofTimerIOHardware;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.turret.TurretIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
@@ -182,13 +188,13 @@ public class RobotContainer {
 
         VisionIO[] visionIOs = {
           new VisionIOPhotonVision(
-              Constants.CHASSIS_CAMERA_0,
+              Constants.FRONT_RIGHT_CAMERA,
               new Transform3d(11.25, -11.0, 7.0, new Rotation3d(0, -30, -45))),
           new VisionIOPhotonVision(
-              Constants.CHASSIS_CAMERA_1,
+              Constants.FRONT_LEFT_CAMERA,
               new Transform3d(
-                  Units.inchesToMeters(11),
                   Units.inchesToMeters(11.25),
+                  Units.inchesToMeters(11.0),
                   Units.inchesToMeters(7.0),
                   new Rotation3d(
                       0,
@@ -267,7 +273,7 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOPhotonVision(Constants.CHASSIS_CAMERA_1, new Transform3d()),
+          new VisionIOPhotonVision(Constants.FRONT_LEFT_CAMERA, new Transform3d()),
           // new VisionIOPhotonVisionSim(
           // Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
           // new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
@@ -302,15 +308,15 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
-        turret = new Turret(new TurretIOTalonFX());
-        intake = new Intake(new IntakeIOTalonFX());
-        climber = new Climber(new ClimberIOTalonFX());
-        hood = new Hood(new HoodIOServo());
-        indexer = new Indexer(new IndexerIOTalonFX());
+        shooter = new Shooter(new ShooterIO() {}, () -> drive.getPose());
+        turret = new Turret(new TurretIO() {});
+        intake = new Intake(new IntakeIO() {});
+        climber = new Climber(new ClimberIO() {});
+        hood = new Hood(new HoodIO() {});
+        indexer = new Indexer(new IndexerIO() {});
 
         VisionIO[] visionIOsDef = {
-          new VisionIOLimelight(Constants.CHASSIS_CAMERA_1, drive::getRotation),
+          new VisionIOLimelight(Constants.FRONT_LEFT_CAMERA, drive::getRotation),
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
         ArrayList<Function<Time, Transform3d>> offsetsDef =
@@ -370,6 +376,7 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption("Shoot Still", structure.shoot());
 
     SmartDashboard.putData(turret);
     SmartDashboard.putData(shooter);
@@ -392,7 +399,7 @@ public class RobotContainer {
             drive,
             () -> xSlewRateLimiter.calculate(-controller.getLeftY()),
             () -> ySlewRateLimiter.calculate(-controller.getLeftX()),
-            () -> angularSlewRateLimiter.calculate(-controller.getRightX())));
+            () -> angularSlewRateLimiter.calculate(-controller.getRightX() / 2.0)));
 
     // Reset gyro to 0° when right bumper is pressed
     controller
@@ -424,13 +431,13 @@ public class RobotContainer {
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller.leftTrigger().onTrue(structure.runIntake());
+    controller.leftTrigger().whileTrue(structure.runIntake());
 
     // // flip intake down
-    controller.leftBumper().whileTrue(structure.setIntakePos(Degrees.of(0)));
+    // controller.leftBumper().whileTrue(structure.setIntakePos(Degrees.of(0)));
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    controller.rightBumper().whileTrue(structure.setIntakePos(Degrees.of(-90)));
+    // controller.rightBumper().whileTPrue(structure.setIntakePos(Degrees.of(-90)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller.leftBumper().onTrue(hood.hoodUp());
@@ -450,10 +457,11 @@ public class RobotContainer {
         .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
 
     // raise/lower climber elevator
-    controller.y().whileTrue(climber.runElevator(climbSpeedElev));
-    controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
+    // controller.y().whileTrue(climber.runElevator(climbSpeedElev));
+    // controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
 
-    controller.a().whileTrue(structure.runIntakeBackThenStop());
+    // controller.a().whileTrue(structure.runIntakeBackThenStop());
+    controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
     // controller.povRight().onTrue(turret.moveTurretRight());
@@ -512,6 +520,11 @@ public class RobotContainer {
         Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
             .withName("Reset turret angle")
             .ignoringDisable(false));
+
+    SmartDashboard.putData(
+        Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90)))
+            .withName("Reset intake to top")
+            .ignoringDisable(true));
 
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
