@@ -131,7 +131,7 @@ public class Turret extends TimedSubsystem {
     return runOnce(
         () -> {
           testSetpoint = testSetpoint.plus(Degrees.of(5));
-          System.out.println(testSetpoint);
+          // System.out.println(testSetpoint);
           runSetTurretAngle(testSetpoint);
         });
   }
@@ -140,7 +140,7 @@ public class Turret extends TimedSubsystem {
     return runOnce(
         () -> {
           testSetpoint = testSetpoint.minus(Degrees.of(5));
-          System.out.println(testSetpoint);
+          // System.out.println(testSetpoint);
           runSetTurretAngle(testSetpoint);
         });
   }

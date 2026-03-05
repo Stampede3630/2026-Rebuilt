@@ -132,7 +132,7 @@ public class IndexerIOTalonFX implements IndexerIO {
 
   @Override
   public void runDutyCycleSpin(double dutyCycle) {
-    System.out.println("spinning at " + dutyCycle);
+    // System.out.println("spinning at " + dutyCycle);
     spin.set(dutyCycle);
   }
 

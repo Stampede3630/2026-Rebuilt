@@ -61,6 +61,7 @@ public class NamedCommands {
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
     commands.put("aimAndShoot", structure.shoot());
+    // commands.put("setTurretTest", structure.setTurretAngle());
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }

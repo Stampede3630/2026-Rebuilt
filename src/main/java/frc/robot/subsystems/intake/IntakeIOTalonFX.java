@@ -110,7 +110,7 @@ public class IntakeIOTalonFX implements IntakeIO {
         .withMotorOutput(
             new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast)
-                .withInverted(InvertedValue.Clockwise_Positive))
+                .withInverted(InvertedValue.CounterClockwise_Positive))
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(23.0)) //  15.899412
         .withSlot0(
             new Slot0Configs()
@@ -131,12 +131,13 @@ public class IntakeIOTalonFX implements IntakeIO {
             flipConfig.withMotorOutput(
                 new MotorOutputConfigs()
                     .withNeutralMode(NeutralModeValue.Coast)
-                    .withInverted(InvertedValue.CounterClockwise_Positive)));
+                    .withInverted(InvertedValue.Clockwise_Positive)));
 
     // flipLeft.setPosition(0.337402);
     // flipRight.setControl(new Follower(Constants.INTAKE_FLIP_LEFT_ID,
     // MotorAlignmentValue.Opposed));
     flipLeft.setPosition(Degrees.of(90));
+    flipRight.setPosition(Degrees.of(90));
   }
 
   @Override

@@ -26,7 +26,7 @@ public class DistanceShooterParametersLerpTable extends LerpTable<Distance, Shoo
                 / (high.getKey().in(Meters) - low.getKey().in(Meters))
                 * (key.in(Meters) - low.getKey().in(Meters)))
             + low.getValue().shooterVelocity().in(RotationsPerSecond);
-    System.out.println("shot " + hood + " speed " + velo);
+    // System.out.println("shot " + hood + " speed " + velo);
 
     // return null;
     return new ShooterParameters(hood, RotationsPerSecond.of(velo));

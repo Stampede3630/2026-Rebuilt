@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.634602609727166,
-        "y": 2.049928825622776
+        "x": 6.4516963226571775,
+        "y": 1.7594306049822053
       },
       "isLocked": false,
       "linkedName": "Bulldoze Right End"
     },
     {
       "anchor": {
-        "x": 3.5251957295373675,
-        "y": 2.512574139976275
+        "x": 3.2454567022538554,
+        "y": 2.3511862396204037
       },
       "prevControl": {
-        "x": 3.9555634638196917,
-        "y": 2.512574139976275
+        "x": 3.6758244365361796,
+        "y": 2.3511862396204037
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Bump"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],

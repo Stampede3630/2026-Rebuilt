@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.DistanceShooterParametersLerpTable;
 import frc.robot.util.DistanceTimeLerpTable;
@@ -84,12 +85,13 @@ public final class Constants {
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP =
       DistanceShooterParametersLerpTable.fromCSV(
-          "/home/lvuser/deploy/shot.csv", "distance", "hood", "shooter");
+          Filesystem.getDeployDirectory().getPath() + "/shot.csv", "distance", "hood", "shooter");
 
   // DistanceShooterParametersLerpTable.fromCSV(
   // RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
   public static final DistanceTimeLerpTable TOF_LOOKUP =
-      DistanceTimeLerpTable.fromCSV("/home/lvuser/deploy/tof.csv", "distance", "tof");
+      DistanceTimeLerpTable.fromCSV(
+          Filesystem.getDeployDirectory().getPath() + "/tof.csv", "distance", "tof");
 
   public static final LoggedNetworkBoolean VISION_ENABLED =
       new LoggedNetworkBoolean("Vision/visionEnabled", true);

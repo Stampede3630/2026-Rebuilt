@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
@@ -95,6 +96,7 @@ public class SuperStructure {
     this.hood = hood;
     this.indexer = indexer;
     this.intake = intake;
+    SmartDashboard.putData(turret);
   }
 
   public Command shoot() {
@@ -120,6 +122,8 @@ public class SuperStructure {
             hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
                 // .onlyIf(() -> !isHoodAngleRight())
                 .repeatedly(),
+            // Commands.print("HIIII"),
+            // Commands.print("HIIII"),
             turret
                 .setTurretAngle(
                     () ->
@@ -127,8 +131,9 @@ public class SuperStructure {
                             .turretAngle()
                             .minus(drive.getRotation().getMeasure())
                             .plus(Degrees.of(turretOffset.getAsDouble())))
+                .asProxy()
                 // .onlyIf(() -> !isFacingRightWay())
-                .repeatedly() /* ,*/,
+                .repeatedly(), /* , */
             shooter
                 .shoot(
                     () ->
@@ -154,9 +159,10 @@ public class SuperStructure {
     return Commands.runOnce(() -> intake.resetFlipPosition(angle));
   }
   // return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
-  //     .until(
-  //         () -> intake.getFlipLeftStatorCurrent().in(Amps) > intakeFlipMaxCurrent.getAsDouble())
-  //     .handleInterrupt(() -> intake.stopFlip());
+  // .until(
+  // () -> intake.getFlipLeftStatorCurrent().in(Amps) >
+  // intakeFlipMaxCurrent.getAsDouble())
+  // .handleInterrupt(() -> intake.stopFlip());
 
   public Command zeroIntake() {
     return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
@@ -166,11 +172,12 @@ public class SuperStructure {
                     .getFlipLeftVelocity()
                     .lt(RotationsPerSecond.of(intakeFlipTolRPS.getAsDouble())))
         .andThen(Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90))));
-    // return Commands.runOnce(() -> intake.runFlip(() -> -1 * intakeFlipSpeed.get()))
-    //     .until(
-    //         () -> intake.getFlipLeftStatorCurrent().in(Amps) >
+    // return Commands.runOnce(() -> intake.runFlip(() -> -1 *
+    // intakeFlipSpeed.get()))
+    // .until(
+    // () -> intake.getFlipLeftStatorCurrent().in(Amps) >
     // intakeFlipMaxCurrent.getAsDouble())
-    //     .handleInterrupt(() -> intake.stopFlip());
+    // .handleInterrupt(() -> intake.stopFlip());
   }
 
   /** Runs the intake and also automatically sets the intake to be down */
@@ -178,10 +185,11 @@ public class SuperStructure {
   public Command runIntakeThenIdle() {
     return Commands.startEnd(
         () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed));
-    //   return setIntakePos(Degrees.of(0))
-    //       .alongWith(
-    //           Commands.startEnd(
-    //               () -> intake.runIntake(intakeSpeed), () -> intake.runIntake(intakeIdleSpeed)));
+    // return setIntakePos(Degrees.of(0))
+    // .alongWith(
+    // Commands.startEnd(
+    // () -> intake.runIntake(intakeSpeed), () ->
+    // intake.runIntake(intakeIdleSpeed)));
   }
 
   public Command runIntakeBackThenStop() {
@@ -192,7 +200,7 @@ public class SuperStructure {
   public Command runIntake() {
     return intake.runIntake(intakeSpeed);
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
-    //     .alongWith(setIntakePos(Degrees.of(0)));
+    // .alongWith(setIntakePos(Degrees.of(0)));
   }
 
   public Command stopIntake() {

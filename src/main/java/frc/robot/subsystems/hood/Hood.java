@@ -73,7 +73,7 @@ public class Hood extends TimedSubsystem {
         () -> {
           setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
           io.setHoodPos(setpointPos);
-          System.out.println(setpointPos);
+          // System.out.println(setpointPos);
           // 0.35-0.7
         });
   }
