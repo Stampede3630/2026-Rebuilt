@@ -1,6 +1,6 @@
 package frc.robot.util;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class AllianceFlipUtil {
@@ -14,6 +14,16 @@ public class AllianceFlipUtil {
 
   public static Translation2d apply(Translation2d translation) {
     return new Translation2d(applyX(translation.getX()), applyY(translation.getY()));
+  }
+
+  public static Rotation2d apply(Rotation2d rotation) {
+    return shouldFlip() ? rotation.rotateBy(Rotation2d.kPi) : rotation;
+  }
+
+  public static Pose2d apply(Pose2d pose) {
+    return shouldFlip()
+        ? new Pose2d(apply(pose.getTranslation()), apply(pose.getRotation()))
+        : pose;
   }
 
   /**

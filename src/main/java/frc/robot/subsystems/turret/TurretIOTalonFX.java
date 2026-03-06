@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
@@ -131,14 +132,21 @@ public class TurretIOTalonFX implements TurretIO {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
 
-    // Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
-    // Angle rightAngle = angle.plus(Degrees.of(360));
-    // Angle currentAngle = turretMotor.getPosition().getValue();
-    // // find if leftAngle or angle is closer to currentAngle
-    // if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)) {
-    //   // if leftAngle is closer
-    //   angle = leftAngle;
-    // }
+    Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
+    Angle rightAngle = angle.plus(Degrees.of(360));
+    Angle currentAngle = turretMotor.getPosition().getValue();
+    // find if leftAngle or angle is closer to currentAngle
+    if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
+        && currentAngle.minus(leftAngle).abs(Radians)
+            < currentAngle.minus(rightAngle).abs(Radians)) {
+      // if leftAngle is closer
+      angle = leftAngle;
+    } else if (currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
+        && currentAngle.minus(rightAngle).abs(Radians)
+            < currentAngle.minus(leftAngle).abs(Radians)) {
+      // if rightAngle is closer
+      angle = rightAngle;
+    }
     turretSetpoint = angle;
     turretMotor.setControl(posRequestVoltage.withPosition(angle.in(Rotations)).withSlot(0));
   }

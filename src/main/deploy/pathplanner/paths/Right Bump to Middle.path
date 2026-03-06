@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 5.827663107947806,
-        "y": 2.146761565836299
+        "x": 6.2903084223013055,
+        "y": 2.200557532621589
       },
       "prevControl": {
-        "x": 5.282005763839741,
-        "y": 2.4137853725392695
+        "x": 6.106115344735552,
+        "y": 2.7794500621139524
       },
       "nextControl": {
-        "x": 6.333345195723528,
-        "y": 1.8993001186159768
+        "x": 6.516251482799527,
+        "y": 1.490450771055754
       },
       "isLocked": false,
       "linkedName": "Right Bump Middle"
@@ -44,7 +44,12 @@
       "linkedName": "Bulldoze Right Start"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.8459734167318254,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [

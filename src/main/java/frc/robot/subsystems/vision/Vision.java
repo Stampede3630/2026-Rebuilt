@@ -7,6 +7,7 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
@@ -17,10 +18,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.turret.Turret;
@@ -176,6 +179,7 @@ public class Vision extends TimedSubsystem {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
+        if (didAutoHappen) // if auto happened, no more seeding the angle please!
         angularStdDev = Double.POSITIVE_INFINITY;
 
         if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
@@ -241,5 +245,33 @@ public class Vision extends TimedSubsystem {
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);
+  }
+
+  public Command seedPoseBeforeAuto(Pose2d ppStartingPose, Distance threshold) {
+    return runOnce(
+        () -> {
+          VisionIO.PoseObservation bestObservation =
+              new VisionIO.PoseObservation(
+                  0, Pose3d.kZero, 1000, 0, 0, PoseObservationType.MEGATAG_1);
+          for (VisionIOInputsAutoLogged input : inputs) {
+            for (var observation : input.poseObservations) {
+              if (observation.type().equals(PoseObservationType.MEGATAG_1)
+                  && observation.ambiguity() < bestObservation.ambiguity()) {
+                bestObservation = observation;
+              }
+            }
+          }
+          if (bestObservation.tagCount() > 1
+              || bestObservation
+                      .pose()
+                      .toPose2d()
+                      .getTranslation()
+                      .getDistance(ppStartingPose.getTranslation())
+                  < threshold.in(Meters)) {
+            drive.setPose(bestObservation.pose().toPose2d());
+          } else {
+            drive.setPose(ppStartingPose);
+          }
+        });
   }
 }

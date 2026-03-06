@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
@@ -19,6 +20,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -109,7 +111,7 @@ public class RobotContainer {
   private final CommandXboxController controller = new CommandXboxController(0);
 
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<PathPlannerAuto> autoChooser;
 
   private final SlewRateLimiter xSlewRateLimiter = new SlewRateLimiter(10);
   private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
@@ -122,7 +124,7 @@ public class RobotContainer {
       new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
   private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.1);
+      new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.5);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 10);
@@ -189,7 +191,11 @@ public class RobotContainer {
         VisionIO[] visionIOs = {
           new VisionIOPhotonVision(
               Constants.FRONT_RIGHT_CAMERA,
-              new Transform3d(11.25, -11.0, 7.0, new Rotation3d(0, -30, -45))),
+              new Transform3d(
+                  Units.inchesToMeters(11.25),
+                  Units.inchesToMeters(-11.0),
+                  Units.inchesToMeters(7.0),
+                  new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-45)))),
           new VisionIOPhotonVision(
               Constants.FRONT_LEFT_CAMERA,
               new Transform3d(
@@ -359,24 +365,28 @@ public class RobotContainer {
     new NamedCommands(climber, vision, structure);
 
     // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
 
     // Set up SysId routines
     autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+        "Drive Wheel Radius Characterization",
+        new PathPlannerAuto(DriveCommands.wheelRadiusCharacterization(drive)));
     autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+        "Drive Simple FF Characterization",
+        new PathPlannerAuto(DriveCommands.feedforwardCharacterization(drive)));
     autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        new PathPlannerAuto(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward)));
     autoChooser.addOption(
         "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        new PathPlannerAuto(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)));
     autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        "Drive SysId (Dynamic Forward)",
+        new PathPlannerAuto(drive.sysIdDynamic(SysIdRoutine.Direction.kForward)));
     autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption("Shoot Still", structure.shoot());
+        "Drive SysId (Dynamic Reverse)",
+        new PathPlannerAuto(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse)));
+    autoChooser.addOption("Shoot Still", new PathPlannerAuto(structure.shoot()));
 
     SmartDashboard.putData(turret);
     SmartDashboard.putData(shooter);
@@ -514,12 +524,12 @@ public class RobotContainer {
     SmartDashboard.putData(
         Commands.runOnce(() -> drive.setPose(Pose2d.kZero))
             .withName("Reset odometry")
-            .ignoringDisable(false));
+            .ignoringDisable(true));
 
     SmartDashboard.putData(
         Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
             .withName("Reset turret angle")
-            .ignoringDisable(false));
+            .ignoringDisable(true));
 
     SmartDashboard.putData(
         Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90)))
@@ -656,7 +666,34 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+  private boolean hasRunAutoOnceBefore = false;
+
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    PathPlannerAuto auto = autoChooser.get();
+    if (hasRunAutoOnceBefore) auto = new PathPlannerAuto(autoChooser.get().getName());
+    hasRunAutoOnceBefore = true;
+    return vision
+        .seedPoseBeforeAuto(AllianceFlipUtil.apply(auto.getStartingPose()), Meters.of(1))
+        .andThen(auto)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
+  }
+
+  public SendableChooser<PathPlannerAuto> buildAutoChooser(String defaultAutoName) {
+
+    SendableChooser<PathPlannerAuto> chooser = new SendableChooser<>();
+    List<String> autoNames = AutoBuilder.getAllAutoNames();
+    PathPlannerAuto defaultOption = null;
+    for (String autoName : autoNames) {
+      PathPlannerAuto auto = new PathPlannerAuto(autoName);
+      if (!defaultAutoName.isEmpty() && defaultAutoName.equals(autoName)) defaultOption = auto;
+      else chooser.addOption(autoName, auto);
+    }
+    if (defaultOption == null) {
+      chooser.setDefaultOption("None", new PathPlannerAuto(Commands.none()));
+    } else {
+      chooser.setDefaultOption(defaultOption.getName(), defaultOption);
+      chooser.setDefaultOption("None", new PathPlannerAuto(Commands.none()));
+    }
+    return chooser;
   }
 }
