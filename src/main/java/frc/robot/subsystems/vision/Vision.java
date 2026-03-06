@@ -153,7 +153,11 @@ public class Vision extends TimedSubsystem {
         // Skip if rejected
         if (Constants.currentMode != Constants.Mode.SIM /* maybe remove for optimization */
                 && rejectPose
-                && (DriverStation.isDisabled() == false || disabledRejection || didAutoHappen)
+                && (DriverStation.isDisabled() == false
+                    || disabledRejection
+                    || didAutoHappen) // reject the pose if we are not in sim AND we should rejevt
+            // the pose AND the driver station is enable OR there are 0
+            // tags OR auto happened;
             || !Constants.VISION_ENABLED.get()) {
           // System.out.println("REJECTED");
           continue;
