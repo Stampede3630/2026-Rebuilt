@@ -142,8 +142,8 @@ public class SuperStructure {
                             .shooterParameters()
                             .shooterVelocity()
                             .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
-                .onlyIf(isTurretAngleRight())
-                .onlyIf(isHoodAngleRight())
+                .onlyWhile(isTurretAngleRight())
+                .onlyWhile(isHoodAngleRight())
                 .repeatedly(),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)

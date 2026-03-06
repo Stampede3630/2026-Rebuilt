@@ -85,7 +85,7 @@ public class Shooter extends TimedSubsystem {
   }
 
   public Command shoot(Supplier<AngularVelocity> vel) {
-    return run(() -> io.runVelocity(vel.get().magnitude()));
+    return run(() -> io.runVelocity(vel.get().magnitude())); // TODO: FLAG THIS FOR UNITS PROBLEMS
   }
 
   public Command stop() {

@@ -154,6 +154,9 @@ public class RobotContainer {
   /** The place to set the hood to [0, 1] */
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
 
+  private double speedMult = 1.0;
+  private double rotMult = 1.0;
+
   // auto aim
   private AutoAimer aimer = new IterativeAutoAim();
 
@@ -407,9 +410,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> xSlewRateLimiter.calculate(-controller.getLeftY()),
-            () -> ySlewRateLimiter.calculate(-controller.getLeftX()),
-            () -> angularSlewRateLimiter.calculate(-controller.getRightX() / 2.0)));
+            () -> xSlewRateLimiter.calculate(-controller.getLeftY() * speedMult),
+            () -> ySlewRateLimiter.calculate(-controller.getLeftX() * speedMult),
+            () -> angularSlewRateLimiter.calculate(-controller.getRightX() * rotMult)));
 
     // Reset gyro to 0° when right bumper is pressed
     controller
@@ -465,6 +468,21 @@ public class RobotContainer {
         .povRight()
         .and(() -> !enableAutoAim.getAsBoolean())
         .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+
+    controller
+        .rightStick()
+        .whileTrue(
+            Commands.runOnce(
+                () -> {
+                  speedMult = 0.5;
+                  rotMult = 0.5;
+                }))
+        .whileFalse(
+            Commands.runOnce(
+                () -> {
+                  speedMult = 1.0;
+                  rotMult = 0.75;
+                }));
 
     // raise/lower climber elevator
     // controller.y().whileTrue(climber.runElevator(climbSpeedElev));
