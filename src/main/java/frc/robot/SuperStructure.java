@@ -66,7 +66,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Intake/intakeFlipMaxCurrent", 120);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 0.5);
+      new LoggedNetworkNumber("Intake/intakeSpeed", 0.66);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);

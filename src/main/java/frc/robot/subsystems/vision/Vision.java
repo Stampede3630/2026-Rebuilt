@@ -81,8 +81,15 @@ public class Vision extends TimedSubsystem {
     return inputs[cameraIndex].latestTargetObservation.tx();
   }
 
+  private boolean didAutoHappen = false;
+
   @Override
   public void timedPeriodic() {
+
+    if (!didAutoHappen) {
+      didAutoHappen = DriverStation.isAutonomousEnabled();
+    }
+
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
@@ -146,7 +153,7 @@ public class Vision extends TimedSubsystem {
         // Skip if rejected
         if (Constants.currentMode != Constants.Mode.SIM /* maybe remove for optimization */
                 && rejectPose
-                && (DriverStation.isDisabled() == false || disabledRejection)
+                && (DriverStation.isDisabled() == false || disabledRejection || didAutoHappen)
             || !Constants.VISION_ENABLED.get()) {
           // System.out.println("REJECTED");
           continue;
@@ -154,7 +161,7 @@ public class Vision extends TimedSubsystem {
 
         // Calculate standard deviations
         double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+            Math.pow(observation.averageTagDistance(), 2.5) / observation.tagCount();
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
         if (observation.type() == PoseObservationType.MEGATAG_2) {
@@ -165,6 +172,7 @@ public class Vision extends TimedSubsystem {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
+        angularStdDev = Double.POSITIVE_INFINITY;
 
         if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
           // might need to be converted to robot-relative coordinates
