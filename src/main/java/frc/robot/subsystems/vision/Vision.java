@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.util.TimedSubsystem;
 import java.util.ArrayList;
@@ -41,14 +40,12 @@ public class Vision extends TimedSubsystem {
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private final ArrayList<Function<Time, Transform3d>> offsets;
-  private final Turret turret;
   private final Drive drive;
 
   public Vision(
       VisionConsumer consumer,
       VisionIO[] io,
       ArrayList<Function<Time, Transform3d>> offsets,
-      Turret turret,
       Drive drive) {
     super("Vision");
     this.consumer = consumer;
@@ -57,7 +54,6 @@ public class Vision extends TimedSubsystem {
     if (io.length != offsets.size()) {
       // System.out.println("Array lengths don't match!");
     }
-    this.turret = turret;
     this.drive = drive;
 
     // Initialize inputs

@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -48,18 +47,12 @@ public class NamedCommands {
     //   latency.set(0.0);
     // }
 
-    commands.put("startIntake", structure.runIntake());
-    commands.put("stopIntake", structure.stopIntake());
-
     // commands.put("zeroIntake", structure.zeroIntake());
     // commands.put("lowerIntake", structure.setIntakePos(Degrees.of(0)));
     // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
-    commands.put("lowerIntake", structure.setIntakePos(Rotations.of(0.05)));
-    commands.put("raiseIntake", structure.setIntakePos(Rotations.of(0.245)));
 
     commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
-    commands.put("aimAndShoot", structure.shoot());
     // commands.put("setTurretTest", structure.setTurretAngle());
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);

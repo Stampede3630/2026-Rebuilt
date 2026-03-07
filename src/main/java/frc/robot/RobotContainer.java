@@ -9,7 +9,6 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -17,7 +16,6 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Time;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -25,9 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.NamedCommands;
 import frc.robot.generated.TunerConstants;
@@ -37,26 +33,10 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.hood.Hood;
-import frc.robot.subsystems.hood.HoodIO;
-import frc.robot.subsystems.hood.HoodIOServo;
-import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOTalonFX;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIO;
-import frc.robot.subsystems.intake.IntakeIOTalonFX;
-import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterIO;
-import frc.robot.subsystems.shooter.ShooterIOTalonFX;
-import frc.robot.subsystems.toftimer.TofTimer;
 import frc.robot.subsystems.toftimer.TofTimer.Shot;
-import frc.robot.subsystems.toftimer.TofTimerIOHardware;
-import frc.robot.subsystems.turret.Turret;
-import frc.robot.subsystems.turret.TurretIO;
-import frc.robot.subsystems.turret.TurretIOSim;
-import frc.robot.subsystems.turret.TurretIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -71,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -88,13 +67,8 @@ public class RobotContainer {
   private final Drive drive;
   // private final Outtake outtake;
   private final Vision vision;
-  private final Shooter shooter;
-  private final Turret turret;
-  private final Intake intake;
   //   private final Climber climber;
   private final Indexer indexer;
-  private final Hood hood;
-  private final TofTimer tofDataLog;
   private final SuperStructure structure;
 
   // private final Leds leds = Leds.getInstance();
@@ -157,9 +131,6 @@ public class RobotContainer {
   private double speedMult = 1.0;
   private double rotMult = 1.0;
 
-  // auto aim
-  private AutoAimer aimer = new IterativeAutoAim();
-
   private ShotInfo shotInfo =
       new ShotInfo(
           new ShooterParameters(0.0, RadiansPerSecond.of(0)), Degrees.of(0), ShotQuality.UNKNOWN);
@@ -184,11 +155,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         SmartDashboard.putData(drive);
-        turret = new Turret(new TurretIOTalonFX());
-        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
-        intake = new Intake(new IntakeIOTalonFX());
         // climber = new Climber(new ClimberIOTalonFX());
-        hood = new Hood(new HoodIOServo());
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
@@ -208,52 +175,18 @@ public class RobotContainer {
                   new Rotation3d(
                       0,
                       Units.degreesToRadians(-30),
-                      Units.degreesToRadians(45)))), // need to remeasure this one
-          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+                      Units.degreesToRadians(45)))) // need to remeasure this one
         };
 
         ArrayList<Function<Time, Transform3d>> offsets =
             new ArrayList<>(
                 List.of(
                     (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-                    // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
-                    // */).plus()
-                    (lat) -> {
-                      var transform =
-                          new Transform3d(
-                              Constants.TURRET_OFFSET_3D
-                                  .plus(
-                                      new Translation3d(
-                                          Constants.TURRET_CAMERA_RADIUS,
-                                          Meters.of(0.0),
-                                          Meters.of(0.0)))
-                                  .rotateAround(
-                                      Constants.TURRET_OFFSET_3D,
-                                      new Rotation3d(
-                                          new Rotation2d(
-                                              turret
-                                                  .getTurretAngle()
-                                                  .plus(turret.getAngularVelocity().times(lat)))
-                                          /*.plus(drive.getRotation()) */ )),
-                              new Rotation3d(
-                                      new Rotation2d(
-                                          turret
-                                              .getTurretAngle()
-                                              .plus(turret.getAngularVelocity().times(lat)))
-                                      /*.plus(drive.getRotation()) */ )
-                                  .plus(
-                                      new Rotation3d(
-                                          Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
-                      //   System.out.println("camera pose " + test);
-                      Logger.recordOutput("LL/transformOffset", transform);
-                      return transform;
-                    }));
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d())));
         // new Transform3d()
         // Rotation3d turretRot = turret.getRotation();
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
-        tofDataLog = new TofTimer(new TofTimerIOHardware());
+        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, drive);
         // tofDataLog.initFile(path.get());
         // turretVision = new Vision(null, new
         // VisionIOLimelight(Constants.TURRET_CAMERA,
@@ -274,11 +207,7 @@ public class RobotContainer {
 
         // outtake = new Outtake(new OuttakeIOTalonFX());
 
-        turret = new Turret(new TurretIOSim());
-        shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
-        intake = new Intake(new IntakeIOTalonFX());
         // climber = new Climber(new ClimberIOTalonFX());
-        hood = new Hood(new HoodIOSim());
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsSim = {
@@ -301,9 +230,7 @@ public class RobotContainer {
                     // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
                     // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
                     ));
-        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
-        tofDataLog = null;
-        initFuelSim();
+        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, drive);
 
         break;
 
@@ -317,11 +244,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
-        shooter = new Shooter(new ShooterIO() {}, () -> drive.getPose());
-        turret = new Turret(new TurretIO() {});
-        intake = new Intake(new IntakeIO() {});
         // climber = new Climber(new ClimberIO() {});
-        hood = new Hood(new HoodIO() {});
         indexer = new Indexer(new IndexerIO() {});
 
         VisionIO[] visionIOsDef = {
@@ -334,37 +257,15 @@ public class RobotContainer {
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)));
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret, drive);
-        tofDataLog = null;
+        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, drive);
 
         break;
-    }
-
-    if (tofDataLog != null) { // set up data logging
-      tofDataLog.registerShotCallback(
-          (shot) -> {
-            if (autoSaveLerp.get())
-              tofMap.put(
-                  shot,
-                  new ShotDataTof(
-                      /* with measured dist*/ dist.get()
-                      /* with pose estimation AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE).getDistance(drive.getPose().getTranslation())*/ ,
-                      hood.getHood(),
-                      shooter.getSpeedSetpoint().in(RotationsPerSecond),
-                      shooter.getSpeedReal().in(RotationsPerSecond),
-                      -1));
-          });
-      tofDataLog.registerLandedCallback(
-          (shot) -> {
-            if (autoSaveLerp.get() && tofMap.containsKey(shot))
-              tofMap.get(shot).setTof(shot.getTof());
-          });
     }
 
     // AutoBuilder.configure(
     //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
     // drive., null, null, autoSaveLerp, null);
-    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
+    structure = new SuperStructure(drive, indexer);
     new NamedCommands(vision, structure);
 
     // Set up auto routines
@@ -389,14 +290,9 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         new PathPlannerAuto(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse)));
-    autoChooser.addOption("Shoot Still", new PathPlannerAuto(structure.shoot()));
 
-    SmartDashboard.putData(turret);
-    SmartDashboard.putData(shooter);
     // Configure the button bindings
     configureButtonBindings();
-
-    addSysIDCommands();
   }
 
   /**
@@ -425,32 +321,7 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    Command onShoot = shooter.shoot(() -> shotInfo.shooterParameters().shooterVelocity());
-
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      onShoot =
-          onShoot.alongWith(
-              Commands.runOnce(() -> launchFuel(() -> shotInfo, () -> drive.getPose())));
-    }
-
-    // // auto aim turret and shoot if within tolerance
-    // if auto aim is disabled, shoot
-    controller
-        .rightTrigger()
-        .whileTrue(
-            Commands.either(
-                structure.shoot(), shooter.runVelocity(shooterAutoAimDisabledSpeed), enableAutoAim))
-        .whileFalse(shooter.runVelocity(shooterIdleSpeed));
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
-
-    // run intake
-    controller.leftTrigger().whileTrue(structure.runIntake());
-
-    // // flip intake down
-    controller.x().whileTrue(structure.setIntakePos(Rotations.of(0.05)));
-    // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
-    // // flip intake up
-    controller.y().whileTrue(structure.setIntakePos(Rotations.of(0.245)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller.leftBumper().onTrue(hood.hoodUp());
@@ -458,16 +329,6 @@ public class RobotContainer {
 
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
-
-    // turn turret if auto aim is disabled
-    controller
-        .povLeft()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
-    controller
-        .povRight()
-        .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
 
     controller
         .rightStick()
@@ -490,7 +351,6 @@ public class RobotContainer {
 
     // controller.a().whileTrue(structure.runIntakeBackThenStop());
     // controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
-    controller.b().whileTrue(structure.runIntakeBackThenStop());
     // controller.a().onTrue(turret.setTurretAngle(() -> Degrees.of(turretAngleTest.get())));
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
@@ -546,72 +406,10 @@ public class RobotContainer {
             .withName("Reset odometry")
             .ignoringDisable(true));
 
-    SmartDashboard.putData(
-        Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
-            .withName("Reset turret angle")
-            .ignoringDisable(true));
-
-    SmartDashboard.putData(
-        Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90)))
-            .withName("Reset intake to top")
-            .ignoringDisable(true));
-
-    new Trigger(() -> DriverStation.isDisabled())
-        .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
-        .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
-
     // // rotate climber hook
     // controller.b().whileTrue(climber.runHook(climbSpeedHook));
     // controller.a().whileTrue(climber.runHook(() ->
     // -climbSpeedHook.getAsDouble()));
-  }
-
-  /** Initializes fuel simulation */
-  private void initFuelSim() {
-    FuelSim instance = FuelSim.getInstance();
-    instance.spawnStartingFuel();
-    // TEMP DIMENSIONS
-    instance.registerRobot(
-        Units.inchesToMeters(27.0),
-        Units.inchesToMeters(27.0),
-        Units.inchesToMeters(6.0),
-        drive::getPose,
-        drive::getFieldRelSpeeds);
-    instance.registerIntake(
-        Units.inchesToMeters(27.0 / 2),
-        Units.inchesToMeters(27.0 / 2 + 3),
-        Units.inchesToMeters(-27.0 / 2),
-        Units.inchesToMeters(27.0 / 2),
-        intake::isIntaking,
-        this::intakeFuelSim);
-
-    instance.start();
-
-    SmartDashboard.putData(
-        Commands.runOnce(
-                () -> {
-                  FuelSim.getInstance().clearFuel();
-                  FuelSim.getInstance().spawnStartingFuel();
-                  setFuelCount(0);
-                })
-            .withName("Reset Fuel")
-            .ignoringDisable(true));
-  }
-
-  /** Adds commands for SysID to SmartDashboard */
-  private void addSysIDCommands() {
-    SmartDashboard.putData(
-        shooter.sysIdQuasistatic(Direction.kForward).withName("Shooter/SysID Quasistatic Forward"));
-    SmartDashboard.putData(
-        shooter.sysIdDynamic(Direction.kForward).withName("Shooter/SysID Dynamic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdQuasistatic(Direction.kForward).withName("Turret/SysID Quasistatic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdDynamic(Direction.kForward).withName("Turret/SysID Dynamic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdQuasistatic(Direction.kReverse).withName("Turret/SysID Quasistatic Reverse"));
-    SmartDashboard.putData(
-        turret.sysIdDynamic(Direction.kReverse).withName("Turret/SysID Dynamic Reverse"));
   }
 
   /**
