@@ -20,11 +20,9 @@ public class SuperStructure {
       new ShotInfo(
           new ShooterParameters(0.0, RadiansPerSecond.of(0)), Radians.of(0), ShotQuality.UNKNOWN);
   private final Drive drive;
-  private final Indexer indexer;
 
-  public SuperStructure(Drive drive, Indexer indexer) {
+  public SuperStructure(Drive drive) {
     this.drive = drive;
-    this.indexer = indexer;
   }
   /**
    * Computes the position to aim at. If robot is in the alliance zone, the hub's pose will be

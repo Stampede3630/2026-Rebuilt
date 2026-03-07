@@ -68,8 +68,6 @@ public class RobotContainer {
   // private final Outtake outtake;
   private final Vision vision;
   //   private final Climber climber;
-  private final Indexer indexer;
-  private final SuperStructure structure;
 
   // private final Leds leds = Leds.getInstance();
 
@@ -94,21 +92,6 @@ public class RobotContainer {
   private final LoggedNetworkBoolean enableAutoAim =
       new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
-  private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.5);
-  /** The speed target to set the shooter to while not actively shooting, in m/s */
-  private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 30);
-  /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
-  private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
-
-  /** The duty cycle speed to use to climb with the elevator */
-  private final LoggedNetworkNumber climbSpeedElev =
-      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.9);
-  /** The duty cycle speed to use to climb with the hooks */
-  private final LoggedNetworkNumber climbSpeedHook =
-      new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
 
   /**
    * The amount of simulation periodics before another fuel can be shot
@@ -156,7 +139,6 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         SmartDashboard.putData(drive);
         // climber = new Climber(new ClimberIOTalonFX());
-        indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
           new VisionIOPhotonVision(
@@ -208,7 +190,6 @@ public class RobotContainer {
         // outtake = new Outtake(new OuttakeIOTalonFX());
 
         // climber = new Climber(new ClimberIOTalonFX());
-        indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsSim = {
           new VisionIOPhotonVision(Constants.FRONT_LEFT_CAMERA, new Transform3d()),
@@ -245,7 +226,6 @@ public class RobotContainer {
                 new ModuleIO() {});
         // outtake = new Outtake(new OuttakeIOTalonFX());
         // climber = new Climber(new ClimberIO() {});
-        indexer = new Indexer(new IndexerIO() {});
 
         VisionIO[] visionIOsDef = {
           new VisionIOLimelight(Constants.FRONT_LEFT_CAMERA, drive::getRotation),
@@ -265,8 +245,7 @@ public class RobotContainer {
     // AutoBuilder.configure(
     //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
     // drive., null, null, autoSaveLerp, null);
-    structure = new SuperStructure(drive, indexer);
-    new NamedCommands(vision, structure);
+    new NamedCommands(vision);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));

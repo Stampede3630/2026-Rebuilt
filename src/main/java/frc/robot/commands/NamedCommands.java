@@ -24,7 +24,6 @@ public class NamedCommands {
   private final HashMap<String, Command> commands = new HashMap<>();
   // private final Climber climber;
   private final Vision vision;
-  private final SuperStructure structure;
 
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Auto/Intake/intakeDutyCycle", 0.3);
@@ -38,10 +37,9 @@ public class NamedCommands {
   // fuel sim - seperate from RobotContainer
   private int fuelStored = Constants.STARTING_FUEL_SIM;
 
-  public NamedCommands(Vision vision, SuperStructure structure) {
+  public NamedCommands(Vision vision) {
     // this.climber = climber;
     this.vision = vision;
-    this.structure = structure;
 
     // if (Constants.currentMode == Constants.Mode.SIM) {
     //   latency.set(0.0);
