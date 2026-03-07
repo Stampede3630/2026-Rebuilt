@@ -175,8 +175,8 @@ public class Vision extends TimedSubsystem {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
-        if (didAutoHappen) // if auto happened, no more seeding the angle please!
-        angularStdDev = Double.POSITIVE_INFINITY;
+        // if (didAutoHappen) // if auto happened, no more seeding the angle please!
+        // angularStdDev = Double.POSITIVE_INFINITY;
 
         // if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {
         //   // might need to be converted to robot-relative coordinates
