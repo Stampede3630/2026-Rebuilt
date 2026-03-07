@@ -63,7 +63,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   // private final Outtake outtake;
-  private final Vision vision;
+//   private final Vision vision;
   //   private final Climber climber;
 
   // private final Leds leds = Leds.getInstance();
@@ -165,7 +165,7 @@ public class RobotContainer {
         // new Transform3d()
         // Rotation3d turretRot = turret.getRotation();
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, drive);
+        // vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, drive);
         // tofDataLog.initFile(path.get());
         // turretVision = new Vision(null, new
         // VisionIOLimelight(Constants.TURRET_CAMERA,
@@ -208,7 +208,7 @@ public class RobotContainer {
                     // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
                     // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
                     ));
-        vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, drive);
+        // vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, drive);
 
         break;
 
@@ -234,7 +234,7 @@ public class RobotContainer {
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */),
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)));
 
-        vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, drive);
+        // vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, drive);
 
         break;
     }
@@ -242,7 +242,7 @@ public class RobotContainer {
     // AutoBuilder.configure(
     //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
     // drive., null, null, autoSaveLerp, null);
-    new NamedCommands(vision);
+    // new NamedCommands(vision);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
@@ -466,12 +466,13 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     PathPlannerAuto auto = autoChooser.get();
-    if (hasRunAutoOnceBefore) auto = new PathPlannerAuto(autoChooser.get().getName());
-    hasRunAutoOnceBefore = true;
-    return vision
-        .seedPoseBeforeAuto(AllianceFlipUtil.apply(auto.getStartingPose()), Meters.of(1))
-        .andThen(auto)
-        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
+    // if (hasRunAutoOnceBefore) auto = new PathPlannerAuto(autoChooser.get().getName());
+    // hasRunAutoOnceBefore = true;
+    // return vision
+    //     .seedPoseBeforeAuto(AllianceFlipUtil.apply(auto.getStartingPose()), Meters.of(1))
+    //     .andThen(auto)
+    //     .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
+    return auto.withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
 
   public SendableChooser<PathPlannerAuto> buildAutoChooser(String defaultAutoName) {
