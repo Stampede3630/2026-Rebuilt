@@ -11,7 +11,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
-import frc.robot.SuperStructure;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.FuelSim;
 import frc.robot.util.ShooterParameters;
