@@ -107,14 +107,15 @@ public class Shooter extends TimedSubsystem {
   }
 
   public AngularVelocity getSpeedSetpoint() {
-    return RotationsPerSecond.of(inputs.velSetpoint);
+    return inputs.velSetpoint;
   }
 
   public AngularVelocity getSpeedReal() {
-    return RotationsPerSecond.of(inputs.leaderVelocity);
+    return inputs.leaderVelocity;
   }
 
   public BooleanSupplier meetsSetpoint(DoubleSupplier tol) {
-    return () -> Math.abs(inputs.velSetpoint - inputs.leaderVelocity) < tol.getAsDouble();
+    return () ->
+        inputs.velSetpoint.minus(inputs.leaderVelocity).abs(RotationsPerSecond) < tol.getAsDouble();
   }
 }

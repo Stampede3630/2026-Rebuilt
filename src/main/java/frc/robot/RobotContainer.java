@@ -31,9 +31,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.NamedCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.climber.ClimberIO;
-import frc.robot.subsystems.climber.ClimberIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -94,7 +91,7 @@ public class RobotContainer {
   private final Shooter shooter;
   private final Turret turret;
   private final Intake intake;
-  private final Climber climber;
+  //   private final Climber climber;
   private final Indexer indexer;
   private final Hood hood;
   private final TofTimer tofDataLog;
@@ -127,7 +124,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.5);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 10);
+      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 30);
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
@@ -190,7 +187,7 @@ public class RobotContainer {
         turret = new Turret(new TurretIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
-        climber = new Climber(new ClimberIOTalonFX());
+        // climber = new Climber(new ClimberIOTalonFX());
         hood = new Hood(new HoodIOServo());
         indexer = new Indexer(new IndexerIOTalonFX());
 
@@ -280,7 +277,7 @@ public class RobotContainer {
         turret = new Turret(new TurretIOSim());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
-        climber = new Climber(new ClimberIOTalonFX());
+        // climber = new Climber(new ClimberIOTalonFX());
         hood = new Hood(new HoodIOSim());
         indexer = new Indexer(new IndexerIOTalonFX());
 
@@ -323,7 +320,7 @@ public class RobotContainer {
         shooter = new Shooter(new ShooterIO() {}, () -> drive.getPose());
         turret = new Turret(new TurretIO() {});
         intake = new Intake(new IntakeIO() {});
-        climber = new Climber(new ClimberIO() {});
+        // climber = new Climber(new ClimberIO() {});
         hood = new Hood(new HoodIO() {});
         indexer = new Indexer(new IndexerIO() {});
 
@@ -368,7 +365,7 @@ public class RobotContainer {
     //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
     // drive., null, null, autoSaveLerp, null);
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
-    new NamedCommands(climber, vision, structure);
+    new NamedCommands(vision, structure);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));

@@ -1,8 +1,15 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs;
 import org.littletonrobotics.junction.AutoLog;
@@ -49,30 +56,33 @@ public interface IntakeIO {
     public boolean connected = false;
 
     // intake motor
-    public double intakePosition = 0.0;
-    public AngularVelocity intakeVelocity;
-    public double intakeTorqueCurrent = 0.0;
-    public double intakeVoltage = 0.0;
-    public Current intakeStatorCurrent;
-    public Current intakeSupplyCurrent;
-    public double intakeTemp = 0.0;
+    public Angle intakePosition = Rotations.of(0.0);
+    public AngularVelocity intakeVelocity = RotationsPerSecond.of(0.0);
+    public Current intakeTorqueCurrent = Amps.of(0.0);
+    public Voltage intakeVoltage = Volts.of(0.0);
+    public Current intakeStatorCurrent = Amps.of(0.0);
+    public Current intakeSupplyCurrent = Amps.of(0.0);
+    public Temperature intakeTemp = Celsius.of(0.0);
 
     // flipLeft motor
-    public double flipLeftPosition = 0.0;
-    public AngularVelocity flipLeftVelocity;
-    public double flipLeftTorqueCurrent = 0.0;
-    public double flipLeftVoltage = 0.0;
-    public Current flipLeftStatorCurrent;
-    public Current flipLeftSupplyCurrent;
-    public double flipLeftTemp = 0.0;
+    public Angle flipLeftPosition = Rotations.of(0.0);
+    public AngularVelocity flipLeftVelocity = RotationsPerSecond.of(0.0);
+    public Current flipLeftTorqueCurrent = Amps.of(0.0);
+    public Voltage flipLeftVoltage = Volts.of(0.0);
+    public Current flipLeftStatorCurrent = Amps.of(0.0);
+    public Current flipLeftSupplyCurrent = Amps.of(0.0);
+    public Temperature flipLeftTemp = Celsius.of(0.0);
 
     // flipRight motor
-    public double flipRightPosition = 0.0;
-    public AngularVelocity flipRightVelocity;
-    public double flipRightTorqueCurrent = 0.0;
-    public double flipRightVoltage = 0.0;
-    public Current flipRightStatorCurrent;
-    public Current flipRightSupplyCurrent;
-    public double flipRightTemp = 0.0;
+    public Angle flipRightPosition = Rotations.of(0.0);
+    public AngularVelocity flipRightVelocity = RotationsPerSecond.of(0.0);
+    public Current flipRightTorqueCurrent = Amps.of(0.0);
+    public Voltage flipRightVoltage = Volts.of(0.0);
+    public Current flipRightStatorCurrent = Amps.of(0.0);
+    public Current flipRightSupplyCurrent = Amps.of(0.0);
+    public Temperature flipRightTemp = Celsius.of(0.0);
+
+    public Angle flipSetpoint = Rotations.of(0.0);
+    public double intakeDutyCycle = 0.0;
   }
 }

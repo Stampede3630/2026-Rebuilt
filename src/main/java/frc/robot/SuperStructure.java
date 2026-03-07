@@ -57,7 +57,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
   /** The minimum difference to block the indexer from running, in rotations per second */
   private final LoggedNetworkNumber shooterTolRPS =
-      new LoggedNetworkNumber("Shooter/shooterTolRPS", 3.0);
+      new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
   /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeFlipSpeed =
       new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.1);
@@ -145,15 +145,13 @@ public class SuperStructure {
                             .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
                 .onlyWhile(isTurretAngleRight())
                 .onlyWhile(isHoodAngleRight())
-                .repeatedly()
-                .asProxy(),
+                .repeatedly(),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)
                 .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
-                .onlyWhile(isTurretAngleRight()) // this used to be an onlyIf. i just changed it but it is not deployed.
-                .onlyWhile(isHoodAngleRight())
-                .repeatedly()
-                .asProxy());
+                .onlyIf(isTurretAngleRight())
+                .onlyIf(isHoodAngleRight())
+                .repeatedly());
   }
 
   /**

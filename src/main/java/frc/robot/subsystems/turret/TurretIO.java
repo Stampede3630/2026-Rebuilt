@@ -1,9 +1,17 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.turret.TurretIO.TurretIOInputs;
 import org.littletonrobotics.junction.AutoLog;
@@ -45,13 +53,13 @@ public interface TurretIO {
     public boolean connected = false;
 
     // turret motor
-    public Angle position;
-    public AngularVelocity velocity;
-    public double torqueCurrent = 0.0;
-    public Voltage voltage;
-    public double statorCurrent = 0.0;
-    public double supplyCurrent = 0.0;
-    public double temp = 0.0;
-    public Angle setpoint;
+    public Angle position = Rotations.of(0.0);
+    public AngularVelocity velocity = RotationsPerSecond.of(0.0);
+    public Current torqueCurrent = Amps.of(0.0);
+    public Voltage voltage = Volts.of(0.0);
+    public Current statorCurrent = Amps.of(0.0);
+    public Current supplyCurrent = Amps.of(0.0);
+    public Temperature temp = Celsius.of(0.0);
+    public Angle setpoint = Rotations.of(0.0);
   }
 }

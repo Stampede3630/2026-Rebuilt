@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -73,6 +74,9 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final TorqueCurrentFOC torqueRequest = new TorqueCurrentFOC(0.0);
 
   private final VoltageOut voltageRequest = new VoltageOut(0.0);
+
+  private Angle setpoint = Rotations.of(0.0);
+  private double intakeDutyCycle = 0.0;
 
   public IntakeIOTalonFX() {
     // init intake motor
@@ -172,31 +176,34 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.connected = connDebouncer.calculate(connected);
 
     // intake
-    inputs.intakePosition = intakePosition.getValueAsDouble();
+    inputs.intakePosition = intakePosition.getValue();
     inputs.intakeVelocity = intakeVelocity.getValue();
-    inputs.intakeTorqueCurrent = intakeTorqueCurrent.getValueAsDouble();
-    inputs.intakeVoltage = intakeVoltage.getValueAsDouble();
+    inputs.intakeTorqueCurrent = intakeTorqueCurrent.getValue();
+    inputs.intakeVoltage = intakeVoltage.getValue();
     inputs.intakeStatorCurrent = intakeStatorCurrent.getValue();
     inputs.intakeSupplyCurrent = intakeSupplyCurrent.getValue();
-    inputs.intakeTemp = intakeTemp.getValueAsDouble();
+    inputs.intakeTemp = intakeTemp.getValue();
 
     // flipLeft
-    inputs.flipLeftPosition = flipLeftPosition.getValueAsDouble();
+    inputs.flipLeftPosition = flipLeftPosition.getValue();
     inputs.flipLeftVelocity = flipLeftVelocity.getValue();
-    inputs.flipLeftTorqueCurrent = flipLeftTorqueCurrent.getValueAsDouble();
-    inputs.flipLeftVoltage = flipLeftVoltage.getValueAsDouble();
+    inputs.flipLeftTorqueCurrent = flipLeftTorqueCurrent.getValue();
+    inputs.flipLeftVoltage = flipLeftVoltage.getValue();
     inputs.flipLeftStatorCurrent = flipLeftStatorCurrent.getValue();
     inputs.flipLeftSupplyCurrent = flipLeftSupplyCurrent.getValue();
-    inputs.flipLeftTemp = flipLeftTemp.getValueAsDouble();
+    inputs.flipLeftTemp = flipLeftTemp.getValue();
 
     // flipRight
-    inputs.flipRightPosition = flipRightPosition.getValueAsDouble();
+    inputs.flipRightPosition = flipRightPosition.getValue();
     inputs.flipRightVelocity = flipRightVelocity.getValue();
-    inputs.flipRightTorqueCurrent = flipRightTorqueCurrent.getValueAsDouble();
-    inputs.flipRightVoltage = flipRightVoltage.getValueAsDouble();
+    inputs.flipRightTorqueCurrent = flipRightTorqueCurrent.getValue();
+    inputs.flipRightVoltage = flipRightVoltage.getValue();
     inputs.flipRightStatorCurrent = flipRightStatorCurrent.getValue();
     inputs.flipRightSupplyCurrent = flipRightSupplyCurrent.getValue();
-    inputs.flipRightTemp = flipRightTemp.getValueAsDouble();
+    inputs.flipRightTemp = flipRightTemp.getValue();
+
+    inputs.intakeDutyCycle = intakeDutyCycle;
+    inputs.flipSetpoint = setpoint;
   }
 
   // @Override
@@ -222,11 +229,13 @@ public class IntakeIOTalonFX implements IntakeIO {
   @Override
   public void runDutyCycle(double dutyCycle) {
     intake.set(dutyCycle);
+    intakeDutyCycle = dutyCycle;
   }
 
   @Override
   public void stop() {
     intake.stopMotor();
+    intakeDutyCycle = 0.0;
   }
 
   @Override
@@ -244,6 +253,7 @@ public class IntakeIOTalonFX implements IntakeIO {
   public void setFlipPosition(Angle pos) {
     flipLeft.setControl(positionRequest.withPosition(pos));
     flipRight.setControl(positionRequest.withPosition(pos));
+    setpoint = pos;
   }
 
   // @Override

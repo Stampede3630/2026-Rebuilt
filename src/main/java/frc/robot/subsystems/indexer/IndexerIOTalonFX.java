@@ -43,6 +43,9 @@ public class IndexerIOTalonFX implements IndexerIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
+  private double chuteDutyCycle = 0.0;
+  private double spinDutyCycle = 0.0;
+
   public IndexerIOTalonFX() {
     // init spin motor
     spin = new TalonFX(Constants.INDEXER_SPIN_ID, Constants.SWERVE_BUS);
@@ -92,22 +95,25 @@ public class IndexerIOTalonFX implements IndexerIO {
     inputs.connected = connDebouncer.calculate(connected);
 
     // spin
-    inputs.spinPosition = spinPosition.getValueAsDouble();
-    inputs.spinVelocity = spinVelocity.getValueAsDouble();
-    inputs.spinTorqueCurrent = spinTorqueCurrent.getValueAsDouble();
-    inputs.spinVoltage = spinVoltage.getValueAsDouble();
-    inputs.spinStatorCurrent = spinStatorCurrent.getValueAsDouble();
-    inputs.spinSupplyCurrent = spinSupplyCurrent.getValueAsDouble();
-    inputs.spinTemp = spinTemp.getValueAsDouble();
+    inputs.spinPosition = spinPosition.getValue();
+    inputs.spinVelocity = spinVelocity.getValue();
+    inputs.spinTorqueCurrent = spinTorqueCurrent.getValue();
+    inputs.spinVoltage = spinVoltage.getValue();
+    inputs.spinStatorCurrent = spinStatorCurrent.getValue();
+    inputs.spinSupplyCurrent = spinSupplyCurrent.getValue();
+    inputs.spinTemp = spinTemp.getValue();
 
     // chute
-    inputs.chutePosition = chutePosition.getValueAsDouble();
-    inputs.chuteVelocity = chuteVelocity.getValueAsDouble();
-    inputs.chuteTorqueCurrent = chuteTorqueCurrent.getValueAsDouble();
-    inputs.chuteVoltage = chuteVoltage.getValueAsDouble();
-    inputs.chuteStatorCurrent = chuteStatorCurrent.getValueAsDouble();
-    inputs.chuteSupplyCurrent = chuteSupplyCurrent.getValueAsDouble();
-    inputs.chuteTemp = chuteTemp.getValueAsDouble();
+    inputs.chutePosition = chutePosition.getValue();
+    inputs.chuteVelocity = chuteVelocity.getValue();
+    inputs.chuteTorqueCurrent = chuteTorqueCurrent.getValue();
+    inputs.chuteVoltage = chuteVoltage.getValue();
+    inputs.chuteStatorCurrent = chuteStatorCurrent.getValue();
+    inputs.chuteSupplyCurrent = chuteSupplyCurrent.getValue();
+    inputs.chuteTemp = chuteTemp.getValue();
+
+    inputs.spinDutyCycle = spinDutyCycle;
+    inputs.chuteDutyCycle = chuteDutyCycle;
   }
 
   // @Override
@@ -123,22 +129,26 @@ public class IndexerIOTalonFX implements IndexerIO {
   @Override
   public void runDutyCycleChute(double dutyCycle) {
     chute.set(dutyCycle);
+    chuteDutyCycle = dutyCycle;
   }
 
   @Override
   public void stopChute() {
     chute.stopMotor();
+    chuteDutyCycle = 0.0;
   }
 
   @Override
   public void runDutyCycleSpin(double dutyCycle) {
     // System.out.println("spinning at " + dutyCycle);
     spin.set(dutyCycle);
+    spinDutyCycle = dutyCycle;
   }
 
   @Override
   public void stopSpin() {
     spin.stopMotor();
+    spinDutyCycle = 0.0;
   }
 
   // @Override

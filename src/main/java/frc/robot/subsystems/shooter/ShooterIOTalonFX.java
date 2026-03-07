@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -114,24 +116,24 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.connected = connDebouncer.calculate(connected);
 
     // leader
-    inputs.leaderPosition = leaderPosition.getValueAsDouble();
-    inputs.leaderVelocity = leaderVelocity.getValueAsDouble();
-    inputs.leaderTorqueCurrent = leaderTorqueCurrent.getValueAsDouble();
-    inputs.leaderVoltage = leaderVoltage.getValueAsDouble();
-    inputs.leaderStatorCurrent = leaderStatorCurrent.getValueAsDouble();
-    inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValueAsDouble();
-    inputs.leaderTemp = leaderTemp.getValueAsDouble();
+    inputs.leaderPosition = leaderPosition.getValue();
+    inputs.leaderVelocity = leaderVelocity.getValue();
+    inputs.leaderTorqueCurrent = leaderTorqueCurrent.getValue();
+    inputs.leaderVoltage = leaderVoltage.getValue();
+    inputs.leaderStatorCurrent = leaderStatorCurrent.getValue();
+    inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValue();
+    inputs.leaderTemp = leaderTemp.getValue();
 
     // follower
-    inputs.followerPosition = followerPosition.getValueAsDouble();
-    inputs.followerVelocity = followerVelocity.getValueAsDouble();
-    inputs.followerTorqueCurrent = followerTorqueCurrent.getValueAsDouble();
-    inputs.followerVoltage = followerVoltage.getValueAsDouble();
-    inputs.followerStatorCurrent = followerStatorCurrent.getValueAsDouble();
-    inputs.followerSupplyCurrent = followerSupplyCurrent.getValueAsDouble();
-    inputs.followerTemp = followerTemp.getValueAsDouble();
+    inputs.followerPosition = followerPosition.getValue();
+    inputs.followerVelocity = followerVelocity.getValue();
+    inputs.followerTorqueCurrent = followerTorqueCurrent.getValue();
+    inputs.followerVoltage = followerVoltage.getValue();
+    inputs.followerStatorCurrent = followerStatorCurrent.getValue();
+    inputs.followerSupplyCurrent = followerSupplyCurrent.getValue();
+    inputs.followerTemp = followerTemp.getValue();
 
-    inputs.velSetpoint = velSetpoint;
+    inputs.velSetpoint = RotationsPerSecond.of(velSetpoint);
   }
 
   // @Override

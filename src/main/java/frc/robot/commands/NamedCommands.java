@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
 import frc.robot.SuperStructure;
-import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.FuelSim;
 import frc.robot.util.ShooterParameters;
@@ -24,7 +23,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class NamedCommands {
   private final HashMap<String, Command> commands = new HashMap<>();
-  private final Climber climber;
+  // private final Climber climber;
   private final Vision vision;
   private final SuperStructure structure;
 
@@ -40,8 +39,8 @@ public class NamedCommands {
   // fuel sim - seperate from RobotContainer
   private int fuelStored = Constants.STARTING_FUEL_SIM;
 
-  public NamedCommands(Climber climber, Vision vision, SuperStructure structure) {
-    this.climber = climber;
+  public NamedCommands(Vision vision, SuperStructure structure) {
+    // this.climber = climber;
     this.vision = vision;
     this.structure = structure;
 
