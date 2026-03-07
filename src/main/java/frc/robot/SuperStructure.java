@@ -181,7 +181,6 @@ public class SuperStructure {
     return Commands.runOnce(() -> intake.stopIntake());
   }
 
-
   public BooleanSupplier isHoodAngleRight() {
     return () ->
         Math.abs(hood.getHood() - (shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble()))
