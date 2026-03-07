@@ -66,7 +66,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Intake/intakeFlipMaxCurrent", 120);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 0.66);
+      new LoggedNetworkNumber("Intake/intakeSpeed", 0.7);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
@@ -121,6 +121,7 @@ public class SuperStructure {
             })
         .alongWith(
             hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
+                .asProxy()
                 // .onlyIf(() -> !isHoodAngleRight())
                 .repeatedly(),
             // Commands.print("HIIII"),
@@ -144,13 +145,15 @@ public class SuperStructure {
                             .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
                 .onlyWhile(isTurretAngleRight())
                 .onlyWhile(isHoodAngleRight())
-                .repeatedly(),
+                .repeatedly()
+                .asProxy(),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)
                 .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
-                .onlyIf(isTurretAngleRight())
-                .onlyIf(isHoodAngleRight())
-                .repeatedly());
+                .onlyWhile(isTurretAngleRight()) // this used to be an onlyIf. i just changed it but it is not deployed.
+                .onlyWhile(isHoodAngleRight())
+                .repeatedly()
+                .asProxy());
   }
 
   /**

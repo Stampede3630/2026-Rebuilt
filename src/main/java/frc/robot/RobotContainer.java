@@ -154,6 +154,9 @@ public class RobotContainer {
   /** The place to set the hood to [0, 1] */
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
 
+  private final LoggedNetworkNumber turretAngleTest =
+      new LoggedNetworkNumber("Turret/turretAngleTest", 0.0);
+
   private double speedMult = 1.0;
   private double rotMult = 1.0;
 
@@ -489,7 +492,9 @@ public class RobotContainer {
     // controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
 
     // controller.a().whileTrue(structure.runIntakeBackThenStop());
-    controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
+    // controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
+    controller.b().whileTrue(structure.runIntakeBackThenStop());
+    // controller.a().onTrue(turret.setTurretAngle(() -> Degrees.of(turretAngleTest.get())));
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
     // controller.povRight().onTrue(turret.moveTurretRight());

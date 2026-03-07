@@ -98,7 +98,7 @@ public class Turret extends TimedSubsystem {
         });
   }
 
-  public void runSetTurretAngle(Angle angle) {
+  private void runSetTurretAngle(Angle angle) {
     setpoint = angle;
     io.setTurretAngle(angle);
   }

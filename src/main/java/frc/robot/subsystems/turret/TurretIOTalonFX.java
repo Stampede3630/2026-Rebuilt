@@ -47,8 +47,8 @@ public class TurretIOTalonFX implements TurretIO {
 
   private Angle turretSetpoint = Radians.of(0);
 
-  private final double LEFT_LIMIT = -1; // rotations was -0.15
-  private final double RIGHT_LIMIT = 0.25; // rotations was 1.11
+  private final double LEFT_LIMIT = -0.2; // rotations was -0.15
+  private final double RIGHT_LIMIT = 0.9; // rotations was 1.11
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
@@ -137,13 +137,13 @@ public class TurretIOTalonFX implements TurretIO {
     Angle currentAngle = turretMotor.getPosition().getValue();
     // find if leftAngle or angle is closer to currentAngle
     if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
-        && currentAngle.minus(leftAngle).abs(Radians)
-            < currentAngle.minus(rightAngle).abs(Radians)) {
+        && currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(rightAngle).abs(Radians)
+        && leftAngle.gt(Rotations.of(LEFT_LIMIT))) {
       // if leftAngle is closer
       angle = leftAngle;
     } else if (currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
-        && currentAngle.minus(rightAngle).abs(Radians)
-            < currentAngle.minus(leftAngle).abs(Radians)) {
+        && currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(leftAngle).abs(Radians)
+        && rightAngle.lt(Rotations.of(RIGHT_LIMIT))) {
       // if rightAngle is closer
       angle = rightAngle;
     }

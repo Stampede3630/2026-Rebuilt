@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.38714116251483,
-        "y": 5.880201660735468
+        "x": 6.311826809015422,
+        "y": 5.815646500593119
       },
       "isLocked": false,
       "linkedName": "Bulldoze Left End"
@@ -20,15 +20,20 @@
         "y": 5.428315539739027
       },
       "prevControl": {
-        "x": 4.224543297746146,
-        "y": 5.740332147093714
+        "x": 4.31061684460261,
+        "y": 5.503629893238434
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.3807662236121985,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
