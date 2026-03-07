@@ -48,6 +48,10 @@ public interface TurretIO {
 
   default void setNeutralMode(NeutralModeValue val) {}
 
+  default boolean isAtSetpoint(Angle tol) {
+    return false;
+  }
+
   @AutoLog
   class TurretIOInputs {
     public boolean connected = false;

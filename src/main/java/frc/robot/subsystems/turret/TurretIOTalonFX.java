@@ -187,4 +187,9 @@ public class TurretIOTalonFX implements TurretIO {
     // turretConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(val));
     turretMotor.getConfigurator().apply(new MotorOutputConfigs().withNeutralMode(val));
   }
+
+  @Override
+  public boolean isAtSetpoint(Angle tol) {
+    return turretSetpoint.isNear(turretPosition.getValue(), tol);
+  }
 }

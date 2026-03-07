@@ -143,13 +143,13 @@ public class SuperStructure {
                             .shooterParameters()
                             .shooterVelocity()
                             .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
-                .onlyWhile(isTurretAngleRight())
+                .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
                 .onlyWhile(isHoodAngleRight())
                 .repeatedly(),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)
                 .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
-                .onlyIf(isTurretAngleRight())
+                .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
                 .onlyIf(isHoodAngleRight())
                 .repeatedly());
   }
@@ -181,15 +181,6 @@ public class SuperStructure {
     return Commands.runOnce(() -> intake.stopIntake());
   }
 
-  public BooleanSupplier isTurretAngleRight() {
-    return () ->
-        shotInfo
-            .turretAngle()
-            .plus(Degrees.of(turretOffset.getAsDouble()))
-            .isNear(
-                turret.getTurretAngle().plus(drive.getRotation().getMeasure()),
-                Degrees.of(turretTolDeg.getAsDouble()));
-  }
 
   public BooleanSupplier isHoodAngleRight() {
     return () ->

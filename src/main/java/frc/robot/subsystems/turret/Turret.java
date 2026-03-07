@@ -108,7 +108,7 @@ public class Turret extends TimedSubsystem {
   }
 
   public boolean isAtSetpoint(Angle tolerance) {
-    return setpoint.isNear(getTurretAngle(), tolerance);
+    return io.isAtSetpoint(tolerance);
   }
 
   /**
