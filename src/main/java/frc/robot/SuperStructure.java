@@ -53,8 +53,7 @@ public class SuperStructure {
   /** The duty cycle speed to run the spindexer with */
   private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.45);
   /** The duty cycle speed to run the chute with */
-  private final LoggedNetworkNumber chuteSpeed =
-      new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
+  private final LoggedNetworkNumber chuteSpeed = new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
   /** The minimum difference to block the indexer from running, in rotations per second */
   private final LoggedNetworkNumber shooterTolRPS =
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);

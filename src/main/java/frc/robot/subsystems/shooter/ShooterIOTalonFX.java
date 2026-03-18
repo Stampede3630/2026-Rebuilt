@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -76,14 +77,15 @@ public class ShooterIOTalonFX implements ShooterIO {
     config
         .withMotorOutput(
             new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(0.5)) // 1:2 ratio
         .withSlot0(
             new Slot0Configs()
-                .withKS(6.5)
-                .withKV(0.01)
-                .withKA(0.0)
-                .withKP(11.5) // 10 w/ single motor - 5 formerly
-                .withKI(0.0)
-                .withKD(0.0));
+                .withKS(5.5) // 6.5
+                .withKV(0.05) // 0.01
+                .withKA(0.0) // 0.0
+                .withKP(6.0) // 11.5
+                .withKI(0.0) // 0.0
+                .withKD(0.0) ); // 0.0
     leader.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
 
@@ -147,20 +149,13 @@ public class ShooterIOTalonFX implements ShooterIO {
     leader.setControl(velocityRequest.withVelocity(vel));
   }
 
-  // @Override
-  // public double getShooterSpeed() {
-  //   return leader.getVelocity().getValueAsDouble() * Shooter.WHEEL_RADIUS_METERS;
-  // }
-
   @Override
   public void setShooterMotorsControl(ControlRequest control) {
     leader.setControl(control);
   }
 
   @Override
-  /** might not work */
   public void stop() {
-    // runVelocity(0);
     leader.stopMotor();
   }
   // add AutoLogOutputs
