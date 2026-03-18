@@ -454,7 +454,15 @@ public class RobotContainer {
     controller.y().whileTrue(structure.setIntakePos(Rotations.of(0.245)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
-    controller.b().whileTrue(indexer.runBoth(() -> -0.8, () -> 0.45));
+    controller
+        .b()
+        .whileTrue(
+            indexer
+                .runBoth(() -> -0.8, () -> 0.7)
+                .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+                // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                // .onlyIf(isHoodAngleRight())
+                .repeatedly());
 
     // controller.leftBumper().onTrue(hood.hoodUp());
     // controller.rightBumper().onTrue(hood.hoodDown());

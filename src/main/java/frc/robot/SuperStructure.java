@@ -53,7 +53,8 @@ public class SuperStructure {
   /** The duty cycle speed to run the spindexer with */
   private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.45);
   /** The duty cycle speed to run the chute with */
-  private final LoggedNetworkNumber chuteSpeed = new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
+  private final LoggedNetworkNumber chuteSpeed =
+      new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
   /** The minimum difference to block the indexer from running, in rotations per second */
   private final LoggedNetworkNumber shooterTolRPS =
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
@@ -79,7 +80,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Offsets/turretOffset", 0.0);
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber shooterOffset =
-      new LoggedNetworkNumber("Offsets/shooterOffset", 0.0);
+      new LoggedNetworkNumber("Offsets/shooterOffset", -1.0);
 
   public SuperStructure(
       AutoAimer aimer,
@@ -97,6 +98,7 @@ public class SuperStructure {
     this.indexer = indexer;
     this.intake = intake;
     SmartDashboard.putData(turret);
+    SmartDashboard.putData(indexer);
   }
 
   public Command shoot() {
@@ -125,16 +127,16 @@ public class SuperStructure {
                 .repeatedly(),
             // Commands.print("HIIII"),
             // Commands.print("HIIII"),
-            turret
-                .setTurretAngle(
-                    () ->
-                        shotInfo
-                            .turretAngle()
-                            .minus(drive.getRotation().getMeasure())
-                            .plus(Degrees.of(turretOffset.getAsDouble())))
-                .asProxy()
-                // .onlyIf(() -> !isFacingRightWay())
-                .repeatedly(), /* , */
+            // turret
+            //     .setTurretAngle(
+            //         () ->
+            //             shotInfo
+            //                 .turretAngle()
+            //                 .minus(drive.getRotation().getMeasure())
+            //                 .plus(Degrees.of(turretOffset.getAsDouble())))
+            //     .asProxy()
+            //     // .onlyIf(() -> !isFacingRightWay())
+            //     .repeatedly(), /* , */
             shooter
                 .shoot(
                     () ->
@@ -150,7 +152,11 @@ public class SuperStructure {
                 .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
                 .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
                 .onlyIf(isHoodAngleRight())
+                .asProxy()
                 .repeatedly());
+    // TODO fix turret.isAtSetpoint
+    // TODO fix LL offset
+    // TODO change shooter speed adjustment to percent?
   }
 
   /**
