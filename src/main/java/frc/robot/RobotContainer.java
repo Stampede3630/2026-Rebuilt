@@ -136,6 +136,9 @@ public class RobotContainer {
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
 
+    /** Used when codriver resets angle */
+    private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
+
   /**
    * The amount of simulation periodics before another fuel can be shot
    *
@@ -395,8 +398,9 @@ public class RobotContainer {
     SmartDashboard.putData(shooter);
     // Configure the button bindings
     configureButtonBindings();
+    putDashboardCommands();
 
-    addSysIDCommands();
+    // addSysIDCommands();
   }
 
   /**
@@ -535,6 +539,20 @@ public class RobotContainer {
     //     .whileTrue(hood.setHood(() ->
     // Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
 
+    
+
+    new Trigger(() -> DriverStation.isDisabled())
+        .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
+        .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
+
+    // // rotate climber hook
+    // controller.b().whileTrue(climber.runHook(climbSpeedHook));
+    // controller.a().whileTrue(climber.runHook(() ->
+    // -climbSpeedHook.getAsDouble()));
+  }
+
+  /** Add commands for codriver to use in elastic */
+  public void putDashboardCommands() {
     SmartDashboard.putData(
         Commands.runOnce(
                 () -> {
@@ -559,23 +577,23 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     SmartDashboard.putData(
+        Commands.runOnce(() -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Degrees.of(setAngle.getAsDouble()))))).withName("Reset angle to setAngle").ignoringDisable(true)
+    );
+
+    SmartDashboard.putData(
         Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
             .withName("Reset turret angle")
+            .ignoringDisable(true));
+
+    SmartDashboard.putData(
+        Commands.runOnce(() -> intake.resetFlipPosition(Rotations.of(0.05)))
+            .withName("Reset intake to bottom")
             .ignoringDisable(true));
 
     SmartDashboard.putData(
         Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90)))
             .withName("Reset intake to top")
             .ignoringDisable(true));
-
-    new Trigger(() -> DriverStation.isDisabled())
-        .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
-        .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
-
-    // // rotate climber hook
-    // controller.b().whileTrue(climber.runHook(climbSpeedHook));
-    // controller.a().whileTrue(climber.runHook(() ->
-    // -climbSpeedHook.getAsDouble()));
   }
 
   /** Initializes fuel simulation */
