@@ -192,32 +192,31 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
-          //   new VisionIOPhotonVision(
-          //       Constants.FRONT_RIGHT_CAMERA,
-          //       new Transform3d(
-          //           Units.inchesToMeters(11.25),
-          //           Units.inchesToMeters(-11.0),
-          //           Units.inchesToMeters(7.0),
-          //           new Rotation3d(0, Units.degreesToRadians(-30),
-          // Units.degreesToRadians(-45)))),
-          //   new VisionIOPhotonVision(
-          //       Constants.FRONT_LEFT_CAMERA,
-          //       new Transform3d(
-          //           Units.inchesToMeters(11.25),
-          //           Units.inchesToMeters(11.0),
-          //           Units.inchesToMeters(7.0),
-          //           new Rotation3d(
-          //               0,
-          //               Units.degreesToRadians(-30),
-          //               Units.degreesToRadians(45)))), // need to remeasure this one
+          new VisionIOPhotonVision(
+              Constants.FRONT_RIGHT_CAMERA,
+              new Transform3d(
+                  Units.inchesToMeters(11.25),
+                  Units.inchesToMeters(-11.0),
+                  Units.inchesToMeters(7.0),
+                  new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-45)))),
+          new VisionIOPhotonVision(
+              Constants.FRONT_LEFT_CAMERA,
+              new Transform3d(
+                  Units.inchesToMeters(11.25),
+                  Units.inchesToMeters(11.0),
+                  Units.inchesToMeters(7.0),
+                  new Rotation3d(
+                      0,
+                      Units.degreesToRadians(-30),
+                      Units.degreesToRadians(45)))), // need to remeasure this one
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
 
         ArrayList<Function<Time, Transform3d>> offsets =
             new ArrayList<>(
                 List.of(
-                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
                     // */).plus()
                     (lat) -> {
@@ -283,11 +282,11 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOsSim = {
-          new VisionIOPhotonVision(Constants.FRONT_LEFT_CAMERA, new Transform3d()),
-          // new VisionIOPhotonVisionSim(
-          // Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
-          // new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
-          // drive::getPose)
+          new VisionIOPhotonVision(Constants.FRONT_RIGHT_CAMERA, new Transform3d()),
+          //   new VisionIOPhotonVisionSim(
+          //   Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
+          //   new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
+          //   drive::getPose)
         };
         ArrayList<Function<Time, Transform3d>> offsetsSim =
             new ArrayList<>(
@@ -717,9 +716,23 @@ public class RobotContainer {
     List<String> autoNames = AutoBuilder.getAllAutoNames();
     PathPlannerAuto defaultOption = null;
     for (String autoName : autoNames) {
+      // System.out.println(autoName);
       PathPlannerAuto auto = new PathPlannerAuto(autoName);
+
       if (!defaultAutoName.isEmpty() && defaultAutoName.equals(autoName)) defaultOption = auto;
-      else chooser.addOption(autoName, auto);
+      else {
+        chooser.addOption(autoName, auto);
+        if (autoName.startsWith("RightF")) {
+          chooser.addOption(
+              autoName.replace("RightF", "LeftF"), new PathPlannerAuto(autoName, true));
+        } else if (autoName.startsWith("LeftF")) {
+          chooser.addOption(
+              autoName.replace("LeftF", "RightF"), new PathPlannerAuto(autoName, true));
+          //   System.out.println("unflipped: " + auto.getStartingPose() + ", flipped: " + new
+          // PathPlannerAuto(autoName, true).getStartingPose());
+          //   System.out.println("AJFWAEJFWEHAKF " + autoName.replace("LeftF", "RightF"));
+        }
+      }
     }
     if (defaultOption == null) {
       chooser.setDefaultOption("None", new PathPlannerAuto(Commands.none()));
