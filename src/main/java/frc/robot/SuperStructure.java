@@ -80,7 +80,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Offsets/turretOffset", 0.0);
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber shooterOffset =
-      new LoggedNetworkNumber("Offsets/shooterOffset", -1.0);
+      new LoggedNetworkNumber("Offsets/shooterOffset", 0.0);
 
   public SuperStructure(
       AutoAimer aimer,
@@ -127,16 +127,16 @@ public class SuperStructure {
                 .repeatedly(),
             // Commands.print("HIIII"),
             // Commands.print("HIIII"),
-            // turret
-            //     .setTurretAngle(
-            //         () ->
-            //             shotInfo
-            //                 .turretAngle()
-            //                 .minus(drive.getRotation().getMeasure())
-            //                 .plus(Degrees.of(turretOffset.getAsDouble())))
-            //     .asProxy()
-            //     // .onlyIf(() -> !isFacingRightWay())
-            //     .repeatedly(), /* , */
+            turret
+                .setTurretAngle(
+                    () ->
+                        shotInfo
+                            .turretAngle()
+                            .minus(drive.getRotation().getMeasure())
+                            .plus(Degrees.of(turretOffset.getAsDouble())))
+                .asProxy()
+                // .onlyIf(() -> !isFacingRightWay())
+                .repeatedly(), /* , */
             shooter
                 .shoot(
                     () ->
@@ -144,8 +144,8 @@ public class SuperStructure {
                             .shooterParameters()
                             .shooterVelocity()
                             .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
-                .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
-                .onlyWhile(isHoodAngleRight())
+                // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                // .onlyWhile(isHoodAngleRight())
                 .repeatedly(),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)
@@ -177,7 +177,7 @@ public class SuperStructure {
 
   public Command runIntake() {
     // return intake.runIntake(intakeSpeed);
-    return intake.setIntakePosition(Rotations.of(0.05)).andThen(intake.runIntake(intakeSpeed));
+    return intake.setIntakePosition(Rotations.of(0.0)).andThen(intake.runIntake(intakeSpeed));
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
     // .alongWith(setIntakePos(Degrees.of(0)));
   }
@@ -210,9 +210,9 @@ public class SuperStructure {
       return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
     } else {
       if (FieldConstants.aboveCenterLine(robot)) {
-        return AllianceFlipUtil.apply(new Translation2d(3.25, 5.5));
+        return new Translation2d(AllianceFlipUtil.applyX(3.25), 5.5);
       } else {
-        return AllianceFlipUtil.apply(new Translation2d(3.25, 2.5));
+        return new Translation2d(AllianceFlipUtil.applyX(3.25), 2.5);
       }
     }
   }

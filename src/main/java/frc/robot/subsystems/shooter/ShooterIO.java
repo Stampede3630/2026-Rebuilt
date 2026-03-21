@@ -52,6 +52,7 @@ public interface ShooterIO {
     public Current leaderStatorCurrent = Amps.of(0.0);
     public Current leaderSupplyCurrent = Amps.of(0.0);
     public Temperature leaderTemp = Celsius.of(0.0);
+    public AngularVelocity leaderVelocitySlew = RotationsPerSecond.of(0.0);
 
     // follower motor
     public Angle followerPosition = Rotations.of(0.0);

@@ -14,6 +14,7 @@ import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -47,6 +48,9 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final StatusSignal<Current> followerStatorCurrent;
   private final StatusSignal<Current> followerSupplyCurrent;
   private final StatusSignal<Temperature> followerTemp;
+
+  private final SlewRateLimiter velLimit =
+      new SlewRateLimiter(5.0); // for checking if motor meets setpoint
 
   private double velSetpoint = 0.0;
 
@@ -125,6 +129,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.leaderStatorCurrent = leaderStatorCurrent.getValue();
     inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValue();
     inputs.leaderTemp = leaderTemp.getValue();
+    inputs.leaderVelocitySlew =
+        RotationsPerSecond.of(velLimit.calculate(leaderVelocity.getValue().in(RotationsPerSecond)));
 
     // follower
     inputs.followerPosition = followerPosition.getValue();

@@ -118,7 +118,7 @@ public class RobotContainer {
   //   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
-      new LoggedNetworkBoolean("Turret/enableAutoAim", false); // change b4 comp
+      new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
   private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.5);
@@ -136,8 +136,8 @@ public class RobotContainer {
   private final LoggedNetworkNumber climbSpeedHook =
       new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
 
-    /** Used when codriver resets angle */
-    private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
+  /** Used when codriver resets angle */
+  private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
 
   /**
    * The amount of simulation periodics before another fuel can be shot
@@ -195,31 +195,32 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOTalonFX());
 
         VisionIO[] visionIOs = {
-          new VisionIOPhotonVision(
-              Constants.FRONT_RIGHT_CAMERA,
-              new Transform3d(
-                  Units.inchesToMeters(11.25),
-                  Units.inchesToMeters(-11.0),
-                  Units.inchesToMeters(7.0),
-                  new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-45)))),
-          new VisionIOPhotonVision(
-              Constants.FRONT_LEFT_CAMERA,
-              new Transform3d(
-                  Units.inchesToMeters(11.25),
-                  Units.inchesToMeters(11.0),
-                  Units.inchesToMeters(7.0),
-                  new Rotation3d(
-                      0,
-                      Units.degreesToRadians(-30),
-                      Units.degreesToRadians(45)))), // need to remeasure this one
+          //   new VisionIOPhotonVision(
+          //       Constants.FRONT_RIGHT_CAMERA,
+          //       new Transform3d(
+          //           Units.inchesToMeters(11.25),
+          //           Units.inchesToMeters(-11.0),
+          //           Units.inchesToMeters(7.0),
+          //           new Rotation3d(0, Units.degreesToRadians(-30),
+          // Units.degreesToRadians(-45)))),
+          //   new VisionIOPhotonVision(
+          //       Constants.FRONT_LEFT_CAMERA,
+          //       new Transform3d(
+          //           Units.inchesToMeters(11.25),
+          //           Units.inchesToMeters(11.0),
+          //           Units.inchesToMeters(7.0),
+          //           new Rotation3d(
+          //               0,
+          //               Units.degreesToRadians(-30),
+          //               Units.degreesToRadians(45)))), // need to remeasure this one
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
 
         ArrayList<Function<Time, Transform3d>> offsets =
             new ArrayList<>(
                 List.of(
-                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
-                    (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
+                    // (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d()),
                     // () -> new Transform3d(1.0, 2.0, 3.0, new Rotation3d() /* camera circle center
                     // */).plus()
                     (lat) -> {
@@ -457,15 +458,15 @@ public class RobotContainer {
     controller.y().whileTrue(structure.setIntakePos(Rotations.of(0.245)));
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
-    controller
-        .b()
-        .whileTrue(
-            indexer
-                .runBoth(() -> -0.8, () -> 0.7)
-                .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
-                // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
-                // .onlyIf(isHoodAngleRight())
-                .repeatedly());
+    // controller
+    //     .b()
+    //     .whileTrue(
+    //         indexer
+    //             .runBoth(() -> -0.8, () -> 0.7)
+    //             .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+    //             // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+    //             // .onlyIf(isHoodAngleRight())
+    //             .repeatedly());
 
     // controller.leftBumper().onTrue(hood.hoodUp());
     // controller.rightBumper().onTrue(hood.hoodDown());
@@ -506,7 +507,7 @@ public class RobotContainer {
 
     // controller.a().whileTrue(structure.runIntakeBackThenStop());
     // controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
-    // controller.b().whileTrue(structure.runIntakeBackThenStop());
+    controller.a().whileTrue(structure.runIntakeBackThenStop());
     // controller.a().onTrue(turret.setTurretAngle(() -> Degrees.of(turretAngleTest.get())));
 
     // controller.povLeft().onTrue(turret.moveTurretLeft());
@@ -538,8 +539,6 @@ public class RobotContainer {
     //     .a()
     //     .whileTrue(hood.setHood(() ->
     // Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
-
-    
 
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
@@ -577,8 +576,14 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     SmartDashboard.putData(
-        Commands.runOnce(() -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d(Degrees.of(setAngle.getAsDouble()))))).withName("Reset angle to setAngle").ignoringDisable(true)
-    );
+        Commands.runOnce(
+                () ->
+                    drive.setPose(
+                        new Pose2d(
+                            drive.getPose().getTranslation(),
+                            new Rotation2d(Degrees.of(setAngle.getAsDouble())))))
+            .withName("Reset angle to setAngle")
+            .ignoringDisable(true));
 
     SmartDashboard.putData(
         Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
