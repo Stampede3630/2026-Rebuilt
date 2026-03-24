@@ -23,10 +23,6 @@ public interface IntakeIO {
   //   return true;
   // }
 
-  default void runDutyCycleFlip(double dutyCycle) {}
-
-  default void stopFlip() {}
-
   default void runDutyCycle(double dutyCycle) {}
 
   default void stop() {}
@@ -63,6 +59,7 @@ public interface IntakeIO {
     public Current intakeStatorCurrent = Amps.of(0.0);
     public Current intakeSupplyCurrent = Amps.of(0.0);
     public Temperature intakeTemp = Celsius.of(0.0);
+    public double intakeSetpoint = 0.0;
 
     // flipLeft motor
     public Angle flipLeftPosition = Rotations.of(0.0);
@@ -72,6 +69,7 @@ public interface IntakeIO {
     public Current flipLeftStatorCurrent = Amps.of(0.0);
     public Current flipLeftSupplyCurrent = Amps.of(0.0);
     public Temperature flipLeftTemp = Celsius.of(0.0);
+    public double flipLeftSetpoint = 0.0;
 
     // flipRight motor
     public Angle flipRightPosition = Rotations.of(0.0);
@@ -81,6 +79,7 @@ public interface IntakeIO {
     public Current flipRightStatorCurrent = Amps.of(0.0);
     public Current flipRightSupplyCurrent = Amps.of(0.0);
     public Temperature flipRightTemp = Celsius.of(0.0);
+    public double flipRightSetpoint = 0.0;
 
     public Angle flipSetpoint = Rotations.of(0.0);
     public double intakeDutyCycle = 0.0;

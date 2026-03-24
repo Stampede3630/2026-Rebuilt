@@ -96,6 +96,11 @@ public class DriveCommands {
         drive);
   }
 
+  public static Command setOffsets(Drive drive, Supplier<ChassisSpeeds> offsetSupplier) {
+    return Commands.runEnd(
+        () -> drive.addOffsets(offsetSupplier.get()), () -> drive.addOffsets(new ChassisSpeeds()));
+  }
+
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.
    * Possible use cases include snapping to an angle, aiming at a vision target, or controlling

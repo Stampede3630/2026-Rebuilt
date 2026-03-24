@@ -169,8 +169,8 @@ public class Vision extends TimedSubsystem {
         // Calculate standard deviations
         double stdDevFactor =
             Math.pow(observation.averageTagDistance(), 2.5) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
+        double linearStdDev = linearStdDevBaseline.get() * stdDevFactor;
+        double angularStdDev = angularStdDevBaseline.get() * stdDevFactor;
         if (observation.type() == PoseObservationType.MEGATAG_2) {
           linearStdDev *= linearStdDevMegatag2Factor;
           angularStdDev *= angularStdDevMegatag2Factor;

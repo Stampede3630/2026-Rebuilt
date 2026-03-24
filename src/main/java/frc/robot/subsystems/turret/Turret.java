@@ -7,6 +7,7 @@ import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -125,6 +126,15 @@ public class Turret extends TimedSubsystem {
         () -> {
           setpoint = angle;
           io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
+        });
+  }
+
+  public Command turretAimAtAThingCommand(
+      Supplier<Translation2d> theThing, Supplier<Pose2d> robot) {
+    return run(
+        () -> {
+          setpoint = theThing.get().minus(robot.get().getTranslation()).getAngle().getMeasure();
+          io.setTurretAngle(setpoint.minus(robot.get().getRotation().getMeasure()));
         });
   }
 

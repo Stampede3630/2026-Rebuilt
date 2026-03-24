@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends TimedSubsystem {
@@ -44,19 +45,11 @@ public class Intake extends TimedSubsystem {
   // }
 
   public Command runIntake(DoubleSupplier dutyCycle) {
-    return startEnd(() -> io.runDutyCycle(dutyCycle.getAsDouble()), () -> io.stop());
+    return run(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
   }
 
   public Command stopIntake() {
     return runOnce(() -> io.stop());
-  }
-
-  public Command runFlip(DoubleSupplier dutyCycle) {
-    return startEnd(() -> io.runDutyCycleFlip(dutyCycle.getAsDouble()), () -> io.stopFlip());
-  }
-
-  public Command stopFlip() {
-    return runOnce(() -> io.stopFlip());
   }
 
   public Command stopFlips() {
@@ -73,8 +66,17 @@ public class Intake extends TimedSubsystem {
     return on;
   }
 
-  public Command setIntakePosition(Angle pos) {
-    return runOnce(() -> io.setFlipPosition(pos));
+  public Command setIntakePosition(Supplier<Angle> pos) {
+    return runOnce(() -> io.setFlipPosition(pos.get()));
+  }
+
+  public Command runIntakeSetFlips(DoubleSupplier dutyCycle, Supplier<Angle> pos) {
+    return runEnd(
+        () -> {
+          io.runDutyCycle(dutyCycle.getAsDouble());
+          io.setFlipPosition(pos.get());
+        },
+        () -> io.stop());
   }
 
   public Current getFlipLeftStatorCurrent() {

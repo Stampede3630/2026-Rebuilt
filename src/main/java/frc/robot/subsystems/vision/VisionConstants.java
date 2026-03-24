@@ -11,6 +11,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class VisionConstants {
   // AprilTag layout
@@ -34,8 +35,10 @@ public class VisionConstants {
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
-  public static double linearStdDevBaseline = 0.02; // Meters
-  public static double angularStdDevBaseline = 0.06; // Radians
+  public static LoggedNetworkNumber linearStdDevBaseline =
+      new LoggedNetworkNumber("Tuning/Vision/linearStdDevBaseline", 0.02); // Meters
+  public static LoggedNetworkNumber angularStdDevBaseline =
+      new LoggedNetworkNumber("Tuning/Vision/angularStdDevBaseline", 0.06); // Radians
 
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)

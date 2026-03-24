@@ -44,6 +44,23 @@ public class Shooter extends TimedSubsystem {
                 this));
   }
 
+  private boolean idling = false;
+
+  public Command idleSpeed(DoubleSupplier idleSpeed) {
+    return runEnd(
+        () -> {
+          if (io.getShooterSpeed()
+              <= idleSpeed.getAsDouble()) { // turn on idle speed if going slower than idle speed
+            idling = true;
+            io.runVelocity(idleSpeed.getAsDouble());
+          } else if (!idling) { // if not idling and speed is higher than idle speed, go to coast
+            // mode
+            io.stop();
+          }
+        },
+        () -> idling = false);
+  }
+
   public Command runVelocity(DoubleSupplier velocity) {
     return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   }

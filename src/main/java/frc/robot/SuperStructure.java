@@ -3,17 +3,18 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.indexer.Indexer;
@@ -58,21 +59,12 @@ public class SuperStructure {
   /** The minimum difference to block the indexer from running, in rotations per second */
   private final LoggedNetworkNumber shooterTolRPS =
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
-  /** The duty cycle speed to use to flip the intake up/down [-1.0, 1.0] */
-  private final LoggedNetworkNumber intakeFlipSpeed =
-      new LoggedNetworkNumber("Intake/intakeFlipSpeed", 0.1);
-  /** The maximum current to allow the intake's flip to run at before stopping it */
-  private final LoggedNetworkNumber intakeFlipMaxCurrent =
-      new LoggedNetworkNumber("Intake/intakeFlipMaxCurrent", 120);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 1.0);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
-  /** The speed to wait for the intake's flip motors to reach for zeroing purposes */
-  private final LoggedNetworkNumber intakeFlipTolRPS =
-      new LoggedNetworkNumber("Intake/intakeFlipTolRPS", 1.0);
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber hoodOffset = new LoggedNetworkNumber("Offsets/hoodOffset", 0.0);
   /** Offset for hood. Applied while shooting */
@@ -81,6 +73,22 @@ public class SuperStructure {
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber shooterOffset =
       new LoggedNetworkNumber("Offsets/shooterOffset", 0.0);
+
+  private final LoggedNetworkNumber driveWiggle =
+      new LoggedNetworkNumber("Offsets/driveWiggle", 0.05);
+  private final LoggedNetworkNumber driveWigglePeriod =
+      new LoggedNetworkNumber("Offsets/driveWigglePeriod", 1);
+
+  private final LoggedNetworkNumber driveShake = new LoggedNetworkNumber("Offsets/driveShake", 0.1);
+  private final LoggedNetworkNumber driveShakePeriod =
+      new LoggedNetworkNumber("Offsets/driveShakePeriod", 1);
+  private final LoggedNetworkNumber intakeFlipPeriod =
+      new LoggedNetworkNumber("Offsets/intakeFlipPeriod", Double.POSITIVE_INFINITY);
+
+  private final LoggedNetworkNumber intakeUpSetpoint =
+      new LoggedNetworkNumber("Intake/flipUpSetpoint", 88.2);
+  private final LoggedNetworkNumber intakeDownSetpoint =
+      new LoggedNetworkNumber("Intake/flipDownSetpoint", 18);
 
   public SuperStructure(
       AutoAimer aimer,
@@ -101,6 +109,8 @@ public class SuperStructure {
     SmartDashboard.putData(indexer);
   }
 
+  private ChassisSpeeds offsets = new ChassisSpeeds();
+
   public Command shoot() {
     return Commands.run(
             () -> {
@@ -119,14 +129,22 @@ public class SuperStructure {
               Logger.recordOutput("targetShot/hood", shotInfo.shooterParameters().hood());
               Logger.recordOutput("targetShot/turret", shotInfo.turretAngle());
               Logger.recordOutput("targetShot/quality", shotInfo.quality());
+              offsets.vxMetersPerSecond =
+                  (drive.getRotation().getSin() * driveWiggle.get())
+                      * Math.sin(
+                          Timer.getFPGATimestamp() * (2 * Math.PI) / driveWigglePeriod.get());
+              offsets.vyMetersPerSecond =
+                  (drive.getRotation().getCos() * driveWiggle.get())
+                      * Math.sin(
+                          Timer.getFPGATimestamp() * (2 * Math.PI) / driveWigglePeriod.get());
+              offsets.omegaRadiansPerSecond =
+                  driveShake.get()
+                      * Math.sin(Timer.getFPGATimestamp() * (2 * Math.PI) / driveShakePeriod.get());
             })
         .alongWith(
             hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
                 .asProxy()
-                // .onlyIf(() -> !isHoodAngleRight())
                 .repeatedly(),
-            // Commands.print("HIIII"),
-            // Commands.print("HIIII"),
             turret
                 .setTurretAngle(
                     () ->
@@ -135,35 +153,48 @@ public class SuperStructure {
                             .minus(drive.getRotation().getMeasure())
                             .plus(Degrees.of(turretOffset.getAsDouble())))
                 .asProxy()
-                // .onlyIf(() -> !isFacingRightWay())
-                .repeatedly(), /* , */
-            shooter
-                .shoot(
-                    () ->
-                        shotInfo
-                            .shooterParameters()
-                            .shooterVelocity()
-                            .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
-                // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
-                // .onlyWhile(isHoodAngleRight())
                 .repeatedly(),
+            shooter.shoot(
+                () ->
+                    shotInfo
+                        .shooterParameters()
+                        .shooterVelocity()
+                        .plus(RotationsPerSecond.of(shooterOffset.getAsDouble())))
+            // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+            // .onlyWhile(isHoodAngleRight())
+            ,
+            DriveCommands.setOffsets(drive, () -> offsets),
             indexer
                 .runBoth(chuteSpeed, spinSpeed)
                 .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
                 .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
                 .onlyIf(isHoodAngleRight())
                 .asProxy()
-                .repeatedly());
+                .repeatedly(),
+            intake.runIntakeSetFlips(
+                intakeIdleSpeed,
+                () ->
+                    Degrees.of(
+                        intakeDownSetpoint.get()
+                            + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
+                                * Math.sin(
+                                    Timer.getFPGATimestamp()
+                                        * (2 * Math.PI)
+                                        / intakeFlipPeriod
+                                            .get())))); // move up and down intake flips at a period
+    // of 1
+    // seconds
     // TODO fix turret.isAtSetpoint
     // TODO fix LL offset
     // TODO change shooter speed adjustment to percent?
   }
 
-  /**
-   * Raises the intake. Assumes that the intake was zeroed while down and that -90 degrees is the
-   */
-  public Command setIntakePos(Angle angle) {
-    return intake.setIntakePosition(angle);
+  public Command flipIntakeUp() {
+    return intake.setIntakePosition(() -> Degrees.of(intakeUpSetpoint.get()));
+  }
+
+  public Command flipIntakeDown() {
+    return intake.setIntakePosition(() -> Degrees.of(intakeDownSetpoint.get()));
   }
   // return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
   // .until(
@@ -171,13 +202,13 @@ public class SuperStructure {
   // intakeFlipMaxCurrent.getAsDouble())
   // .handleInterrupt(() -> intake.stopFlip());
 
-  public Command runIntakeBackThenStop() {
+  public Command runIntakeBackwards() {
     return intake.runIntake(() -> -1 * intakeSpeed.getAsDouble());
   }
 
   public Command runIntake() {
     // return intake.runIntake(intakeSpeed);
-    return intake.setIntakePosition(Rotations.of(0.0)).andThen(intake.runIntake(intakeSpeed));
+    return flipIntakeDown().andThen(intake.runIntake(intakeSpeed));
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
     // .alongWith(setIntakePos(Degrees.of(0)));
   }

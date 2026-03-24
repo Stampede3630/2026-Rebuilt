@@ -125,25 +125,16 @@ public class RobotContainer {
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 30);
+
+  private final LoggedNetworkNumber intakeIdleSpeed =
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.25);
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
 
-  /** The duty cycle speed to use to climb with the elevator */
-  private final LoggedNetworkNumber climbSpeedElev =
-      new LoggedNetworkNumber("Climber/climbSpeedElev", 0.9);
-  /** The duty cycle speed to use to climb with the hooks */
-  private final LoggedNetworkNumber climbSpeedHook =
-      new LoggedNetworkNumber("Climber/climbSpeedHook", 0.2);
-
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
 
-  /**
-   * The amount of simulation periodics before another fuel can be shot
-   *
-   * <p>NOTE: negative is down; positive values will cause the indexer to run backwards
-   */
   //   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   // for lerp data
@@ -153,9 +144,6 @@ public class RobotContainer {
   public static final LoggedNetworkString path = new LoggedNetworkString("Tof/path", "/U/data.csv");
   /** The place to set the hood to [0, 1] */
   private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
-
-  private final LoggedNetworkNumber turretAngleTest =
-      new LoggedNetworkNumber("Turret/turretAngleTest", 0.0);
 
   private double speedMult = 1.0;
   private double rotMult = 1.0;
@@ -253,15 +241,9 @@ public class RobotContainer {
                       Logger.recordOutput("LL/transformOffset", transform);
                       return transform;
                     }));
-        // new Transform3d()
-        // Rotation3d turretRot = turret.getRotation();
 
         vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
         tofDataLog = new TofTimer(new TofTimerIOHardware());
-        // tofDataLog.initFile(path.get());
-        // turretVision = new Vision(null, new
-        // VisionIOLimelight(Constants.TURRET_CAMERA,
-        // outtake::getTurretRotation));
         break;
 
       case SIM:
@@ -365,12 +347,13 @@ public class RobotContainer {
           });
     }
 
-    // AutoBuilder.configure(
-    //     drive::getPose, drive::setPose, drive::getChassisSpeeds, (speeds, feedforwards) ->
-    // drive., null, null, autoSaveLerp, null);
+    shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
+    intake.setDefaultCommand(intake.runIntake(intakeIdleSpeed));
+
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
     new NamedCommands(vision, structure);
-
+    turret.setDefaultCommand(
+        turret.turretAimAtAThingCommand(() -> getTarget(drive.getPose()), () -> drive.getPose()));
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
 
@@ -397,6 +380,7 @@ public class RobotContainer {
 
     SmartDashboard.putData(turret);
     SmartDashboard.putData(shooter);
+    SmartDashboard.putData(intake);
     // Configure the button bindings
     configureButtonBindings();
     putDashboardCommands();
@@ -444,18 +428,19 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(
             Commands.either(
-                structure.shoot(), shooter.runVelocity(shooterAutoAimDisabledSpeed), enableAutoAim))
-        .whileFalse(shooter.runVelocity(shooterIdleSpeed));
+                structure.shoot(),
+                shooter.runVelocity(shooterAutoAimDisabledSpeed),
+                enableAutoAim));
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
     controller.leftTrigger().whileTrue(structure.runIntake());
 
     // // flip intake down
-    controller.x().whileTrue(structure.setIntakePos(Rotations.of(0.05)));
+    controller.x().whileTrue(structure.flipIntakeDown());
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
-    controller.y().whileTrue(structure.setIntakePos(Rotations.of(0.245)));
+    controller.y().whileTrue(structure.flipIntakeUp());
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller
@@ -499,46 +484,7 @@ public class RobotContainer {
                   rotMult = 0.75;
                 }));
 
-    controller.a().whileTrue(hood.setHood(hoodSetpoint));
-
-    // raise/lower climber elevator
-    // controller.y().whileTrue(climber.runElevator(climbSpeedElev));
-    // controller.x().whileTrue(climber.runElevator(() -> -climbSpeedElev.getAsDouble()));
-
-    // controller.a().whileTrue(structure.runIntakeBackThenStop());
-    // controller.a().whileTrue(intake.runFlipsVoltage(Volts.of(12)));
-    controller.a().whileTrue(structure.runIntakeBackThenStop());
-    // controller.a().onTrue(turret.setTurretAngle(() -> Degrees.of(turretAngleTest.get())));
-
-    // controller.povLeft().onTrue(turret.moveTurretLeft());
-    // controller.povRight().onTrue(turret.moveTurretRight());
-
-    // raise/lower hood if auto aim is disabled
-    // commented out to test other things and bc hood does not currently work
-    // controller
-    // .leftBumper()
-    // .and(() -> !enableAutoAim.getAsBoolean())
-    // .whileTrue(hood.spin(() -> 0.1));
-    // controller
-    // .rightBumper()
-    // .and(() -> !enableAutoAim.getAsBoolean())
-    // .whileTrue(hood.spin(() -> -0.1));
-
-    // run the indexer
-    // controller.b().whileTrue(indexer.runBoth(chuteSpeed, spinSpeed));
-    // controller
-    // .b()
-    // .whileTrue(
-    // indexer
-    //     .runBoth(chuteSpeed, spinSpeed)
-    //     .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
-    // .repeatedly());
-    // controller.b().onFalse(indexer.stopChute().andThen(indexer.stopSpin()));
-
-    // controller
-    //     .a()
-    //     .whileTrue(hood.setHood(() ->
-    // Constants.SHOT_LOOKUP.apply(Meters.of(dist.get())).hood()));
+    controller.a().whileTrue(structure.runIntakeBackwards());
 
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))

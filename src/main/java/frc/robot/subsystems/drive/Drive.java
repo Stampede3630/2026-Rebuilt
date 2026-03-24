@@ -98,6 +98,9 @@ public class Drive extends TimedSubsystem {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, Pose2d.kZero);
 
+  private ChassisSpeeds offsets = new ChassisSpeeds();
+  ;
+
   public Drive(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
@@ -209,12 +212,16 @@ public class Drive extends TimedSubsystem {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
 
+  public void addOffsets(ChassisSpeeds offsets) {
+    this.offsets = offsets;
+  }
   /**
    * Runs the drive at the desired velocity.
    *
    * @param speeds Speeds in meters/sec
    */
   public void runVelocity(ChassisSpeeds speeds) {
+    speeds = speeds.plus(offsets);
     // Calculate module setpoints
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
