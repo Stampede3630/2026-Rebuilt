@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -12,6 +13,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -80,6 +82,8 @@ public class Turret extends TimedSubsystem {
   public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Turret", inputs);
+    Robot.batteryLogger.reportCurrentUsage(
+        "Turret", inputs.connected ? inputs.supplyCurrent : Amps.of(0));
   }
 
   public Command stopTurret() {
@@ -91,7 +95,7 @@ public class Turret extends TimedSubsystem {
     return inputs.position;
   }
 
-  public Command setTurretAngle(Supplier<Angle> angle) {
+  public Command setTurretAngleRobotRel(Supplier<Angle> angle) {
     return runOnce(
         () -> {
           setpoint = angle.get();
@@ -99,9 +103,12 @@ public class Turret extends TimedSubsystem {
         });
   }
 
-  private void runSetTurretAngle(Angle angle) {
-    setpoint = angle;
-    io.setTurretAngle(angle);
+  public Command runTurretAngleRobotRel(Supplier<Angle> angle) {
+    return run(
+        () -> {
+          setpoint = angle.get();
+          io.setTurretAngle(setpoint);
+        });
   }
 
   public Command runTurret(DoubleSupplier dutyCycle) {
@@ -143,7 +150,8 @@ public class Turret extends TimedSubsystem {
         () -> {
           testSetpoint = testSetpoint.plus(Degrees.of(5));
           // System.out.println(testSetpoint);
-          runSetTurretAngle(testSetpoint);
+          setpoint = testSetpoint;
+          io.setTurretAngle(setpoint);
         });
   }
 
@@ -152,7 +160,8 @@ public class Turret extends TimedSubsystem {
         () -> {
           testSetpoint = testSetpoint.minus(Degrees.of(5));
           // System.out.println(testSetpoint);
-          runSetTurretAngle(testSetpoint);
+          setpoint = testSetpoint;
+          io.setTurretAngle(setpoint);
         });
   }
 

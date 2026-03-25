@@ -18,7 +18,8 @@ public class IndexerIOTalonFX implements IndexerIO {
   private final TalonFX chute;
   // private final CANcoder encoder;
 
-  private final Debouncer connDebouncer = new Debouncer(0.5);
+  private final Debouncer spinConnDebouncer = new Debouncer(0.5);
+  private final Debouncer chuteConnDebouncer = new Debouncer(0.5);
 
   // intake motor
   private final TalonFXConfiguration spinConfig = new TalonFXConfiguration();
@@ -74,7 +75,7 @@ public class IndexerIOTalonFX implements IndexerIO {
 
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
-    boolean connected =
+    boolean spinConnected =
         BaseStatusSignal.refreshAll(
                 spinPosition,
                 spinVelocity,
@@ -82,7 +83,11 @@ public class IndexerIOTalonFX implements IndexerIO {
                 spinVoltage,
                 spinStatorCurrent,
                 spinSupplyCurrent,
-                spinTemp,
+                spinTemp)
+            .isOK();
+
+    boolean chuteConnected =
+        BaseStatusSignal.refreshAll(
                 chutePosition,
                 chuteVelocity,
                 chuteTorqueCurrent,
@@ -92,7 +97,8 @@ public class IndexerIOTalonFX implements IndexerIO {
                 chuteTemp)
             .isOK();
 
-    inputs.connected = connDebouncer.calculate(connected);
+    inputs.spinConnected = spinConnDebouncer.calculate(spinConnected);
+    inputs.chuteConnected = chuteConnDebouncer.calculate(chuteConnected);
 
     // spin
     inputs.spinPosition = spinPosition.getValue();

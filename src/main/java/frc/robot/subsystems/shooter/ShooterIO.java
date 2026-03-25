@@ -2,7 +2,6 @@ package frc.robot.subsystems.shooter;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
@@ -26,23 +25,12 @@ public interface ShooterIO {
     return true;
   }
 
-  default double getShooterSpeed() {
-    return 0.0;
-  }
-
   default void setShooterMotorsControl(ControlRequest control) {}
-
-  default AngularVelocity getSpeedSetpoint() {
-    return RadiansPerSecond.of(0);
-  }
-
-  default AngularVelocity getSpeedReal() {
-    return RadiansPerSecond.of(0);
-  }
 
   @AutoLog
   class ShooterIOInputs {
-    public boolean connected = false;
+    public boolean leaderConnected = false;
+    public boolean followerConnected = false;
 
     // leader motor
     public Angle leaderPosition = Rotations.of(0.0);

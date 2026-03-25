@@ -1,24 +1,26 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -34,7 +36,14 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final TalonFX intake;
   // private final CANcoder encoder;
 
-  private final Debouncer connDebouncer = new Debouncer(0.5);
+  private final Debouncer intakeConnDebouncer = new Debouncer(0.5);
+  private final Debouncer flipLeftConnDebouncer = new Debouncer(0.5);
+  private final Debouncer flipRightConnDebouncer = new Debouncer(0.5);
+
+  private Debouncer flipLeftStallDebouncer = new Debouncer(0.5, DebounceType.kRising);
+  private Debouncer flipRightStallDebouncer = new Debouncer(0.5, DebounceType.kRising);
+  private Debouncer flipLeftGoingDownDebouncer = new Debouncer(0.5, DebounceType.kRising);
+  private Debouncer flipRightGoingDownDebouncer = new Debouncer(0.5, DebounceType.kRising);
 
   // intake motor
   // private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
@@ -48,6 +57,7 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final StatusSignal<Double> intakeSetpoint;
 
   private final TalonFXConfiguration flipConfig = new TalonFXConfiguration();
+  private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
 
   // flipLeft motor
   private final StatusSignal<Angle> flipLeftPosition;
@@ -69,12 +79,9 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final StatusSignal<Temperature> flipRightTemp;
   private final StatusSignal<Double> flipRightSetpoint;
 
-  private final VelocityTorqueCurrentFOC velocityRequest =
-      new VelocityTorqueCurrentFOC(0).withSlot(0);
+  private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
 
   private final PositionVoltage positionRequest = new PositionVoltage(0.0).withSlot(0);
-
-  private final TorqueCurrentFOC torqueRequest = new TorqueCurrentFOC(0.0);
 
   private final VoltageOut voltageRequest = new VoltageOut(0.0);
 
@@ -92,7 +99,13 @@ public class IntakeIOTalonFX implements IntakeIO {
     intakeSupplyCurrent = intake.getSupplyCurrent();
     intakeTemp = intake.getDeviceTemp();
     intakeSetpoint = intake.getClosedLoopReference();
-    // add intakeConfig here
+    intakeConfig
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Coast))
+        .withSlot0(new Slot0Configs().withKP(0.1).withKS(0.35).withKV(0.12));
+    intake.getConfigurator().apply(intakeConfig);
 
     // init flipLeft motor
     flipLeft = new TalonFX(Constants.INTAKE_FLIP_LEFT_ID, Constants.SWERVE_BUS);
@@ -135,7 +148,8 @@ public class IntakeIOTalonFX implements IntakeIO {
                 .withForwardSoftLimitEnable(true)
                 .withForwardSoftLimitThreshold(0.25)
                 .withReverseSoftLimitEnable(true)
-                .withReverseSoftLimitThreshold(0.05));
+                .withReverseSoftLimitThreshold(0.05))
+        .withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(50));
     flipLeft.getConfigurator().apply(flipConfig);
     flipRight
         .getConfigurator()
@@ -154,7 +168,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-    boolean connected =
+    boolean intakeConnected =
         BaseStatusSignal.refreshAll(
                 intakePosition,
                 intakeVelocity,
@@ -181,8 +195,39 @@ public class IntakeIOTalonFX implements IntakeIO {
                 flipRightTemp,
                 flipRightSetpoint)
             .isOK();
-
-    inputs.connected = connDebouncer.calculate(connected);
+    boolean leftFlipConnected =
+        BaseStatusSignal.refreshAll(
+                flipLeftPosition,
+                flipLeftVelocity,
+                flipLeftTorqueCurrent,
+                flipLeftVoltage,
+                flipLeftStatorCurrent,
+                flipLeftSupplyCurrent,
+                flipLeftTemp,
+                flipLeftSetpoint,
+                flipRightPosition,
+                flipRightVelocity,
+                flipRightTorqueCurrent,
+                flipRightVoltage,
+                flipRightStatorCurrent,
+                flipRightSupplyCurrent,
+                flipRightTemp,
+                flipRightSetpoint)
+            .isOK();
+    boolean rightFlipConnected =
+        BaseStatusSignal.refreshAll(
+                flipRightPosition,
+                flipRightVelocity,
+                flipRightTorqueCurrent,
+                flipRightVoltage,
+                flipRightStatorCurrent,
+                flipRightSupplyCurrent,
+                flipRightTemp,
+                flipRightSetpoint)
+            .isOK();
+    inputs.intakeConnected = intakeConnDebouncer.calculate(intakeConnected);
+    inputs.flipLeftConnected = flipLeftConnDebouncer.calculate(leftFlipConnected);
+    inputs.flipRightConnected = flipRightConnDebouncer.calculate(rightFlipConnected);
 
     // intake
     inputs.intakePosition = intakePosition.getValue();
@@ -203,6 +248,8 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.flipLeftSupplyCurrent = flipLeftSupplyCurrent.getValue();
     inputs.flipLeftTemp = flipLeftTemp.getValue();
     inputs.flipLeftSetpoint = flipLeftSetpoint.getValue();
+    inputs.flipLeftStalling =
+        flipLeftStallDebouncer.calculate(inputs.flipLeftStatorCurrent.abs(Amps) > 10);
 
     // flipRight
     inputs.flipRightPosition = flipRightPosition.getValue();
@@ -213,9 +260,26 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.flipRightSupplyCurrent = flipRightSupplyCurrent.getValue();
     inputs.flipRightTemp = flipRightTemp.getValue();
     inputs.flipRightSetpoint = flipRightSetpoint.getValue();
+    inputs.flipRightStalling =
+        flipRightStallDebouncer.calculate(inputs.flipRightStatorCurrent.abs(Amps) > 10);
 
     inputs.intakeDutyCycle = intakeDutyCycle;
     inputs.flipSetpoint = setpoint;
+
+    if (inputs.flipLeftStalling
+        && flipLeftGoingDownDebouncer.calculate(
+            inputs.flipLeftSetpoint
+                < inputs.flipLeftPosition.in(
+                    Rotations))) { // if stalling and going down, then turn off
+      flipLeft.stopMotor();
+    }
+    if (inputs.flipRightStalling
+        && flipRightGoingDownDebouncer.calculate(
+            inputs.flipRightSetpoint
+                < inputs.flipRightPosition.in(
+                    Rotations))) { // if stalling and going down, then turn off
+      flipRight.stopMotor();
+    }
   }
 
   // @Override
@@ -223,10 +287,11 @@ public class IntakeIOTalonFX implements IntakeIO {
   //     runVelocity(getValue(dist));
   // }
 
-  // @Override
-  // public void runVelocity(double vel) {
-  //   intake.setControl(velocityRequest.withVelocity(vel));
-  // }
+  @Override
+  public void runVelocity(AngularVelocity vel) {
+    intake.setControl(velocityRequest.withVelocity(vel));
+  }
+
   @Override
   public void runDutyCycle(double dutyCycle) {
     intake.set(dutyCycle);
@@ -256,11 +321,6 @@ public class IntakeIOTalonFX implements IntakeIO {
     flipRight.setControl(positionRequest.withPosition(pos));
     setpoint = pos;
   }
-
-  // @Override
-  // public void runFlipCurrent(Current current) {
-  //   flipLeft.setControl(torqueRequest.withOutput(current));
-  // }
 
   @Override
   public void runFlipsVoltage(Voltage volts) {

@@ -201,7 +201,7 @@ public class ModuleIOTalonFXS implements ModuleIO {
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble());
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble());
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
-    inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
+    inputs.driveStatorCurrentAmps = driveCurrent.getValueAsDouble();
 
     // Update turn inputs
     inputs.turnConnected = turnConnectedDebounce.calculate(turnStatus.isOK());
@@ -210,7 +210,7 @@ public class ModuleIOTalonFXS implements ModuleIO {
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble());
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
-    inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
+    inputs.turnStatorCurrentAmps = turnCurrent.getValueAsDouble();
 
     // Update odometry inputs
     inputs.odometryTimestamps =

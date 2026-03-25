@@ -7,6 +7,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -44,8 +45,8 @@ public class Intake extends TimedSubsystem {
   //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   // }
 
-  public Command runIntake(DoubleSupplier dutyCycle) {
-    return run(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
+  public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
+    return run(() -> io.runVelocity(angularVelocitySupplier.get()));
   }
 
   public Command stopIntake() {
@@ -56,10 +57,33 @@ public class Intake extends TimedSubsystem {
     return runOnce(() -> io.stopFlips());
   }
 
+  private boolean idling = false;
+
+  public Command idleSpeed(Supplier<AngularVelocity> idleSpeed) {
+    return runEnd(
+        () -> {
+          if (inputs.intakeVelocity.lt(
+              idleSpeed.get())) { // turn on idle speed if going slower than idle speed
+            idling = true;
+            io.runVelocity(idleSpeed.get());
+          } else if (!idling) { // if not idling and speed is higher than idle speed, go to coast
+            // mode
+            io.stop();
+          }
+        },
+        () -> idling = false);
+  }
+
   @Override
   public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
+    Robot.batteryLogger.reportCurrentUsage(
+        "Intake/IntakeMotor", inputs.intakeConnected ? inputs.intakeSupplyCurrent : Amps.of(0));
+    Robot.batteryLogger.reportCurrentUsage(
+        "Intake/FlipLeft", inputs.flipLeftConnected ? inputs.flipLeftSupplyCurrent : Amps.of(0));
+    Robot.batteryLogger.reportCurrentUsage(
+        "Intake/FlipRight", inputs.flipRightConnected ? inputs.flipRightSupplyCurrent : Amps.of(0));
   }
 
   public boolean isIntaking() {
@@ -93,10 +117,6 @@ public class Intake extends TimedSubsystem {
 
   public AngularVelocity getFlipLeftVelocity() {
     return inputs.flipLeftVelocity;
-  }
-
-  public Command runFlipCurrent(DoubleSupplier current) {
-    return runOnce(() -> io.runFlipCurrent(Amps.of(current.getAsDouble())));
   }
 
   public Command runFlipsVoltage(Voltage volts) {

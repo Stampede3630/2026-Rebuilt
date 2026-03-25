@@ -1,6 +1,9 @@
 package frc.robot.subsystems.indexer;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
@@ -73,6 +76,10 @@ public class Indexer extends TimedSubsystem {
   public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Indexer", inputs);
+    Robot.batteryLogger.reportCurrentUsage(
+        "Indexer/Spindexer", inputs.spinConnected ? inputs.spinStatorCurrent : Amps.of(0.0));
+    Robot.batteryLogger.reportCurrentUsage(
+        "Indexer/Chute", inputs.chuteConnected ? inputs.chuteStatorCurrent : Amps.of(0.0));
   }
 
   public boolean isIntaking() {

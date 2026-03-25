@@ -15,7 +15,6 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -27,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.NamedCommands;
 import frc.robot.generated.TunerConstants;
@@ -96,14 +94,6 @@ public class RobotContainer {
   private final Hood hood;
   private final TofTimer tofDataLog;
   private final SuperStructure structure;
-
-  // private final Leds leds = Leds.getInstance();
-
-  // create a second Vision object to avoid making significant changes to the open
-  // ended-ness of
-  // Vision's constructor
-  // private final Vision turretVision;
-
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
@@ -118,24 +108,25 @@ public class RobotContainer {
   //   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
   /** Whether the robot's turret auto aim should be enabled */
   private final LoggedNetworkBoolean enableAutoAim =
-      new LoggedNetworkBoolean("Turret/enableAutoAim", true); // change b4 comp
+      new LoggedNetworkBoolean("Superstructure/enableAutoAim", true); // change b4 comp
+
+  private final LoggedNetworkBoolean enableTurretTracking =
+      new LoggedNetworkBoolean("Turret/autoTracking", true);
   /** The duty cycle speed to be used if auto aim is disabled [-1.0, 1.0] */
-  private final LoggedNetworkNumber turretAutoAimDisabledSpeed =
-      new LoggedNetworkNumber("Turret/autoAimDisabledSpeed", 0.5);
+  private final LoggedNetworkNumber turretManualDutyCycle =
+      new LoggedNetworkNumber("Turret/manualDutyCycle", 0.5);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
       new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 30);
 
   private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.25);
+      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 20);
   /** The speed target to set the shooter to while auto aim is disabled, in rot/s */
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
 
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
-
-  //   private final LoggedNetworkNumber cooldown = new LoggedNetworkNumber("Sim/cooldown", 8);
 
   // for lerp data
   /** The measured distance from target (hub) */
@@ -348,12 +339,15 @@ public class RobotContainer {
     }
 
     shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
-    intake.setDefaultCommand(intake.runIntake(intakeIdleSpeed));
-
+    intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
     new NamedCommands(vision, structure);
+
     turret.setDefaultCommand(
-        turret.turretAimAtAThingCommand(() -> getTarget(drive.getPose()), () -> drive.getPose()));
+        Commands.either(
+            turret.turretAimAtAThingCommand(() -> structure.getTarget(), () -> drive.getPose()),
+            Commands.none(),
+            enableTurretTracking));
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
 
@@ -384,8 +378,6 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
     putDashboardCommands();
-
-    // addSysIDCommands();
   }
 
   /**
@@ -403,7 +395,7 @@ public class RobotContainer {
             () -> ySlewRateLimiter.calculate(-controller.getLeftX() * speedMult),
             () -> angularSlewRateLimiter.calculate(-controller.getRightX() * rotMult)));
 
-    // Reset gyro to 0° when right bumper is pressed
+    // Reset gyro to 0° when pov down is pressed
     controller
         .povDown()
         .onTrue(
@@ -463,11 +455,11 @@ public class RobotContainer {
     controller
         .povLeft()
         .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(() -> -turretAutoAimDisabledSpeed.get()));
+        .whileTrue(turret.runTurret(() -> -turretManualDutyCycle.get()));
     controller
         .povRight()
         .and(() -> !enableAutoAim.getAsBoolean())
-        .whileTrue(turret.runTurret(turretAutoAimDisabledSpeed));
+        .whileTrue(turret.runTurret(turretManualDutyCycle));
 
     controller
         .rightStick()
@@ -489,11 +481,6 @@ public class RobotContainer {
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
         .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
-
-    // // rotate climber hook
-    // controller.b().whileTrue(climber.runHook(climbSpeedHook));
-    // controller.a().whileTrue(climber.runHook(() ->
-    // -climbSpeedHook.getAsDouble()));
   }
 
   /** Add commands for codriver to use in elastic */
@@ -579,55 +566,6 @@ public class RobotContainer {
             .ignoringDisable(true));
   }
 
-  /** Adds commands for SysID to SmartDashboard */
-  private void addSysIDCommands() {
-    SmartDashboard.putData(
-        shooter.sysIdQuasistatic(Direction.kForward).withName("Shooter/SysID Quasistatic Forward"));
-    SmartDashboard.putData(
-        shooter.sysIdDynamic(Direction.kForward).withName("Shooter/SysID Dynamic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdQuasistatic(Direction.kForward).withName("Turret/SysID Quasistatic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdDynamic(Direction.kForward).withName("Turret/SysID Dynamic Forward"));
-    SmartDashboard.putData(
-        turret.sysIdQuasistatic(Direction.kReverse).withName("Turret/SysID Quasistatic Reverse"));
-    SmartDashboard.putData(
-        turret.sysIdDynamic(Direction.kReverse).withName("Turret/SysID Dynamic Reverse"));
-  }
-
-  /**
-   * Computes the position to aim at. If robot is in the alliance zone, the hub's pose will be
-   * returned. If the robot is in the neutral or enemy alliance zone, a pose at (2, y) will be
-   * returned. The pose will be adjusted the line between the robot and it intersects the hub.
-   *
-   * @param robot The robot's current pose
-   * @return The pose to aim at
-   */
-  public Translation2d getTarget(Pose2d robot) {
-    if (!FieldConstants.checkNeutral(robot)) { //
-      return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
-    } else {
-      Translation2d target = new Translation2d(AllianceFlipUtil.applyX(1), robot.getY());
-
-      // if shooting straight would hit hub
-      if (robot
-          .getMeasureY()
-          .isNear(Meters.of(4.0), 0.15) /* these numbers might need to be fine-tuned */) {
-        Translation2d corner = AllianceFlipUtil.apply(FieldConstants.getHubCorner(robot.getY()));
-
-        // this adjustment will not work with current pose
-        Angle adjustment =
-            Radians.of(
-                Math.asin(
-                    (robot.getY() - corner.getY()) / corner.getDistance(robot.getTranslation())));
-        // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 /
-        // Math.PI);
-        target = target.rotateBy(new Rotation2d(adjustment));
-      }
-      return target;
-    }
-  }
-
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {
     FuelSim instance = FuelSim.getInstance();
     if (fuelStored == 0 || instance.getSimCooldown() > 0) return;
@@ -639,8 +577,6 @@ public class RobotContainer {
             pose.get().getY(),
             Units.inchesToMeters(23.5),
             new Rotation3d(pose.get().getRotation()));
-
-    // System.out.println("my z is " + vector.get().getZ());
 
     ShooterParameters params = info.get().shooterParameters();
 
@@ -697,9 +633,6 @@ public class RobotContainer {
         } else if (autoName.startsWith("LeftF")) {
           chooser.addOption(
               autoName.replace("LeftF", "RightF"), new PathPlannerAuto(autoName, true));
-          //   System.out.println("unflipped: " + auto.getStartingPose() + ", flipped: " + new
-          // PathPlannerAuto(autoName, true).getStartingPose());
-          //   System.out.println("AJFWAEJFWEHAKF " + autoName.replace("LeftF", "RightF"));
         }
       }
     }

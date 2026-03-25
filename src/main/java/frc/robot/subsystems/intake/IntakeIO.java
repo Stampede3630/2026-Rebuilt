@@ -15,7 +15,7 @@ import frc.robot.subsystems.intake.IntakeIO.IntakeIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface IntakeIO {
-  // default void runVelocity(double vel) {}
+  default void runVelocity(AngularVelocity vel) {}
 
   default void updateInputs(IntakeIOInputs inputs) {}
 
@@ -35,8 +35,6 @@ public interface IntakeIO {
 
   default void resetFlipPosition(Angle pos) {}
 
-  default void runFlipCurrent(Current current) {}
-
   default void runFlipsVoltage(Voltage volts) {}
 
   default void stopFlips() {}
@@ -49,7 +47,9 @@ public interface IntakeIO {
 
   @AutoLog
   class IntakeIOInputs {
-    public boolean connected = false;
+    public boolean intakeConnected = false;
+    public boolean flipLeftConnected = false;
+    public boolean flipRightConnected = false;
 
     // intake motor
     public Angle intakePosition = Rotations.of(0.0);
@@ -70,6 +70,7 @@ public interface IntakeIO {
     public Current flipLeftSupplyCurrent = Amps.of(0.0);
     public Temperature flipLeftTemp = Celsius.of(0.0);
     public double flipLeftSetpoint = 0.0;
+    public boolean flipLeftStalling = false;
 
     // flipRight motor
     public Angle flipRightPosition = Rotations.of(0.0);
@@ -80,6 +81,7 @@ public interface IntakeIO {
     public Current flipRightSupplyCurrent = Amps.of(0.0);
     public Temperature flipRightTemp = Celsius.of(0.0);
     public double flipRightSetpoint = 0.0;
+    public boolean flipRightStalling = false;
 
     public Angle flipSetpoint = Rotations.of(0.0);
     public double intakeDutyCycle = 0.0;

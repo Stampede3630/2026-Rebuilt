@@ -26,7 +26,8 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final TalonFX leader;
   private final TalonFX follower;
 
-  private final Debouncer connDebouncer = new Debouncer(0.5);
+  private final Debouncer leaderConnDebouncer = new Debouncer(0.5);
+  private final Debouncer followerConnDebouncer = new Debouncer(0.5);
 
   // motor configs
   private final TalonFXConfiguration config = new TalonFXConfiguration();
@@ -101,7 +102,7 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
-    boolean connected =
+    boolean leaderConnected =
         BaseStatusSignal.refreshAll(
                 leaderPosition,
                 leaderVelocity,
@@ -109,7 +110,10 @@ public class ShooterIOTalonFX implements ShooterIO {
                 leaderVoltage,
                 leaderStatorCurrent,
                 leaderSupplyCurrent,
-                leaderTemp,
+                leaderTemp)
+            .isOK();
+    boolean followerConnected =
+        BaseStatusSignal.refreshAll(
                 followerPosition,
                 followerVelocity,
                 followerTorqueCurrent,
@@ -119,7 +123,8 @@ public class ShooterIOTalonFX implements ShooterIO {
                 followerTemp)
             .isOK();
 
-    inputs.connected = connDebouncer.calculate(connected);
+    inputs.leaderConnected = leaderConnDebouncer.calculate(leaderConnected);
+    inputs.followerConnected = followerConnDebouncer.calculate(followerConnected);
 
     // leader
     inputs.leaderPosition = leaderPosition.getValue();

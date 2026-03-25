@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Vision extends TimedSubsystem {
   private final VisionConsumer consumer;
@@ -43,6 +44,9 @@ public class Vision extends TimedSubsystem {
   private final ArrayList<Function<Time, Transform3d>> offsets;
   private final Turret turret;
   private final Drive drive;
+
+  private final LoggedNetworkBoolean disableAngleUpdatesAfterAuto =
+      new LoggedNetworkBoolean("Vision/disableAngleUpdatesAfterAuto", true);
 
   public Vision(
       VisionConsumer consumer,
@@ -179,7 +183,9 @@ public class Vision extends TimedSubsystem {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
-        if (didAutoHappen) // if auto happened, no more seeding the angle please!
+        if (didAutoHappen
+            && disableAngleUpdatesAfterAuto
+                .get()) // if auto happened, no more seeding the angle please!
         angularStdDev = Double.POSITIVE_INFINITY;
 
         // if (!turret.isInitSet() && cameraIndex == Turret.CAMERA_INDEX) {

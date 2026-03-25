@@ -7,8 +7,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.energy.BatteryLogger;
 import frc.robot.util.FuelSim;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -26,6 +28,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
+
+  public static BatteryLogger batteryLogger = new BatteryLogger();
 
   public Robot() {
     // Record metadata
@@ -85,6 +89,9 @@ public class Robot extends LoggedRobot {
     // This must be called from the robot's periodic block in order for anything in
     // the Command-based framework to work.
     CommandScheduler.getInstance().run();
+    batteryLogger.setBatteryVoltage(RobotController.getBatteryVoltage());
+    batteryLogger.setRioCurrent(RobotController.getInputCurrent());
+    batteryLogger.periodicAfterScheduler();
 
     // Return to non-RT thread priority (do not modify the first argument)
     // Threads.setCurrentThreadPriority(false, 10);

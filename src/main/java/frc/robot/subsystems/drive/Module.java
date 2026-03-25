@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -25,6 +26,9 @@ public class Module {
   private final SwerveModuleConstants<
           TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
       constants;
+
+  private final String driveEnergyKey;
+  private final String turnEnergyKey;
 
   private final Alert driveDisconnectedAlert;
   private final Alert turnDisconnectedAlert;
@@ -50,11 +54,18 @@ public class Module {
         new Alert(
             "Disconnected turn encoder on module " + Integer.toString(index) + ".",
             AlertType.kError);
+    driveEnergyKey = "FullDrive/Drive/" + index;
+    turnEnergyKey = "FullDrive/Turn/" + index;
   }
 
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+
+    Robot.batteryLogger.reportCurrentUsage(
+        driveEnergyKey, inputs.driveConnected ? inputs.driveSupplyCurrentAmps : 0.0);
+    Robot.batteryLogger.reportCurrentUsage(
+        turnEnergyKey, inputs.turnConnected ? inputs.turnSupplyCurrentAmps : 0.0);
 
     // Calculate positions for odometry
     int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together

@@ -61,7 +61,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 1.0);
+      new LoggedNetworkNumber("Intake/intakeSpeed", 70.0);
   /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
@@ -145,15 +145,12 @@ public class SuperStructure {
             hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
                 .asProxy()
                 .repeatedly(),
-            turret
-                .setTurretAngle(
-                    () ->
-                        shotInfo
-                            .turretAngle()
-                            .minus(drive.getRotation().getMeasure())
-                            .plus(Degrees.of(turretOffset.getAsDouble())))
-                .asProxy()
-                .repeatedly(),
+            turret.runTurretAngleRobotRel(
+                () ->
+                    shotInfo
+                        .turretAngle()
+                        .minus(drive.getRotation().getMeasure())
+                        .plus(Degrees.of(turretOffset.getAsDouble()))),
             shooter.shoot(
                 () ->
                     shotInfo
@@ -203,12 +200,13 @@ public class SuperStructure {
   // .handleInterrupt(() -> intake.stopFlip());
 
   public Command runIntakeBackwards() {
-    return intake.runIntake(() -> -1 * intakeSpeed.getAsDouble());
+    return intake.runIntake(() -> RotationsPerSecond.of(-1 * intakeSpeed.getAsDouble()));
   }
 
   public Command runIntake() {
     // return intake.runIntake(intakeSpeed);
-    return flipIntakeDown().andThen(intake.runIntake(intakeSpeed));
+    return flipIntakeDown()
+        .andThen(intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())));
     // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
     // .alongWith(setIntakePos(Degrees.of(0)));
   }
@@ -247,6 +245,31 @@ public class SuperStructure {
       }
     }
   }
+
+  /*
+  *
+     // if shooting straight would hit hub (i.e. the robot is near the hub vertically)
+     if (robot
+         .getMeasureY()
+         .isNear(Meters.of(4.0), 0.15)) {
+       Translation2d corner =
+           AllianceFlipUtil.apply(
+               FieldConstants.getHubCorner(robot.getY())); // get the closest hub corner
+       Rotation2d angle = corner.minus(robot.getTranslation()).getAngle();
+       target =
+           new Translation2d(
+               AllianceFlipUtil.applyX(1),
+               angle.getTan() * (corner.getX() - AllianceFlipUtil.applyX(1)) + corner.getY());
+       // // this adjustment will not work with current pose
+       // Angle adjustment =
+       //     Radians.of(
+       //         Math.asin(
+       //             (robot.getY() - corner.getY()) /
+       // corner.getDistance(robot.getTranslation())));
+       // // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 /
+       // // Math.PI);
+       // target = target.rotateAround(robot.getTranslation(), new Rotation2d(adjustment));
+  */
 
   public Command runFlipsUntilCurrent() {
     return intake.runFlipsVoltage(Volts.of(12)).withTimeout(Seconds.of(2));

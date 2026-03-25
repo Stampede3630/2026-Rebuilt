@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -10,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -49,7 +51,7 @@ public class Shooter extends TimedSubsystem {
   public Command idleSpeed(DoubleSupplier idleSpeed) {
     return runEnd(
         () -> {
-          if (io.getShooterSpeed()
+          if (inputs.leaderVelocity.in(RotationsPerSecond)
               <= idleSpeed.getAsDouble()) { // turn on idle speed if going slower than idle speed
             idling = true;
             io.runVelocity(idleSpeed.getAsDouble());
@@ -113,6 +115,10 @@ public class Shooter extends TimedSubsystem {
   public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Shooter", inputs);
+    Robot.batteryLogger.reportCurrentUsage(
+        "Shooter",
+        inputs.leaderConnected ? inputs.leaderSupplyCurrent : Amps.of(0),
+        inputs.followerConnected ? inputs.followerSupplyCurrent : Amps.of(0));
   }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

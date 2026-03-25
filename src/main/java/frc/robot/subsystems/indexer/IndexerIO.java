@@ -38,7 +38,8 @@ public interface IndexerIO {
 
   @AutoLog
   class IndexerIOInputs {
-    public boolean connected = false;
+    public boolean spinConnected = false;
+    public boolean chuteConnected = false;
 
     // spin motor
     public Angle spinPosition = Rotations.of(0.0);
