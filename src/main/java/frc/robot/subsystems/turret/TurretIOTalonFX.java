@@ -65,7 +65,7 @@ public class TurretIOTalonFX implements TurretIO {
     turretTemp = turretMotor.getDeviceTemp();
 
     turretConfig
-        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast))
         .withSlot0(
             new Slot0Configs() // set PID for PositionVoltage
                 .withKS(2.0)

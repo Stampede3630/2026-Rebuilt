@@ -16,28 +16,44 @@
     },
     {
       "anchor": {
-        "x": 7.7400248344370866,
-        "y": 1.3923841059602637
+        "x": 8.001020166073548,
+        "y": 1.7809489916963228
       },
       "prevControl": {
-        "x": 6.869005325891513,
-        "y": 0.19708893622456225
+        "x": 7.667440628470922,
+        "y": 0.3400707112183061
       },
       "nextControl": {
-        "x": 9.41706953642384,
-        "y": 3.693783112582781
+        "x": 8.775682087781732,
+        "y": 5.1270581257414
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.4475331125827817,
-        "y": 2.437814569536423
+        "x": 6.6668801897983405,
+        "y": 2.200557532621589
       },
       "prevControl": {
-        "x": 5.961341059602649,
-        "y": 2.713692052980133
+        "x": 7.882669039145909,
+        "y": 1.6518386714116242
+      },
+      "nextControl": {
+        "x": 5.451091340450772,
+        "y": 2.749276393831554
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.750533807829182,
+        "y": 2.512574139976275
+      },
+      "prevControl": {
+        "x": 3.971702253855282,
+        "y": 2.587888493475682
       },
       "nextControl": null,
       "isLocked": false,
@@ -54,13 +70,35 @@
       "rotationDegrees": -131.66507704319375
     },
     {
-      "waypointRelativePos": 1.4203592814371317,
-      "rotationDegrees": -40.6324009471799
+      "waypointRelativePos": 1.3996447602131423,
+      "rotationDegrees": 34.987784509481116
+    },
+    {
+      "waypointRelativePos": 1.710479573712278,
+      "rotationDegrees": 45.219744914595665
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Intake",
+      "waypointRelativePos": 0.539932508436453,
+      "endWaypointRelativePos": 2.206974128233992,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake"
+        }
+      }
+    },
+    {
+      "name": "raiseIntake",
+      "waypointRelativePos": 2.13273340832395,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
@@ -74,7 +112,7 @@
     "rotation": 33.4248111826038
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Bad Paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 179.8431862452068

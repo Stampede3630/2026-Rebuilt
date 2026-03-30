@@ -3,29 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.535954922894425,
-        "y": 5.3960379596678525
+        "x": 4.425653852760505,
+        "y": 7.569395017793594
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.289424673784106,
-        "y": 5.686536180308421
+        "x": 5.412889914444965,
+        "y": 7.611589561091341
       },
       "isLocked": false,
-      "linkedName": "Left Bump"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.182716488730724,
-        "y": 5.5574258600237245
+        "x": 11.32561091340451,
+        "y": 7.569395017793594
       },
       "prevControl": {
-        "x": 5.565622117869797,
-        "y": 5.063750363334982
+        "x": 10.32561091340451,
+        "y": 7.569395017793594
+      },
+      "nextControl": {
+        "x": 12.32561091340451,
+        "y": 7.569395017793594
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.071026102585421,
+        "y": 4.526350098670094
+      },
+      "prevControl": {
+        "x": 8.198318507994966,
+        "y": 6.047872558231845
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Bump Middle"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -45,10 +61,10 @@
     "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Bad Paths",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -179.53978504437663
   },
   "useDefaultConstraints": true
 }

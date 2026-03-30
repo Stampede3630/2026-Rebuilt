@@ -1,9 +1,13 @@
 {
-  "robotWidth": 0.7,
-  "robotLength": 0.99,
+  "robotWidth": 0.8636,
+  "robotLength": 0.864,
   "holonomicMode": true,
-  "pathFolders": [],
-  "autoFolders": [],
+  "pathFolders": [
+    "Bad Paths"
+  ],
+  "autoFolders": [
+    "Bad Autos"
+  ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
   "defaultMaxAngVel": 540.0,
@@ -28,5 +32,7 @@
   "brModuleY": -0.273,
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
-  "robotFeatures": []
+  "robotFeatures": [
+    "{\"name\":\"Rectangle\",\"type\":\"rounded_rect\",\"data\":{\"center\":{\"x\":-0.493,\"y\":0.0},\"size\":{\"width\":0.7,\"length\":0.2},\"borderRadius\":0.05,\"strokeWidth\":0.02,\"filled\":true}}"
+  ]
 }

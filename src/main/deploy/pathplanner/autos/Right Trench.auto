@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "lowerIntake"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "New New Path"
@@ -14,6 +20,6 @@
     }
   },
   "resetOdom": false,
-  "folder": null,
+  "folder": "Bad Autos",
   "choreoAuto": false
 }

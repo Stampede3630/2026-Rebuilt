@@ -51,6 +51,6 @@
     }
   },
   "resetOdom": false,
-  "folder": null,
+  "folder": "Bad Autos",
   "choreoAuto": false
 }

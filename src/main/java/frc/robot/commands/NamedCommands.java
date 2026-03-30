@@ -47,6 +47,8 @@ public class NamedCommands {
     //   latency.set(0.0);
     // }
 
+    commands.put("Intake", structure.runIntake());
+
     commands.put("startIntake", structure.runIntake());
     commands.put("stopIntake", structure.stopIntake());
 
