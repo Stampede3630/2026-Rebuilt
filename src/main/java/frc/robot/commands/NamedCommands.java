@@ -55,10 +55,12 @@ public class NamedCommands {
     // commands.put("zeroIntake", structure.zeroIntake());
     // commands.put("lowerIntake", structure.setIntakePos(Degrees.of(0)));
     // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
+    commands.put(
+        "lowerIntakeWait",
+        structure.flipIntakeDown().andThen(Commands.waitUntil(structure.intake.flipsAtPosition())));
+
     commands.put("lowerIntake", structure.flipIntakeDown());
     commands.put("raiseIntake", structure.flipIntakeUp());
-
-    commands.put("testPrint", Commands.run(() -> System.out.println("randomer junk")));
 
     commands.put("aimAndShoot", structure.shoot());
     // commands.put("setTurretTest", structure.setTurretAngle());

@@ -7,19 +7,25 @@
         {
           "type": "named",
           "data": {
-            "name": "lowerIntake"
+            "name": "lowerIntakeWait"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "New New Path"
+            "pathName": "Right Trench pick up"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "aimAndShoot"
           }
         }
       ]
     }
   },
   "resetOdom": false,
-  "folder": "Bad Autos",
+  "folder": null,
   "choreoAuto": false
 }

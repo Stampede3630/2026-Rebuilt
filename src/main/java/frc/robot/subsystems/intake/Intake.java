@@ -1,12 +1,14 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
@@ -88,6 +90,13 @@ public class Intake extends TimedSubsystem {
 
   public boolean isIntaking() {
     return on;
+  }
+
+  public Trigger flipsAtPosition() {
+    return new Trigger(
+        () ->
+            inputs.flipLeftPosition.in(Rotations) == inputs.flipLeftSetpoint
+                && inputs.flipRightPosition.in(Rotations) == inputs.flipRightSetpoint);
   }
 
   public Command setIntakePosition(Supplier<Angle> pos) {

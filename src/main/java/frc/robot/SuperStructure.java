@@ -38,12 +38,12 @@ public class SuperStructure {
   private ShotInfo shotInfo =
       new ShotInfo(
           new ShooterParameters(0.0, RadiansPerSecond.of(0)), Radians.of(0), ShotQuality.UNKNOWN);
-  private final Drive drive;
-  private final Shooter shooter;
-  private final Turret turret;
-  private final Hood hood;
-  private final Indexer indexer;
-  private final Intake intake;
+  public final Drive drive;
+  public final Shooter shooter;
+  public final Turret turret;
+  public final Hood hood;
+  public final Indexer indexer;
+  public final Intake intake;
 
   // network data
   /** The maximum tolerance of the Turret from the calculated angle, in degrees */
