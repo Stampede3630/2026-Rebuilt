@@ -84,8 +84,7 @@ public class ShooterIOTalonFX implements ShooterIO {
             new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
         .withFeedback(
             new FeedbackConfigs()
-                .withSensorToMechanismRatio(
-                    18.0 / 30.0)) // 1:2 ratio     no bad caleb other way 2:1
+                .withSensorToMechanismRatio(0.5)) // 1:2 ratio     no bad caleb other way 2:1
         .withSlot0(
             new Slot0Configs()
                 .withKS(5.5) // 6.5

@@ -426,27 +426,7 @@ public class RobotContainer {
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller
-        .leftTrigger()
-        .whileTrue(
-            structure
-                .runIntake()
-                .alongWith(
-                    DriveCommands.joystickDriveAtAngle(
-                        drive,
-                        () -> xSlewRateLimiter.calculate(-controller.getLeftY() * speedMult),
-                        () -> ySlewRateLimiter.calculate(-controller.getLeftX() * speedMult),
-                        () ->
-                            Math.abs(controller.getLeftY()) < 0.1
-                                    && Math.abs(controller.getLeftX()) < 0.1
-                                ? drive.getRotation()
-                                : AllianceFlipUtil.apply(
-                                    new Rotation2d(
-                                            Radians.of(
-                                                Math.atan2(
-                                                    -controller.getLeftX(),
-                                                    -controller.getLeftY())))
-                                        .plus(Rotation2d.k180deg)))));
+    controller.leftTrigger().whileTrue(structure.runIntake());
 
     // // flip intake down
     controller.x().whileTrue(structure.flipIntakeDown());

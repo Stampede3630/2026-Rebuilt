@@ -133,7 +133,7 @@ public class IntakeIOTalonFX implements IntakeIO {
         .withMotorOutput(
             new MotorOutputConfigs()
                 .withNeutralMode(NeutralModeValue.Coast)
-                .withInverted(InvertedValue.CounterClockwise_Positive))
+                .withInverted(InvertedValue.Clockwise_Positive))
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(20.0)) //  15.899412
         .withSlot0(
             new Slot0Configs()
