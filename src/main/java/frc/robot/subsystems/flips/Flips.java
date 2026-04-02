@@ -1,4 +1,4 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.flips;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Rotations;
@@ -11,14 +11,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Intake extends TimedSubsystem {
-  private final IntakeIO io;
+public class Flips extends TimedSubsystem {
+  private final FlipsIO io;
 
-  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+  private final FlipsIOInputsAutoLogged inputs = new FlipsIOInputsAutoLogged();
 
   private boolean on = false;
 
@@ -26,8 +25,8 @@ public class Intake extends TimedSubsystem {
 
   // private final VoltageOut req = new VoltageOut(0.0);
 
-  public Intake(IntakeIO io) {
-    super("Intake");
+  public Flips(FlipsIO io) {
+    super("Flips");
     this.io = io;
 
     // routine =
@@ -46,45 +45,64 @@ public class Intake extends TimedSubsystem {
   // public Command runVelocity(DoubleSupplier velocity) {
   //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   // }
-
-  public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
-    return run(() -> io.runVelocity(angularVelocitySupplier.get()));
+  public Command stopFlips() {
+    return runOnce(() -> io.stopFlips());
   }
-
-  public Command stopIntake() {
-    return runOnce(() -> io.stop());
-  }
-
 
   private boolean idling = false;
-
-  public Command idleSpeed(Supplier<AngularVelocity> idleSpeed) {
-    return runEnd(
-        () -> {
-          if (inputs.intakeVelocity.lt(
-              idleSpeed.get())) { // turn on idle speed if going slower than idle speed
-            idling = true;
-            io.runVelocity(idleSpeed.get());
-          } else if (!idling) { // if not idling and speed is higher than idle speed, go to coast
-            // mode
-            io.stop();
-          }
-        },
-        () -> idling = false);
-  }
 
   @Override
   public void timedPeriodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
+    Logger.processInputs("Flips", inputs);
     Robot.batteryLogger.reportCurrentUsage(
-        "Intake/IntakeMotor", inputs.intakeConnected ? inputs.intakeSupplyCurrent : Amps.of(0));
+        "Intake/FlipLeft", inputs.flipLeftConnected ? inputs.flipLeftSupplyCurrent : Amps.of(0));
+    Robot.batteryLogger.reportCurrentUsage(
+        "Intake/FlipRight", inputs.flipRightConnected ? inputs.flipRightSupplyCurrent : Amps.of(0));
   }
 
   public boolean isIntaking() {
     return on;
   }
 
+  public Trigger flipsAtPosition() {
+    return new Trigger(
+        () ->
+            Math.abs(inputs.flipLeftPosition.in(Rotations) - inputs.flipLeftSetpoint) < 0.1
+                && Math.abs(inputs.flipRightPosition.in(Rotations) - inputs.flipRightSetpoint)
+                    < 0.1);
+  }
+
+  public Command setIntakePosition(Supplier<Angle> pos) {
+    return runOnce(() -> io.setFlipPosition(pos.get()));
+  }
+
+  public Command runFlips(Supplier<Angle> pos) {
+    return run(
+        () -> {
+          io.setFlipPosition(pos.get());
+        });
+  }
+
+  public Current getFlipLeftStatorCurrent() {
+    return inputs.flipLeftStatorCurrent;
+  }
+
+  public Current getFlipLeftSupplyCurrent() {
+    return inputs.flipLeftSupplyCurrent;
+  }
+
+  public void resetFlipPosition(Angle pos) {
+    io.resetFlipPosition(pos);
+  }
+
+  public AngularVelocity getFlipLeftVelocity() {
+    return inputs.flipLeftVelocity;
+  }
+
+  public Command runFlipsVoltage(Voltage volts) {
+    return startEnd(() -> io.runFlipsVoltage(volts), () -> io.stopFlips());
+  }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
   //   return routine.quasistatic(direction);

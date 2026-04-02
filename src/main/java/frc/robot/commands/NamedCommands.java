@@ -62,7 +62,7 @@ public class NamedCommands {
     commands.put("lowerIntake", structure.flipIntakeDown());
     commands.put("raiseIntake", structure.flipIntakeUp());
 
-    commands.put("aimAndShoot", structure.shoot());
+    commands.put("aimAndShoot", structure.justShoot());
     // commands.put("setTurretTest", structure.setTurretAngle());
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);

@@ -60,17 +60,12 @@ public class Indexer extends TimedSubsystem {
   }
 
   public Command runBoth(
-      DoubleSupplier dutyCycleChute, DoubleSupplier dutyCycleSpin, BooleanSupplier condition) {
+      DoubleSupplier dutyCycleChute, DoubleSupplier dutyCycleSpin) {
     return runEnd(
         () -> {
           // System.out.println("start");
-          if (condition.getAsBoolean()) {
             io.runDutyCycleSpin(dutyCycleSpin.getAsDouble());
             io.runDutyCycleChute(dutyCycleChute.getAsDouble());
-          } else {
-            io.stopSpin();
-            io.stopChute();
-          }
         },
         () -> {
           // System.out.println("stop");

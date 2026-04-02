@@ -35,6 +35,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.flips.Flips;
+import frc.robot.subsystems.flips.FlipsIO;
+import frc.robot.subsystems.flips.FlipsIOTalonFX;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOServo;
@@ -85,6 +88,7 @@ public class RobotContainer {
   private final Indexer indexer;
   private final Hood hood;
   private final SuperStructure structure;
+  private final Flips flips;
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
@@ -150,6 +154,8 @@ public class RobotContainer {
         turret = new Turret(new TurretIOTalonFX());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
+        flips = new Flips(new FlipsIOTalonFX());
+
         // climber = new Climber(new ClimberIOTalonFX());
         hood = new Hood(new HoodIOServo());
         indexer = new Indexer(new IndexerIOTalonFX());
@@ -234,7 +240,7 @@ public class RobotContainer {
         turret = new Turret(new TurretIOSim());
         shooter = new Shooter(new ShooterIOTalonFX(), () -> drive.getPose());
         intake = new Intake(new IntakeIOTalonFX());
-        // climber = new Climber(new ClimberIOTalonFX());
+        flips = new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
         hood = new Hood(new HoodIOSim());
         indexer = new Indexer(new IndexerIOTalonFX());
 
@@ -279,6 +285,9 @@ public class RobotContainer {
         // climber = new Climber(new ClimberIO() {});
         hood = new Hood(new HoodIO() {});
         indexer = new Indexer(new IndexerIO() {});
+        flips = new Flips(new FlipsIO() {
+            
+        });
 
         VisionIO[] visionIOsDef = {
           new VisionIOLimelight(Constants.FRONT_LEFT_CAMERA, drive::getRotation),
@@ -298,7 +307,7 @@ public class RobotContainer {
     shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
     intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
     hood.setDefaultCommand(hood.runHood(() -> 0).withName("HoodDefaultCommand"));
-    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
+    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake, flips);
     new NamedCommands(vision, structure);
 
     turret.setDefaultCommand(
@@ -328,7 +337,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         new PathPlannerAuto(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse)));
-    autoChooser.addOption("Shoot Still", new PathPlannerAuto(structure.shoot()));
+    autoChooser.addOption("Shoot Still", new PathPlannerAuto(structure.justShoot()));
 
     SmartDashboard.putData(turret);
     SmartDashboard.putData(shooter);
@@ -378,9 +387,10 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(
             Commands.either(
-                structure.shoot(),
+                structure.justShoot(),
                 shooter.runVelocity(shooterAutoAimDisabledSpeed),
                 enableAutoAim));
+    controller.rightTrigger().and(controller.leftTrigger()).whileTrue(structure.shootAndIntake());
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
@@ -465,12 +475,12 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     SmartDashboard.putData(
-        Commands.runOnce(() -> intake.resetFlipPosition(Rotations.of(0.05)))
+        Commands.runOnce(() -> flips.resetFlipPosition(Rotations.of(0.05)))
             .withName("Reset intake to bottom")
             .ignoringDisable(true));
 
     SmartDashboard.putData(
-        Commands.runOnce(() -> intake.resetFlipPosition(Degrees.of(90)))
+        Commands.runOnce(() -> flips.resetFlipPosition(Degrees.of(90)))
             .withName("Reset intake to top")
             .ignoringDisable(true));
   }
