@@ -56,13 +56,14 @@ public class VisionConstants {
       Double.POSITIVE_INFINITY; // No rotation data available
 
   static {
-    try {
-      aprilTagLayout =
-          new AprilTagFieldLayout(
-              Filesystem.getDeployDirectory().getPath() + "/field_map_custom.json");
-    } catch (IOException e) {
-      System.err.println("Could not load custom april tag field layout. Loading default layout.");
+    // try {
       aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    }
+      // aprilTagLayout =
+      //     new AprilTagFieldLayout(
+      //         Filesystem.getDeployDirectory().getPath() + "/field_map_custom.json");
+    // } catch (IOException e) {
+    //   System.err.println("Could not load custom april tag field layout. Loading default layout.");
+    //   aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    // }
   }
 }
