@@ -66,7 +66,7 @@ public class SuperStructure {
    * tolerance)
    */
   private final LoggedNetworkNumber shooterInitialTolRPS =
-      new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
+      new LoggedNetworkNumber("Shooter/shooterInitialTolRPS", 4.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 70.0);

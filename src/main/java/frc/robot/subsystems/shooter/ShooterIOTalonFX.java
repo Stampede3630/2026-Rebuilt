@@ -88,7 +88,7 @@ public class ShooterIOTalonFX implements ShooterIO {
                     18.0 / 30.0)) // 1:2 ratio     no bad caleb other way 2:1
         .withSlot0(
             new Slot0Configs()
-                .withKS(18) // 6.5
+                .withKS(22) // 6.5
                 .withKV(0.05) // 0.01
                 .withKA(0.0) // 0.0
                 .withKP(10) // 11.5
