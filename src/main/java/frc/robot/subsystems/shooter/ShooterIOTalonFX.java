@@ -84,13 +84,14 @@ public class ShooterIOTalonFX implements ShooterIO {
             new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
         .withFeedback(
             new FeedbackConfigs()
-                .withSensorToMechanismRatio(0.5)) // 1:2 ratio     no bad caleb other way 2:1
+                .withSensorToMechanismRatio(
+                    18.0 / 30.0)) // 1:2 ratio     no bad caleb other way 2:1
         .withSlot0(
             new Slot0Configs()
-                .withKS(5.5) // 6.5
+                .withKS(18) // 6.5
                 .withKV(0.05) // 0.01
                 .withKA(0.0) // 0.0
-                .withKP(6.0) // 11.5
+                .withKP(10) // 11.5
                 .withKI(0.0) // 0.0
                 .withKD(0.0)); // 0.0
     leader.getConfigurator().apply(config);
@@ -101,6 +102,8 @@ public class ShooterIOTalonFX implements ShooterIO {
     follower.setControl(
         new Follower(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
   }
+
+  private boolean promoteFollower = false;
 
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
@@ -148,6 +151,16 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.followerSupplyCurrent = followerSupplyCurrent.getValue();
     inputs.followerTemp = followerTemp.getValue();
 
+    if (inputs.followerVelocity.minus(inputs.leaderVelocity).abs(RotationsPerSecond)
+        > 15) // if two velocities are not close to each other then they have become decoupled
+    {
+      // attempt to swap leader and follower
+      inputs.promoteFollower = true;
+      promoteFollower = true;
+      leader.setControl(
+          new Follower(Constants.SHOOTER_FOLLOWER_ID, Constants.SHOOTER_FOLLOWER_ALIGNMENT));
+    }
+
     inputs.velSetpoint = RotationsPerSecond.of(velSetpoint);
   }
 
@@ -159,17 +172,24 @@ public class ShooterIOTalonFX implements ShooterIO {
   @Override
   public void runVelocity(double vel) {
     velSetpoint = vel;
-    leader.setControl(velocityRequest.withVelocity(vel));
+    if (promoteFollower) {
+      follower.setControl(velocityRequest.withVelocity(vel));
+
+    } else leader.setControl(velocityRequest.withVelocity(vel));
   }
 
   @Override
   public void setShooterMotorsControl(ControlRequest control) {
-    leader.setControl(control);
+    if (promoteFollower) {
+      follower.setControl(control);
+
+    } else leader.setControl(control);
   }
 
   @Override
   public void stop() {
-    leader.stopMotor();
+    if (promoteFollower) follower.stopMotor();
+    else leader.stopMotor();
   }
   // add AutoLogOutputs
 }

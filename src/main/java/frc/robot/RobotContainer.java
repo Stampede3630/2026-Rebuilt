@@ -48,9 +48,6 @@ import frc.robot.subsystems.intake.IntakeIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOTalonFX;
-import frc.robot.subsystems.toftimer.TofTimer;
-import frc.robot.subsystems.toftimer.TofTimer.Shot;
-import frc.robot.subsystems.toftimer.TofTimerIOHardware;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOSim;
@@ -61,19 +58,14 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.util.*;
 import frc.robot.util.ShotInfo.ShotQuality;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
-import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -92,7 +84,6 @@ public class RobotContainer {
   //   private final Climber climber;
   private final Indexer indexer;
   private final Hood hood;
-  private final TofTimer tofDataLog;
   private final SuperStructure structure;
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -128,14 +119,6 @@ public class RobotContainer {
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
 
-  // for lerp data
-  /** The measured distance from target (hub) */
-  private final LoggedNetworkNumber dist = new LoggedNetworkNumber("Tof/dist", 0.0);
-  /** The path to write to */
-  public static final LoggedNetworkString path = new LoggedNetworkString("Tof/path", "/U/data.csv");
-  /** The place to set the hood to [0, 1] */
-  private final LoggedNetworkNumber hoodSetpoint = new LoggedNetworkNumber("Tof/hoodSetpoint", 0.0);
-
   private double speedMult = 1.0;
   private double rotMult = 1.0;
 
@@ -148,8 +131,6 @@ public class RobotContainer {
 
   // fuel sim
   private int fuelStored = Constants.STARTING_FUEL_SIM;
-  private Map<Shot, ShotDataTof> tofMap = new HashMap<>();
-  private final LoggedNetworkBoolean autoSaveLerp = new LoggedNetworkBoolean("Tof/autoSave", false);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -182,16 +163,16 @@ public class RobotContainer {
           //           Units.inchesToMeters(7.0),
           //           new Rotation3d(0, Units.degreesToRadians(-30),
           // Units.degreesToRadians(-45)))),
-          //   new VisionIOPhotonVision(
-          //       Constants.FRONT_LEFT_CAMERA,
-          //       new Transform3d(
-          //           Units.inchesToMeters(11.25),
-          //           Units.inchesToMeters(11.0),
-          //           Units.inchesToMeters(7.0),
-          //           new Rotation3d(
-          //               0,
-          //               Units.degreesToRadians(-30),
-          //               Units.degreesToRadians(45)))), // need to remeasure this one
+          // new VisionIOPhotonVision(
+          //     Constants.FRONT_LEFT_CAMERA,
+          //     new Transform3d(
+          //         Units.inchesToMeters(11.25),
+          //         Units.inchesToMeters(11.0),
+          //         Units.inchesToMeters(7.0),
+          //         new Rotation3d(
+          //             0,
+          //             Units.degreesToRadians(-30),
+          //             Units.degreesToRadians(45)))), // need to remeasure this one
           new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
         };
 
@@ -234,7 +215,6 @@ public class RobotContainer {
                     }));
 
         vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
-        tofDataLog = new TofTimer(new TofTimerIOHardware());
         break;
 
       case SIM:
@@ -279,7 +259,6 @@ public class RobotContainer {
                     // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
                     ));
         vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
-        tofDataLog = null;
         initFuelSim();
 
         break;
@@ -312,34 +291,13 @@ public class RobotContainer {
                     (lat) -> new Transform3d(1.0, 1.0, 1.0, new Rotation3d() /* dummy points */)));
 
         vision = new Vision(drive::addVisionMeasurement, visionIOsDef, offsetsDef, turret, drive);
-        tofDataLog = null;
 
         break;
     }
 
-    if (tofDataLog != null) { // set up data logging
-      tofDataLog.registerShotCallback(
-          (shot) -> {
-            if (autoSaveLerp.get())
-              tofMap.put(
-                  shot,
-                  new ShotDataTof(
-                      /* with measured dist*/ dist.get()
-                      /* with pose estimation AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE).getDistance(drive.getPose().getTranslation())*/ ,
-                      hood.getHood(),
-                      shooter.getSpeedSetpoint().in(RotationsPerSecond),
-                      shooter.getSpeedReal().in(RotationsPerSecond),
-                      -1));
-          });
-      tofDataLog.registerLandedCallback(
-          (shot) -> {
-            if (autoSaveLerp.get() && tofMap.containsKey(shot))
-              tofMap.get(shot).setTof(shot.getTof());
-          });
-    }
-
     shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
     intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
+    hood.setDefaultCommand(hood.runHood(() -> 0).withName("HoodDefaultCommand"));
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake);
     new NamedCommands(vision, structure);
 
@@ -485,23 +443,6 @@ public class RobotContainer {
 
   /** Add commands for codriver to use in elastic */
   public void putDashboardCommands() {
-    SmartDashboard.putData(
-        Commands.runOnce(
-                () -> {
-                  try {
-                    CsvSerializable[] array = new CsvSerializable[tofMap.size()];
-                    array = tofMap.values().toArray(array);
-                    System.out.println(Arrays.toString(array));
-                    System.out.println(tofMap.values());
-                    CsvSerializable.writeMany(path.get(), array);
-                    System.out.println("wrote " + tofMap.values().toArray() + " to " + path.get());
-                    tofMap.clear();
-                  } catch (IOException e) {
-                    e.printStackTrace();
-                  }
-                })
-            .withName("Write data")
-            .ignoringDisable(true));
 
     SmartDashboard.putData(
         Commands.runOnce(() -> drive.setPose(Pose2d.kZero))

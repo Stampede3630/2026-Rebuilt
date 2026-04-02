@@ -13,7 +13,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Trench pick up"
+            "pathName": "RightMiddleOutpost"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OutpostGoAndSHoot"
           }
         },
         {
@@ -26,6 +38,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Bad Autos",
+  "folder": null,
   "choreoAuto": false
 }

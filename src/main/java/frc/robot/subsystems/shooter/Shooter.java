@@ -51,7 +51,7 @@ public class Shooter extends TimedSubsystem {
   public Command idleSpeed(DoubleSupplier idleSpeed) {
     return runEnd(
         () -> {
-          if (inputs.leaderVelocity.in(RotationsPerSecond)
+          if (getSpeedReal().in(RotationsPerSecond)
               <= idleSpeed.getAsDouble()) { // turn on idle speed if going slower than idle speed
             idling = true;
             io.runVelocity(idleSpeed.getAsDouble());
@@ -134,11 +134,11 @@ public class Shooter extends TimedSubsystem {
   }
 
   public AngularVelocity getSpeedReal() {
-    return inputs.leaderVelocity;
+    return inputs.promoteFollower ? inputs.followerVelocity : inputs.leaderVelocity;
   }
 
   public BooleanSupplier meetsSetpoint(DoubleSupplier tol) {
     return () ->
-        inputs.velSetpoint.minus(inputs.leaderVelocity).abs(RotationsPerSecond) < tol.getAsDouble();
+        inputs.velSetpoint.minus(getSpeedReal()).abs(RotationsPerSecond) < tol.getAsDouble();
   }
 }

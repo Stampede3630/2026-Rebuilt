@@ -78,6 +78,16 @@ public class Hood extends TimedSubsystem {
         });
   }
 
+  public Command runHood(DoubleSupplier pos) {
+    return run(
+        () -> {
+          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
+          io.setHoodPos(setpointPos);
+          // System.out.println(setpointPos);
+          // 0.35-0.7
+        });
+  }
+
   public Command hoodUp() {
     return setHood(
         () -> {

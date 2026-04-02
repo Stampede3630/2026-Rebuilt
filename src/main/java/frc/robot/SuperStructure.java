@@ -62,9 +62,6 @@ public class SuperStructure {
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", 70.0);
-  /** The duty cycle speed to set the intake to while not actively intaking [-1.0, 1.0] */
-  private final LoggedNetworkNumber intakeIdleSpeed =
-      new LoggedNetworkNumber("Intake/intakeIdleSpeed", 0.0);
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber hoodOffset = new LoggedNetworkNumber("Offsets/hoodOffset", 0.0);
   /** Offset for hood. Applied while shooting */
@@ -83,7 +80,7 @@ public class SuperStructure {
   private final LoggedNetworkNumber driveShakePeriod =
       new LoggedNetworkNumber("Offsets/driveShakePeriod", 1);
   private final LoggedNetworkNumber intakeFlipPeriod =
-      new LoggedNetworkNumber("Offsets/intakeFlipPeriod", Double.POSITIVE_INFINITY);
+      new LoggedNetworkNumber("Offsets/intakeFlipPeriod", 1);
 
   private final LoggedNetworkNumber intakeUpSetpoint =
       new LoggedNetworkNumber("Intake/flipUpSetpoint", 88.2);
@@ -142,9 +139,7 @@ public class SuperStructure {
                       * Math.sin(Timer.getFPGATimestamp() * (2 * Math.PI) / driveShakePeriod.get());
             })
         .alongWith(
-            hood.setHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble())
-                .asProxy()
-                .repeatedly(),
+            hood.runHood(() -> shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble()),
             turret.runTurretAngleRobotRel(
                 () ->
                     shotInfo
@@ -162,14 +157,17 @@ public class SuperStructure {
             ,
             DriveCommands.setOffsets(drive, () -> offsets),
             indexer
-                .runBoth(chuteSpeed, spinSpeed)
-                .onlyWhile(shooter.meetsSetpoint(shooterTolRPS))
-                .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
-                .onlyIf(isHoodAngleRight())
-                .asProxy()
+                .runBoth(
+                    chuteSpeed,
+                    spinSpeed,
+                    () ->
+                        shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
+                            && turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
                 .repeatedly(),
             intake.runIntakeSetFlips(
-                intakeIdleSpeed,
+                () -> {
+                  return 0.0;
+                },
                 () ->
                     Degrees.of(
                         intakeDownSetpoint.get()

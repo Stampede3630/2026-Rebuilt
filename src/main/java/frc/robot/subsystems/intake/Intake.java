@@ -95,8 +95,9 @@ public class Intake extends TimedSubsystem {
   public Trigger flipsAtPosition() {
     return new Trigger(
         () ->
-            inputs.flipLeftPosition.in(Rotations) == inputs.flipLeftSetpoint
-                && inputs.flipRightPosition.in(Rotations) == inputs.flipRightSetpoint);
+            Math.abs(inputs.flipLeftPosition.in(Rotations) - inputs.flipLeftSetpoint) < 0.1
+                && Math.abs(inputs.flipRightPosition.in(Rotations) - inputs.flipRightSetpoint)
+                    < 0.1);
   }
 
   public Command setIntakePosition(Supplier<Angle> pos) {

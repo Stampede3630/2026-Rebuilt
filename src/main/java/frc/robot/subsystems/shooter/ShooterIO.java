@@ -53,5 +53,6 @@ public interface ShooterIO {
 
     // setpoint should be shared
     public AngularVelocity velSetpoint = RotationsPerSecond.of(0.0);
+    public boolean promoteFollower = false;
   }
 }
