@@ -47,6 +47,8 @@ public class Vision extends TimedSubsystem {
 
   private final LoggedNetworkBoolean disableAngleUpdatesAfterAuto =
       new LoggedNetworkBoolean("Vision/disableAngleUpdatesAfterAuto", true);
+      private final LoggedNetworkBoolean seedWithVisionPotentially =
+      new LoggedNetworkBoolean("Vision/seedWithVisionPotentially", false);
 
   public Vision(
       VisionConsumer consumer,
@@ -267,7 +269,7 @@ public class Vision extends TimedSubsystem {
               }
             }
           }
-          if (bestObservation.tagCount() > 1
+          if (seedWithVisionPotentially.get() && bestObservation.tagCount() > 1
               || bestObservation
                       .pose()
                       .toPose2d()
