@@ -47,7 +47,7 @@ public class Vision extends TimedSubsystem {
 
   private final LoggedNetworkBoolean disableAngleUpdatesAfterAuto =
       new LoggedNetworkBoolean("Vision/disableAngleUpdatesAfterAuto", true);
-      private final LoggedNetworkBoolean seedWithVisionPotentially =
+  private final LoggedNetworkBoolean seedWithVisionPotentially =
       new LoggedNetworkBoolean("Vision/seedWithVisionPotentially", false);
 
   public Vision(
