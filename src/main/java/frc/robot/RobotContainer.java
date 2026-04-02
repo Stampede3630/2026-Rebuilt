@@ -285,9 +285,7 @@ public class RobotContainer {
         // climber = new Climber(new ClimberIO() {});
         hood = new Hood(new HoodIO() {});
         indexer = new Indexer(new IndexerIO() {});
-        flips = new Flips(new FlipsIO() {
-            
-        });
+        flips = new Flips(new FlipsIO() {});
 
         VisionIO[] visionIOsDef = {
           new VisionIOLimelight(Constants.FRONT_LEFT_CAMERA, drive::getRotation),

@@ -1,17 +1,11 @@
 package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Rotations;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -55,7 +49,6 @@ public class Intake extends TimedSubsystem {
     return runOnce(() -> io.stop());
   }
 
-
   private boolean idling = false;
 
   public Command idleSpeed(Supplier<AngularVelocity> idleSpeed) {
@@ -84,7 +77,6 @@ public class Intake extends TimedSubsystem {
   public boolean isIntaking() {
     return on;
   }
-
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
   //   return routine.quasistatic(direction);

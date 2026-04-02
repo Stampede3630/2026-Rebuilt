@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Amps;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -59,13 +58,12 @@ public class Indexer extends TimedSubsystem {
     return runOnce(() -> io.stopChute());
   }
 
-  public Command runBoth(
-      DoubleSupplier dutyCycleChute, DoubleSupplier dutyCycleSpin) {
+  public Command runBoth(DoubleSupplier dutyCycleChute, DoubleSupplier dutyCycleSpin) {
     return runEnd(
         () -> {
           // System.out.println("start");
-            io.runDutyCycleSpin(dutyCycleSpin.getAsDouble());
-            io.runDutyCycleChute(dutyCycleChute.getAsDouble());
+          io.runDutyCycleSpin(dutyCycleSpin.getAsDouble());
+          io.runDutyCycleChute(dutyCycleChute.getAsDouble());
         },
         () -> {
           // System.out.println("stop");

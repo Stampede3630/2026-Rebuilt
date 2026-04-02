@@ -57,7 +57,7 @@ public class NamedCommands {
     // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
     commands.put(
         "lowerIntakeWait",
-        structure.flipIntakeDown().andThen(Commands.waitUntil(structure.intake.flipsAtPosition())));
+        structure.flipIntakeDown().andThen(Commands.waitUntil(structure.flips.flipsAtPosition())));
 
     commands.put("lowerIntake", structure.flipIntakeDown());
     commands.put("raiseIntake", structure.flipIntakeUp());
