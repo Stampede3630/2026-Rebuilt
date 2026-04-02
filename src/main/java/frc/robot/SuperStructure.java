@@ -192,7 +192,7 @@ public class SuperStructure {
                     indexer
                         .runBoth(chuteSpeed, spinSpeed)
                         .alongWith(
-                            intake.runIntake(() -> RotationsPerSecond.of((intakeSpeed.get()))))
+                            intake.runEndIntake(() -> RotationsPerSecond.of((intakeSpeed.get()))))
                         .onlyWhile(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()

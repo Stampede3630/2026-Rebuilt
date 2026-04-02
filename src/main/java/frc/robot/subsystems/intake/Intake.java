@@ -44,6 +44,9 @@ public class Intake extends TimedSubsystem {
   public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
     return run(() -> io.runVelocity(angularVelocitySupplier.get()));
   }
+   public Command runEndIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
+    return runEnd(() -> io.runVelocity(angularVelocitySupplier.get()), () -> io.stop());
+  }
 
   public Command stopIntake() {
     return runOnce(() -> io.stop());
