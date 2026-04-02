@@ -382,7 +382,8 @@ public class RobotContainer {
     // // auto aim turret and shoot if within tolerance
     // if auto aim is disabled, shoot
     controller
-        .rightTrigger().and(controller.leftTrigger().negate())
+        .rightTrigger()
+        .and(controller.leftTrigger().negate())
         .whileTrue(
             Commands.either(
                 structure.justShoot(),
@@ -392,7 +393,10 @@ public class RobotContainer {
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller.leftTrigger().and(controller.leftTrigger().negate()).whileTrue(structure.runIntake());
+    controller
+        .leftTrigger()
+        .and(controller.rightTrigger().negate())
+        .whileTrue(structure.runIntake());
 
     // // flip intake down.
     controller.x().whileTrue(structure.flipIntakeDown());
