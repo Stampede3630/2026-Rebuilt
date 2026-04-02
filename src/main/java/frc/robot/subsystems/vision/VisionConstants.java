@@ -11,8 +11,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.Filesystem;
-import java.io.IOException;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class VisionConstants {
@@ -57,12 +55,13 @@ public class VisionConstants {
 
   static {
     // try {
-      aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-      // aprilTagLayout =
-      //     new AprilTagFieldLayout(
-      //         Filesystem.getDeployDirectory().getPath() + "/field_map_custom.json");
+    aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    // aprilTagLayout =
+    //     new AprilTagFieldLayout(
+    //         Filesystem.getDeployDirectory().getPath() + "/field_map_custom.json");
     // } catch (IOException e) {
-    //   System.err.println("Could not load custom april tag field layout. Loading default layout.");
+    //   System.err.println("Could not load custom april tag field layout. Loading default
+    // layout.");
     //   aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
     // }
   }
