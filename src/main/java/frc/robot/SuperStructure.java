@@ -322,6 +322,6 @@ public class SuperStructure {
   }
 
   public Command runChute() {
-    return indexer.runChute(chuteSpeed);
+    return indexer.runEndChute(chuteSpeed);
   }
 }

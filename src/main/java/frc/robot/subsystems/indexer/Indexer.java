@@ -50,8 +50,8 @@ public class Indexer extends TimedSubsystem {
     return runOnce(() -> io.stopSpin());
   }
 
-  public Command runChute(DoubleSupplier dutyCycle) {
-    return runOnce(() -> io.runDutyCycleChute(dutyCycle.getAsDouble()));
+  public Command runEndChute(DoubleSupplier dutyCycle) {
+    return runEnd(() -> io.runDutyCycleChute(dutyCycle.getAsDouble()), () -> io.stopChute());
   }
 
   public Command stopChute() {
