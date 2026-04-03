@@ -97,7 +97,11 @@ public class ShooterIOTalonFX implements ShooterIO {
                 .withKD(0.0))
         .withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(100)); // 0.0
     leader.getConfigurator().apply(config);
-    follower.getConfigurator().apply(config.withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive)));
+    follower
+        .getConfigurator()
+        .apply(
+            config.withMotorOutput(
+                new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive)));
 
     // also switched ids
     // off since missing leader
@@ -108,6 +112,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private boolean promoteFollower = false;
 
   private Debouncer promoteFollowerDebouncer = new Debouncer(0.5);
+
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
     boolean leaderConnected =
@@ -154,8 +159,9 @@ public class ShooterIOTalonFX implements ShooterIO {
     inputs.followerSupplyCurrent = followerSupplyCurrent.getValue();
     inputs.followerTemp = followerTemp.getValue();
 
-    if (promoteFollowerDebouncer.calculate(inputs.followerVelocity.minus(inputs.leaderVelocity).abs(RotationsPerSecond)
-        > 50)) // if two velocities are not close to each other then they have become decoupled
+    if (promoteFollowerDebouncer.calculate(
+        inputs.followerVelocity.minus(inputs.leaderVelocity).abs(RotationsPerSecond)
+            > 50)) // if two velocities are not close to each other then they have become decoupled
     {
       // attempt to swap leader and follower
       inputs.promoteFollower = true;

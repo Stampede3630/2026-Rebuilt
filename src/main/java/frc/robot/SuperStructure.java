@@ -277,16 +277,17 @@ public class SuperStructure {
    * @return The pose to aim at
    */
   public Translation2d getTarget() {
-    Pose2d robot = drive.getPose();
-    if (!FieldConstants.checkNeutral(robot)) {
-      return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
-    } else {
-      if (FieldConstants.aboveCenterLine(robot)) {
-        return new Translation2d(AllianceFlipUtil.applyX(3.25), 5.5);
-      } else {
-        return new Translation2d(AllianceFlipUtil.applyX(3.25), 2.5);
-      }
-    }
+    return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
+    // Pose2d robot = drive.getPose();
+    // if (!FieldConstants.checkNeutral(robot)) {
+    //   return AllianceFlipUtil.apply(FieldConstants.HUB_POSE_BLUE);
+    // } else {
+    //   if (FieldConstants.aboveCenterLine(robot)) {
+    //     return new Translation2d(AllianceFlipUtil.applyX(3.25), 5.5);
+    //   } else {
+    //     return new Translation2d(AllianceFlipUtil.applyX(3.25), 2.5);
+    //   }
+    // }
   }
 
   /*
