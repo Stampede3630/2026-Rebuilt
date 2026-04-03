@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -93,7 +94,7 @@ public class ShooterIOTalonFX implements ShooterIO {
                 .withKA(0.0) // 0.0
                 .withKP(8.0) // 11.5
                 .withKI(0.0) // 0.0
-                .withKD(0.0)); // 0.0
+                .withKD(0.0)).withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(100)); // 0.0
     leader.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
 
