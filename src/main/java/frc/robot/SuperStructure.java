@@ -79,10 +79,12 @@ public class SuperStructure {
   /** Offset for shooter. Applied while shooting */
   private final LoggedNetworkNumber shooterOffsetVal =
       new LoggedNetworkNumber("Offsets/shooterOffsetValue", 0.0);
-    /** Percent offset for shooter. Applied while shooting, after shooterOffsetVal 
-     * Example: 0.02 = 2% = 1.02x
-    */
-    private final LoggedNetworkNumber shooterOffsetPerc = new LoggedNetworkNumber("Offsets/shooterOffsetPerc", 0.0);
+  /**
+   * Percent offset for shooter. Applied while shooting, after shooterOffsetVal
+   * Example: 0.02 = 2% = 1.02x
+   */
+  private final LoggedNetworkNumber shooterOffsetPerc =
+      new LoggedNetworkNumber("Offsets/shooterOffsetPerc", -0.01);
 
   private final LoggedNetworkNumber driveWiggle =
       new LoggedNetworkNumber("Offsets/driveWiggle", 0.0);
@@ -166,7 +168,8 @@ public class SuperStructure {
                     shotInfo
                         .shooterParameters()
                         .shooterVelocity()
-                        .plus(RotationsPerSecond.of(shooterOffsetVal.getAsDouble())).times(1.0 + shooterOffsetPerc.getAsDouble()))
+                        .plus(RotationsPerSecond.of(shooterOffsetVal.getAsDouble()))
+                        .times(1.0 + shooterOffsetPerc.getAsDouble()))
             // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
             // .onlyWhile(isHoodAngleRight())
             ,
