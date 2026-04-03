@@ -91,7 +91,7 @@ public class ShooterIOTalonFX implements ShooterIO {
                 .withKS(5.5) // 6.5
                 .withKV(0.05) // 0.01
                 .withKA(0.0) // 0.0
-                .withKP(6.0) // 11.5
+                .withKP(8.0) // 11.5
                 .withKI(0.0) // 0.0
                 .withKD(0.0)); // 0.0
     leader.getConfigurator().apply(config);
