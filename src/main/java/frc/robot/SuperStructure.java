@@ -69,7 +69,7 @@ public class SuperStructure {
       new LoggedNetworkNumber("Shooter/shooterInitialTolRPS", 4.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
-      new LoggedNetworkNumber("Intake/intakeSpeed", 70.0);
+      new LoggedNetworkNumber("Intake/intakeSpeed", +70.0);
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber hoodOffset = new LoggedNetworkNumber("Offsets/hoodOffset", 0.0);
   /** Offset for hood. Applied while shooting */
@@ -155,7 +155,7 @@ public class SuperStructure {
                     shotInfo
                         .turretAngle()
                         .minus(drive.getRotation().getMeasure())
-                        .plus(Degrees.of(turretOffset.getAsDouble()))),
+                        .minus(Degrees.of(turretOffset.getAsDouble()))),
             shooter.shoot(
                 () ->
                     shotInfo
