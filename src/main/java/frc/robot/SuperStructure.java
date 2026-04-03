@@ -75,7 +75,7 @@ public class SuperStructure {
   /** Offset for hood. Applied while shooting */
   private final LoggedNetworkNumber turretOffset =
       new LoggedNetworkNumber("Offsets/turretOffset", 0.0);
-  /** Offset for hood. Applied while shooting */
+  /** Offset for shooter. Applied while shooting */
   private final LoggedNetworkNumber shooterOffset =
       new LoggedNetworkNumber("Offsets/shooterOffset", -2.0);
 
