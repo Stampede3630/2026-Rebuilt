@@ -240,7 +240,7 @@ public class SuperStructure {
   // .handleInterrupt(() -> intake.stopFlip());
 
   public Command runIntakeBackwards() {
-    return intake.runIntake(() -> RotationsPerSecond.of(-1 * intakeSpeed.getAsDouble()));
+    return intake.runIntake(() -> RotationsPerSecond.of(-1 * intakeSpeed.getAsDouble())).alongWith(indexer.runBoth(() -> -chuteSpeed.get(), () -> -spinSpeed.get()));
   }
 
   public Command runIntake() {
