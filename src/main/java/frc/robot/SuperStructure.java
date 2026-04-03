@@ -80,13 +80,13 @@ public class SuperStructure {
       new LoggedNetworkNumber("Offsets/shooterOffset", 0.0);
 
   private final LoggedNetworkNumber driveWiggle =
-      new LoggedNetworkNumber("Offsets/driveWiggle", 0.05);
+      new LoggedNetworkNumber("Offsets/driveWiggle", 0.0);
   private final LoggedNetworkNumber driveWigglePeriod =
       new LoggedNetworkNumber("Offsets/driveWigglePeriod", 1);
 
-  private final LoggedNetworkNumber driveShake = new LoggedNetworkNumber("Offsets/driveShake", 0.1);
+  private final LoggedNetworkNumber driveShake = new LoggedNetworkNumber("Offsets/driveShake", 1);
   private final LoggedNetworkNumber driveShakePeriod =
-      new LoggedNetworkNumber("Offsets/driveShakePeriod", 1);
+      new LoggedNetworkNumber("Offsets/driveShakePeriod", 0.2);
   private final LoggedNetworkNumber intakeFlipPeriod =
       new LoggedNetworkNumber("Offsets/intakeFlipPeriod", 1);
 

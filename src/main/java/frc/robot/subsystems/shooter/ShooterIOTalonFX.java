@@ -85,7 +85,7 @@ public class ShooterIOTalonFX implements ShooterIO {
         .withFeedback(
             new FeedbackConfigs()
                 .withSensorToMechanismRatio(
-                    18.0 / 30.0)) // 1:2 ratio     no bad caleb other way 2:1
+                    15.0 / 30.0)) // 1:2 ratio     no bad caleb other way 2:1
         .withSlot0(
             new Slot0Configs()
                 .withKS(22) // 6.5
