@@ -55,7 +55,7 @@ public class TurretIOTalonFX implements TurretIO {
 
   public TurretIOTalonFX() {
     // init turret motor
-    turretMotor = new TalonFX(Constants.TURRET_ID, Constants.SWERVE_BUS);
+    turretMotor = new TalonFX(Constants.TURRET_ID, Constants.SHOOTER_BUS);
     turretPosition = turretMotor.getPosition();
     turretVelocity = turretMotor.getVelocity();
     turretTorqueCurrent = turretMotor.getTorqueCurrent();
