@@ -320,4 +320,8 @@ public class SuperStructure {
   public Command runFlipsUntilCurrent() {
     return flips.runFlipsVoltage(Volts.of(12)).withTimeout(Seconds.of(2));
   }
+
+  public Command runChute() {
+    return indexer.runChute(chuteSpeed);
+  }
 }

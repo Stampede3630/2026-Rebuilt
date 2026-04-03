@@ -421,6 +421,9 @@ public class RobotContainer {
     // toggle turret auto aim
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
+    // force chute to run
+    controller.b().whileTrue(structure.runChute());
+
     // turn turret if auto aim is disabled
     controller
         .povLeft()
