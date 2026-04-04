@@ -84,7 +84,7 @@ public class SuperStructure {
    * 1.02x
    */
   private final LoggedNetworkNumber shooterOffsetPerc =
-      new LoggedNetworkNumber("Offsets/shooterOffsetPerc", -0.03);
+      new LoggedNetworkNumber("Offsets/shooterOffsetPerc", -0.04);
 
   private final LoggedNetworkNumber driveWiggle =
       new LoggedNetworkNumber("Offsets/driveWiggle", 0.0);
