@@ -310,9 +310,15 @@ public class RobotContainer {
 
     turret.setDefaultCommand(
         Commands.either(
-            turret.turretAimAtAThingCommand(() -> structure.getTarget(), () -> new Pose2d(drive.getPose()
-                          .getTranslation()
-                          .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())), drive.getRotation())),
+            turret.turretAimAtAThingCommand(
+                () -> structure.getTarget(),
+                () ->
+                    new Pose2d(
+                        drive
+                            .getPose()
+                            .getTranslation()
+                            .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+                        drive.getRotation())),
             Commands.none(),
             enableTurretTracking));
     // Set up auto routines

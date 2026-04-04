@@ -137,12 +137,15 @@ public class TurretIOTalonFX implements TurretIO {
     // Angle currentAngle = turretMotor.getPosition().getValue();
     // // find if leftAngle or angle is closer to currentAngle
     // if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
-    //     && currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(rightAngle).abs(Radians)
+    //     && currentAngle.minus(leftAngle).abs(Radians) <
+    // currentAngle.minus(rightAngle).abs(Radians)
     //     && leftAngle.gt(Rotations.of(LEFT_LIMIT))) {
     //   // if leftAngle is closer
     //   angle = leftAngle;
-    // } else if (currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
-    //     && currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(leftAngle).abs(Radians)
+    // } else if (currentAngle.minus(rightAngle).abs(Radians) <
+    // currentAngle.minus(angle).abs(Radians)
+    //     && currentAngle.minus(rightAngle).abs(Radians) <
+    // currentAngle.minus(leftAngle).abs(Radians)
     //     && rightAngle.lt(Rotations.of(RIGHT_LIMIT))) {
     //   // if rightAngle is closer
     //   angle = rightAngle;
@@ -156,24 +159,24 @@ public class TurretIOTalonFX implements TurretIO {
         && leftAngle.gt(Rotations.of(LEFT_LIMIT))) {
       // if leftAngle is closer
       angle = leftAngle;
-      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff","L");
+      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "L");
     } else if (currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
         && currentAngle.minus(rightAngle).abs(Radians) < currentAngle.minus(leftAngle).abs(Radians)
         && rightAngle.lt(Rotations.of(RIGHT_LIMIT))) {
       // if rightAngle is closer
       angle = rightAngle;
-      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff","R");
+      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "R");
 
     } else { // middle
       if (angle.lt(Rotations.of(LEFT_LIMIT))) {
         angle = rightAngle;
-      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff","R");
+        org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "R");
 
       } else if (angle.gt(Rotations.of(RIGHT_LIMIT))) {
         angle = rightAngle;
-      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff","L");
+        org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "L");
       } else {
-      org.littletonrobotics.junction.Logger.recordOutput("TurretStuff","M");
+        org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "M");
       }
     }
 
