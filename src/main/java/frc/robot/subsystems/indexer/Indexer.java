@@ -24,20 +24,20 @@ public class Indexer extends TimedSubsystem {
     this.io = io;
 
     // routine =
-    //     new SysIdRoutine(
-    //         new SysIdRoutine.Config(
-    //             null,
-    //             Volts.of(4),
-    //             null,
-    //             (state) -> SignalLogger.writeString("state", state.toString())),
-    //         new SysIdRoutine.Mechanism(
-    //             (volts) -> io.setShooterMotorsControl(req.withOutput(volts.in(Volts))),
-    //             null,
-    //             this));
+    // new SysIdRoutine(
+    // new SysIdRoutine.Config(
+    // null,
+    // Volts.of(4),
+    // null,
+    // (state) -> SignalLogger.writeString("state", state.toString())),
+    // new SysIdRoutine.Mechanism(
+    // (volts) -> io.setShooterMotorsControl(req.withOutput(volts.in(Volts))),
+    // null,
+    // this));
   }
 
   // public Command runVelocity(DoubleSupplier velocity) {
-  //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
+  // return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
   // }
 
   public Command runSpin(DoubleSupplier dutyCycle) {
@@ -87,10 +87,10 @@ public class Indexer extends TimedSubsystem {
   }
 
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
+  // return routine.quasistatic(direction);
   // }
 
   // public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
+  // return routine.quasistatic(direction);
   // }
 }
