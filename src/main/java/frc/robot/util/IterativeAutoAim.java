@@ -15,7 +15,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class IterativeAutoAim implements AutoAimer {
-  private final LoggedNetworkBoolean enableSOTM = new LoggedNetworkBoolean("SOTM/enabled", true);
+  private final LoggedNetworkBoolean enableSOTM = new LoggedNetworkBoolean("SOTM/enableSOTM", true);
 
   @Override
   public ShotInfo get(
@@ -29,7 +29,7 @@ public class IterativeAutoAim implements AutoAimer {
     // should be flipped bc target relative
     Translation2d targetVel =
         new Translation2d(-chassisSpeeds.vxMetersPerSecond, -chassisSpeeds.vyMetersPerSecond);
-      
+
     if (enableSOTM.getAsBoolean()) {
       for (int i = 0; i < 20; i++) {
         double tof = tofLookup.apply(Meters.of(poseRel.getNorm())).in(Seconds);
