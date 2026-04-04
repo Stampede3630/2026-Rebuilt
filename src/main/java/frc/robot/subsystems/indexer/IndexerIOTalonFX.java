@@ -9,7 +9,6 @@ import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -46,7 +45,8 @@ public class IndexerIOTalonFX implements IndexerIO {
   private final StatusSignal<Current> chuteSupplyCurrent;
   private final StatusSignal<Temperature> chuteTemp;
 
-  private final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0).withSlot(0);
+  private final VelocityTorqueCurrentFOC velocityRequest =
+      new VelocityTorqueCurrentFOC(0).withSlot(0);
 
   private double chuteDutyCycle = 0.0;
   private double spinDutyCycle = 0.0;
@@ -61,9 +61,12 @@ public class IndexerIOTalonFX implements IndexerIO {
     spinStatorCurrent = spin.getStatorCurrent();
     spinSupplyCurrent = spin.getSupplyCurrent();
     spinTemp = spin.getDeviceTemp();
-    spinConfig.withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(100.0))
-        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive)
-            .withNeutralMode(NeutralModeValue.Coast));
+    spinConfig
+        .withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(100.0))
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Coast));
     spin.getConfigurator().apply(spinConfig);
     // add spinConfig here
 
@@ -83,25 +86,27 @@ public class IndexerIOTalonFX implements IndexerIO {
 
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
-    boolean spinConnected = BaseStatusSignal.refreshAll(
-        spinPosition,
-        spinVelocity,
-        spinTorqueCurrent,
-        spinVoltage,
-        spinStatorCurrent,
-        spinSupplyCurrent,
-        spinTemp)
-        .isOK();
+    boolean spinConnected =
+        BaseStatusSignal.refreshAll(
+                spinPosition,
+                spinVelocity,
+                spinTorqueCurrent,
+                spinVoltage,
+                spinStatorCurrent,
+                spinSupplyCurrent,
+                spinTemp)
+            .isOK();
 
-    boolean chuteConnected = BaseStatusSignal.refreshAll(
-        chutePosition,
-        chuteVelocity,
-        chuteTorqueCurrent,
-        chuteVoltage,
-        chuteStatorCurrent,
-        chuteSupplyCurrent,
-        chuteTemp)
-        .isOK();
+    boolean chuteConnected =
+        BaseStatusSignal.refreshAll(
+                chutePosition,
+                chuteVelocity,
+                chuteTorqueCurrent,
+                chuteVoltage,
+                chuteStatorCurrent,
+                chuteSupplyCurrent,
+                chuteTemp)
+            .isOK();
 
     inputs.spinConnected = spinConnDebouncer.calculate(spinConnected);
     inputs.chuteConnected = chuteConnDebouncer.calculate(chuteConnected);
