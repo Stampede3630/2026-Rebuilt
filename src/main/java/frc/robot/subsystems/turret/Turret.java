@@ -95,14 +95,6 @@ public class Turret extends TimedSubsystem {
     return inputs.position;
   }
 
-  public Command setTurretAngleRobotRel(Supplier<Angle> angle) {
-    return runOnce(
-        () -> {
-          setpoint = angle.get();
-          io.setTurretAngle(setpoint);
-        });
-  }
-
   public Command runTurretAngleRobotRel(Supplier<Angle> angle) {
     return run(
         () -> {
@@ -118,22 +110,6 @@ public class Turret extends TimedSubsystem {
   public boolean isAtSetpoint(Angle tolerance) {
     // return true;
     return io.isAtSetpoint(tolerance);
-  }
-
-  /**
-   * Converts a field-relative angle to robot-relative coordinates, and sets this Turret's angle to
-   * it
-   *
-   * @param angle An angle in field-relative coordinates
-   * @param robot The robot's position
-   * @return
-   */
-  public Command setAngleFieldRel(Angle angle, Pose2d robot) {
-    return runOnce(
-        () -> {
-          setpoint = angle;
-          io.setTurretAngle(angle.minus(robot.getRotation().getMeasure()));
-        });
   }
 
   public Command turretAimAtAThingCommand(

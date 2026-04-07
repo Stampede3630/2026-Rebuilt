@@ -1,7 +1,20 @@
 package frc.robot.subsystems.hood;
 
 import frc.robot.subsystems.hood.HoodIO.HoodIOInputs;
+
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import org.littletonrobotics.junction.AutoLog;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 
 public interface HoodIO {
   default void updateInputs(HoodIOInputs inputs) {}
@@ -25,17 +38,18 @@ public interface HoodIO {
     // public boolean connected = false;
 
     // hood motor
-    public double positionEstimate = 0.0;
-    // public double angle = 0.0;
-    public double positionSetpoint = 0.0;
-    // public double angleSetpoint = 0.0;
+    public double positionEstimateOld = 0.0;
+    public double positionSetpointOld = 0.0;
 
-    // public double velocity = 0.0;
-    // // public double torqueCurrent = 0.0;
-    // // public double voltage = 0.0;
-    // // public double statorCurrent = 0.0;
-    // // public double supplyCurrent = 0.0;
-    // // public double temp = 0.0;
-    // // public double setpoint = 0.0;
+    public boolean connected = false;
+
+    public Angle position = Degrees.of(0.0);
+    public AngularVelocity velocity = RotationsPerSecond.of(0.0);
+    public Current torqueCurrent = Amps.of(0.0);
+    public Voltage voltage = Volts.of(0.0);
+    public Current statorCurrent = Amps.of(0.0);
+    public Current supplyCurrent = Amps.of(0.0);
+    public Temperature temp = Celsius.of(0.0);
+    public Angle setpoint = Degrees.of(0.0);
   }
 }

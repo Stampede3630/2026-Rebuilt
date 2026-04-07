@@ -48,8 +48,8 @@ public class HoodIOServo implements HoodIO {
     estimate += timeDif * (hood.get() - estimate) * kTime.getAsDouble();
 
     // hood inputs
-    inputs.positionEstimate = estimate;
-    inputs.positionSetpoint = hood.get();
+    inputs.positionEstimateOld = estimate;
+    inputs.positionSetpointOld = hood.get();
   }
 
   @Override

@@ -23,10 +23,6 @@ public interface TurretIO {
 
   default void setTurretAngle(Angle angle) {}
 
-  default boolean setCoastMode(boolean enabled) {
-    return true;
-  }
-
   default void resetAnglePos(Angle newAngle) {}
 
   default boolean isInitSet() {

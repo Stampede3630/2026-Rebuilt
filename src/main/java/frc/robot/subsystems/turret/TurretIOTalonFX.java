@@ -131,28 +131,19 @@ public class TurretIOTalonFX implements TurretIO {
   public void setTurretAngle(Angle angle) {
     // need to subtract angleInitRad here
     // System.out.println("set to " + angle.magnitude());
+    Angle currentAngle = turretPosition.getValue();
 
-    // Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
-    // Angle rightAngle = angle.plus(Degrees.of(360));
-    // Angle currentAngle = turretMotor.getPosition().getValue();
-    // // find if leftAngle or angle is closer to currentAngle
-    // if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
-    //     && currentAngle.minus(leftAngle).abs(Radians) <
-    // currentAngle.minus(rightAngle).abs(Radians)
-    //     && leftAngle.gt(Rotations.of(LEFT_LIMIT))) {
-    //   // if leftAngle is closer
-    //   angle = leftAngle;
-    // } else if (currentAngle.minus(rightAngle).abs(Radians) <
-    // currentAngle.minus(angle).abs(Radians)
-    //     && currentAngle.minus(rightAngle).abs(Radians) <
-    // currentAngle.minus(leftAngle).abs(Radians)
-    //     && rightAngle.lt(Rotations.of(RIGHT_LIMIT))) {
-    //   // if rightAngle is closer
-    //   angle = rightAngle;
-    // }
+    // find which rotation the turret is currently in
+    // need to add an extra rotation to account for (-360, 360)
+    int angleRotations = (int)currentAngle.in(Degrees) / 360;
+    if (currentAngle.gte(Degrees.of(0.0))) angleRotations++;
+    else angleRotations--;
+
+    angle = Rotations.of(angleRotations).plus(angle);
+
     Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
     Angle rightAngle = angle.plus(Degrees.of(360));
-    Angle currentAngle = turretMotor.getPosition().getValue();
+
     // find if leftAngle or angle is closer to currentAngle
     if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
         && currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(rightAngle).abs(Radians)
