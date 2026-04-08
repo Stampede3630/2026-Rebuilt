@@ -5,11 +5,11 @@ import static edu.wpi.first.units.Units.Radians;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -18,7 +18,6 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
-@Deprecated
 public class HoodIOTalonFX implements HoodIO {
   private final TalonFX hoodMotor;
 
@@ -46,16 +45,18 @@ public class HoodIOTalonFX implements HoodIO {
     supplyCurrent = hoodMotor.getSupplyCurrent();
     temp = hoodMotor.getDeviceTemp();
 
-    config
-        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive).withNeutralMode(NeutralModeValue.Brake));
-    //     .withSlot0(
-    //         new Slot0Configs()
-    //             .withKS(1)
-    //             .withKV(1)
-    //             .withKA(1)
-    //             .withKP(1.4)
-    //             .withKI(0.01)
-    //             .withKD(0.2)); /* set PID */
+    config.withMotorOutput(
+        new MotorOutputConfigs()
+            .withInverted(InvertedValue.CounterClockwise_Positive)
+            .withNeutralMode(NeutralModeValue.Brake))
+        .withSlot0( // TODO: tune PID
+            new Slot0Configs()
+                .withKS(0.0)
+                .withKV(0.0)
+                .withKA(0.0)
+                .withKP(0.0)
+                .withKI(0.0)
+                .withKD(0.0)); /* set PID */
     hoodMotor.getConfigurator().apply(config);
   }
 

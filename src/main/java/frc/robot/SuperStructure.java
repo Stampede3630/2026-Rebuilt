@@ -333,4 +333,8 @@ public class SuperStructure {
   public Command runChute() {
     return indexer.runEndChute(chuteSpeed);
   }
+
+  public Command runIndexer() {
+    return indexer.runBoth(chuteSpeed, spinSpeed);
+  }
 }

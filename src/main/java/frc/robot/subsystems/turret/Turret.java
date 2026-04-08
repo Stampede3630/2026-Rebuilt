@@ -11,6 +11,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
@@ -42,6 +44,8 @@ public class Turret extends TimedSubsystem {
 
   private Angle testSetpoint = Degrees.of(0);
 
+  private final Alert turretAlert;
+
   public Turret(TurretIO io) {
     super("Turret");
     this.io = io;
@@ -54,12 +58,9 @@ public class Turret extends TimedSubsystem {
                 (state) -> SignalLogger.writeString("state", state.toString())),
             new SysIdRoutine.Mechanism(
                 (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null, this));
-    // turretMechanism = new Mechanism2d(0.05, 0.05);
+    
+    turretAlert = new Alert("Top right shooter motor disconnected!", AlertType.kError);
   }
-
-  //  public Command setAngle(Angle angle) {
-  //    return runOnce(() -> io.setAngle(angle));
-  //  }
 
   public boolean isInitSet() {
     return io.isInitSet();
@@ -84,6 +85,9 @@ public class Turret extends TimedSubsystem {
     Logger.processInputs("Turret", inputs);
     Robot.batteryLogger.reportCurrentUsage(
         "Turret", inputs.connected ? inputs.supplyCurrent : Amps.of(0));
+
+    // Update alert
+    turretAlert.set(!inputs.connected);
   }
 
   public Command stopTurret() {

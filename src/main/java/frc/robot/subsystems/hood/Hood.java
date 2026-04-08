@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.DoubleSupplier;
@@ -30,32 +32,22 @@ public class Hood extends TimedSubsystem {
   private Angle setpoint = Degrees.of(0);
   private double setpointPos = 0;
 
+  private final Alert hoodAlert;
+
   public Hood(HoodIO io) {
     super("Hood");
     this.io = io;
-    //    routine =
-    //        new SysIdRoutine(
-    //            new SysIdRoutine.Config(
-    //                null,
-    //                Volts.of(4),
-    //                null,
-    //                (state) -> SignalLogger.writeString("state", state.toString())),
-    //            new SysIdRoutine.Mechanism(
-    //                (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null,
-    // this));
-    // other params for easier angle checking
-    // need to change to reset for real robot
-    // need to change to reset for real robot
 
-    // need to figure out pre-init for real matches
-    // runSetHoodAngle(Degrees.of(80));
-    // turretMechanism = new Mechanism2d(0.05, 0.05);
+    hoodAlert = new Alert("Hood motor disconnected!", AlertType.kError);
   }
 
   @Override
   public void timedPeriodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Hood", inputs);
+
+    // Update alert
+    hoodAlert.set(!inputs.connected);
   }
 
   //  public void setHoodAngle(Translation2d robot, Translation2d target) {

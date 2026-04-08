@@ -23,7 +23,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 
-public class ShooterIOTalonFX implements ShooterIO {
+public class ShooterIOTalonFXV1 implements ShooterIO {
   private final TalonFX leader;
   private final TalonFX follower;
 
@@ -59,7 +59,7 @@ public class ShooterIOTalonFX implements ShooterIO {
   private final VelocityTorqueCurrentFOC velocityRequest =
       new VelocityTorqueCurrentFOC(0).withSlot(0);
 
-  public ShooterIOTalonFX() {
+  public ShooterIOTalonFXV1() {
     // init leader motor
     leader = new TalonFX(Constants.SHOOTER_LEADER_ID, Constants.SHOOTER_BUS);
     leaderPosition = leader.getPosition();
@@ -136,31 +136,29 @@ public class ShooterIOTalonFX implements ShooterIO {
                 followerTemp)
             .isOK();
 
-    inputs.leaderConnected = leaderConnDebouncer.calculate(leaderConnected);
-    inputs.followerConnected = followerConnDebouncer.calculate(followerConnected);
+    inputs.topRightConnected = leaderConnDebouncer.calculate(leaderConnected);
+    inputs.topLeftConnected = followerConnDebouncer.calculate(followerConnected);
 
     // leader
-    inputs.leaderPosition = leaderPosition.getValue();
-    inputs.leaderVelocity = leaderVelocity.getValue();
-    inputs.leaderTorqueCurrent = leaderTorqueCurrent.getValue();
-    inputs.leaderVoltage = leaderVoltage.getValue();
-    inputs.leaderStatorCurrent = leaderStatorCurrent.getValue();
-    inputs.leaderSupplyCurrent = leaderSupplyCurrent.getValue();
-    inputs.leaderTemp = leaderTemp.getValue();
-    inputs.leaderVelocitySlew =
-        RotationsPerSecond.of(velLimit.calculate(leaderVelocity.getValue().in(RotationsPerSecond)));
+    inputs.topRightPosition = leaderPosition.getValue();
+    inputs.topRightVelocity = leaderVelocity.getValue();
+    inputs.topRightTorqueCurrent = leaderTorqueCurrent.getValue();
+    inputs.topRightVoltage = leaderVoltage.getValue();
+    inputs.topRightStatorCurrent = leaderStatorCurrent.getValue();
+    inputs.topRightSupplyCurrent = leaderSupplyCurrent.getValue();
+    inputs.topRightTemp = leaderTemp.getValue();
 
     // follower
-    inputs.followerPosition = followerPosition.getValue();
-    inputs.followerVelocity = followerVelocity.getValue();
-    inputs.followerTorqueCurrent = followerTorqueCurrent.getValue();
-    inputs.followerVoltage = followerVoltage.getValue();
-    inputs.followerStatorCurrent = followerStatorCurrent.getValue();
-    inputs.followerSupplyCurrent = followerSupplyCurrent.getValue();
-    inputs.followerTemp = followerTemp.getValue();
+    inputs.topLeftPosition = followerPosition.getValue();
+    inputs.topLeftVelocity = followerVelocity.getValue();
+    inputs.topLeftTorqueCurrent = followerTorqueCurrent.getValue();
+    inputs.topLeftVoltage = followerVoltage.getValue();
+    inputs.topLeftStatorCurrent = followerStatorCurrent.getValue();
+    inputs.topLeftSupplyCurrent = followerSupplyCurrent.getValue();
+    inputs.topLeftTemp = followerTemp.getValue();
 
     if (promoteFollowerDebouncer.calculate(
-        inputs.followerVelocity.minus(inputs.leaderVelocity).abs(RotationsPerSecond)
+        inputs.topLeftVelocity.minus(inputs.topRightVelocity).abs(RotationsPerSecond)
             > 50)) // if two velocities are not close to each other then they have become decoupled
     {
       // attempt to swap leader and follower

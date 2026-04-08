@@ -7,6 +7,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
@@ -21,25 +23,16 @@ public class Flips extends TimedSubsystem {
 
   private boolean on = false;
 
-  // private final SysIdRoutine routine;
-
-  // private final VoltageOut req = new VoltageOut(0.0);
+  private final Alert leftFlipAlert;
+  private final Alert rightFlipAlert;
 
   public Flips(FlipsIO io) {
     super("Flips");
     this.io = io;
 
-    // routine =
-    //     new SysIdRoutine(
-    //         new SysIdRoutine.Config(
-    //             null,
-    //             Volts.of(4),
-    //             null,
-    //             (state) -> SignalLogger.writeString("state", state.toString())),
-    //         new SysIdRoutine.Mechanism(
-    //             (volts) -> io.setShooterMotorsControl(req.withOutput(volts.in(Volts))),
-    //             null,
-    //             this));
+    leftFlipAlert = new Alert("Left flip motor disconnected!", AlertType.kError);
+
+    rightFlipAlert = new Alert("Right flip motor disconnected!", AlertType.kError);
   }
 
   // public Command runVelocity(DoubleSupplier velocity) {
@@ -59,6 +52,10 @@ public class Flips extends TimedSubsystem {
         "Intake/FlipLeft", inputs.flipLeftConnected ? inputs.flipLeftSupplyCurrent : Amps.of(0));
     Robot.batteryLogger.reportCurrentUsage(
         "Intake/FlipRight", inputs.flipRightConnected ? inputs.flipRightSupplyCurrent : Amps.of(0));
+
+    // Update alerts
+    leftFlipAlert.set(!inputs.flipLeftConnected);
+    rightFlipAlert.set(!inputs.flipRightConnected);
   }
 
   public boolean isIntaking() {

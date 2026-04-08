@@ -135,7 +135,7 @@ public class TurretIOTalonFX implements TurretIO {
 
     // find which rotation the turret is currently in
     // need to add an extra rotation to account for (-360, 360)
-    int angleRotations = (int)currentAngle.in(Degrees) / 360;
+    int angleRotations = (int) currentAngle.in(Degrees) / 360;
     if (currentAngle.gte(Degrees.of(0.0))) angleRotations++;
     else angleRotations--;
 

@@ -9,8 +9,11 @@ import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
 import java.util.function.BooleanSupplier;
@@ -29,9 +32,19 @@ public class Shooter extends TimedSubsystem {
 
   private final TorqueCurrentFOC req = new TorqueCurrentFOC(0.0);
 
+  private final Alert topRightAlert;
+  private final Alert bottomRightAlert;
+  private final Alert topLeftAlert;
+  private final Alert bottomLeftAlert;
+
   public Shooter(ShooterIO io, Supplier<Pose2d> pose) {
     super("Shooter");
     this.io = io;
+
+    topRightAlert = new Alert("Top right shooter motor disconnected!", AlertType.kError);
+    bottomRightAlert = new Alert("Bottom right shooter motor disconnected!", AlertType.kError);
+    topLeftAlert = new Alert("Top left shooter motor disconnected!", AlertType.kError);
+    bottomLeftAlert = new Alert("Bottom left shooter motor disconnected!", AlertType.kError);
 
     routine =
         new SysIdRoutine(
@@ -117,8 +130,16 @@ public class Shooter extends TimedSubsystem {
     Logger.processInputs("Shooter", inputs);
     Robot.batteryLogger.reportCurrentUsage(
         "Shooter",
-        inputs.leaderConnected ? inputs.leaderSupplyCurrent : Amps.of(0),
-        inputs.followerConnected ? inputs.followerSupplyCurrent : Amps.of(0));
+        inputs.topRightConnected ? inputs.topRightSupplyCurrent : Amps.of(0),
+        inputs.bottomRightConnected ? inputs.bottomRightSupplyCurrent : Amps.of(0),
+        inputs.topRightConnected ? inputs.topLeftSupplyCurrent : Amps.of(0),
+        inputs.bottomRightConnected ? inputs.bottomLeftSupplyCurrent : Amps.of(0));
+
+    // Update alerts
+    topRightAlert.set(!inputs.topRightConnected);
+    bottomRightAlert.set(Constants.V2_SHOOTER_BOTTOM_RIGHT_ON && !inputs.bottomRightConnected);
+    topLeftAlert.set(Constants.V2_SHOOTER_TOP_LEFT_ON && !inputs.topLeftConnected);
+    bottomLeftAlert.set(Constants.V2_SHOOTER_BOTTOM_LEFT_ON && !inputs.bottomLeftConnected);
   }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
@@ -134,7 +155,7 @@ public class Shooter extends TimedSubsystem {
   }
 
   public AngularVelocity getSpeedReal() {
-    return inputs.promoteFollower ? inputs.followerVelocity : inputs.leaderVelocity;
+    return inputs.promoteFollower ? inputs.topLeftVelocity : inputs.topRightVelocity;
   }
 
   public BooleanSupplier meetsSetpoint(DoubleSupplier tol) {

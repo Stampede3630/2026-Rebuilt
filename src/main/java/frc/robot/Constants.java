@@ -30,6 +30,8 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 public final class Constants {
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
+  public static final Version simVersion = Version.V2;
+  public static final Version robotVersion = Version.V1;
 
   /* middle: from DS: 182.11in (4.625594m) from side: 158.85in (4.03479m) */
 
@@ -95,52 +97,17 @@ public final class Constants {
 
   public static final LoggedNetworkBoolean VISION_ENABLED =
       new LoggedNetworkBoolean("Vision/visionEnabled", true);
-  // DistanceTimeLerpTable.fromCSV(RobotContainer.path.get(), "distMeters", "tof");
 
-  // static {
-  //   SHOT_LOOKUP.put(Inches.of(103.5), new ShooterParameters(0.05, RotationsPerSecond.of(65)));
-  //   TOF_LOOKUP.put(Inches.of(103.5), Seconds.of(1.233));
-  //   SHOT_LOOKUP.put(Inches.of(77.5), new ShooterParameters(0.0, RotationsPerSecond.of(60)));
-  //   TOF_LOOKUP.put(Inches.of(77.5), Seconds.of(1.165));
-  //   SHOT_LOOKUP.put(Inches.of());
-  // }
+  /** V2 Constants */
+  public static final int V2_SHOOTER_TOP_RIGHT_ID = -1;
 
-  // public static final LerpTable<Distance, ShooterParameters> SHOT_LOOKUP =
-  //     new LerpTable<Distance, ShooterParameters>() {
-  //       @Override
-  //       public ShooterParameters interpolate(
-  //           Map.Entry<Distance, ShooterParameters> high,
-  //           Map.Entry<Distance, ShooterParameters> low,
-  //           Distance key) {
-  //         double hood =
-  //             ((high.getValue().hood() - low.getValue().hood())
-  //                     / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-  //                     * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-  //                 + low.getKey().baseUnitMagnitude();
-  //         double velo =
-  //             ((high.getValue().shooterVelocity().baseUnitMagnitude()
-  //                         - low.getValue().shooterVelocity().baseUnitMagnitude())
-  //                     / (high.getKey().baseUnitMagnitude() - low.getKey().baseUnitMagnitude())
-  //                     * (key.baseUnitMagnitude() - low.getKey().baseUnitMagnitude()))
-  //                 + low.getKey().baseUnitMagnitude();
+  public static final int V2_SHOOTER_BOTTOM_RIGHT_ID = -1;
+  public static final int V2_SHOOTER_TOP_LEFT_ID = -1;
+  public static final int V2_SHOOTER_BOTTOM_LEFT_ID = -1;
 
-  //         return new ShooterParameters(hood, AngularVelocity.ofBaseUnits(velo,
-  // RadiansPerSecond));
-  //       }
-  //     };
-
-  // public static final LerpTable<Distance, Time> TOF_LOOKUP =
-  //     new LerpTable<Distance, Time>() {
-  //       @Override
-  //       public Time interpolate(
-  //           Map.Entry<Distance, Time> high, Map.Entry<Distance, Time> low, Distance key) {
-  //         return Seconds.of(0);
-  //       }
-  //     };
-
-  // static {
-  //   // add lerp data here
-  // }
+  public static final boolean V2_SHOOTER_BOTTOM_RIGHT_ON = true;
+  public static final boolean V2_SHOOTER_TOP_LEFT_ON = true;
+  public static final boolean V2_SHOOTER_BOTTOM_LEFT_ON = true;
 
   // temp
   /***
@@ -166,5 +133,13 @@ public final class Constants {
 
     /** Replaying from a log file. */
     REPLAY
+  }
+
+  public static enum Version {
+    /** Original version with Grey-t shooter */
+    V1,
+
+    /** Redesigned shooter version */
+    V2
   }
 }

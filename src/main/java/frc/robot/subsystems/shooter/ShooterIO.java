@@ -29,27 +29,47 @@ public interface ShooterIO {
 
   @AutoLog
   class ShooterIOInputs {
-    public boolean leaderConnected = false;
-    public boolean followerConnected = false;
+    public boolean topRightConnected = false;
+    public boolean bottomRightConnected = false;
+    public boolean topLeftConnected = false;
+    public boolean bottomLeftConnected = false;
 
-    // leader motor
-    public Angle leaderPosition = Rotations.of(0.0);
-    public AngularVelocity leaderVelocity = RotationsPerSecond.of(0.0);
-    public Current leaderTorqueCurrent = Amps.of(0.0);
-    public Voltage leaderVoltage = Volts.of(0.0);
-    public Current leaderStatorCurrent = Amps.of(0.0);
-    public Current leaderSupplyCurrent = Amps.of(0.0);
-    public Temperature leaderTemp = Celsius.of(0.0);
-    public AngularVelocity leaderVelocitySlew = RotationsPerSecond.of(0.0);
+    // topRight motor
+    // leader btw
+    public Angle topRightPosition = Rotations.of(0.0);
+    public AngularVelocity topRightVelocity = RotationsPerSecond.of(0.0);
+    public Current topRightTorqueCurrent = Amps.of(0.0);
+    public Voltage topRightVoltage = Volts.of(0.0);
+    public Current topRightStatorCurrent = Amps.of(0.0);
+    public Current topRightSupplyCurrent = Amps.of(0.0);
+    public Temperature topRightTemp = Celsius.of(0.0);
 
-    // follower motor
-    public Angle followerPosition = Rotations.of(0.0);
-    public AngularVelocity followerVelocity = RotationsPerSecond.of(0.0);
-    public Current followerTorqueCurrent = Amps.of(0.0);
-    public Voltage followerVoltage = Volts.of(0.0);
-    public Current followerStatorCurrent = Amps.of(0.0);
-    public Current followerSupplyCurrent = Amps.of(0.0);
-    public Temperature followerTemp = Celsius.of(0.0);
+    // bottomRight motor
+    public Angle bottomRightPosition = Rotations.of(0.0);
+    public AngularVelocity bottomRightVelocity = RotationsPerSecond.of(0.0);
+    public Current bottomRightTorqueCurrent = Amps.of(0.0);
+    public Voltage bottomRightVoltage = Volts.of(0.0);
+    public Current bottomRightStatorCurrent = Amps.of(0.0);
+    public Current bottomRightSupplyCurrent = Amps.of(0.0);
+    public Temperature bottomRightTemp = Celsius.of(0.0);
+
+    // topLeft motor
+    public Angle topLeftPosition = Rotations.of(0.0);
+    public AngularVelocity topLeftVelocity = RotationsPerSecond.of(0.0);
+    public Current topLeftTorqueCurrent = Amps.of(0.0);
+    public Voltage topLeftVoltage = Volts.of(0.0);
+    public Current topLeftStatorCurrent = Amps.of(0.0);
+    public Current topLeftSupplyCurrent = Amps.of(0.0);
+    public Temperature topLeftTemp = Celsius.of(0.0);
+
+    // bottomLeft motor
+    public Angle bottomLeftPosition = Rotations.of(0.0);
+    public AngularVelocity bottomLeftVelocity = RotationsPerSecond.of(0.0);
+    public Current bottomLeftTorqueCurrent = Amps.of(0.0);
+    public Voltage bottomLeftVoltage = Volts.of(0.0);
+    public Current bottomLeftStatorCurrent = Amps.of(0.0);
+    public Current bottomLeftSupplyCurrent = Amps.of(0.0);
+    public Temperature bottomLeftTemp = Celsius.of(0.0);
 
     // setpoint should be shared
     public AngularVelocity velSetpoint = RotationsPerSecond.of(0.0);
