@@ -52,9 +52,6 @@ public class NamedCommands {
     commands.put("startIntake", structure.runIntake());
     commands.put("stopIntake", structure.stopIntake());
 
-    // commands.put("zeroIntake", structure.zeroIntake());
-    // commands.put("lowerIntake", structure.setIntakePos(Degrees.of(0)));
-    // commands.put("lowerIntake", structure.runFlipsUntilCurrent());
     commands.put(
         "lowerIntakeWait",
         structure.flipIntakeDown().andThen(Commands.waitUntil(structure.flips.flipsAtPosition())));
@@ -67,10 +64,6 @@ public class NamedCommands {
 
     com.pathplanner.lib.auto.NamedCommands.registerCommands(commands);
   }
-
-  //   public void resetOdometry() {
-  //     drive.setPose(Pose2d.kZero); // temp - this method might be unneeded
-  //   }
 
   public void launchFuel(Supplier<ShotInfo> info, Supplier<Pose2d> pose) {
     FuelSim instance = FuelSim.getInstance();

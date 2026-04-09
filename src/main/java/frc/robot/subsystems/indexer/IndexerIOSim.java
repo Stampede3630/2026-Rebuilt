@@ -8,14 +8,8 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.subsystems.indexer.IndexerIO.IndexerIOInputs;
-import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class IndexerIOSim implements IndexerIO {
-  private boolean turretActive = false;
-  private LoggedNetworkBoolean disablePID =
-      new LoggedNetworkBoolean("Sim/disabledIndexerPID", false);
-
   private final DCMotorSim spin;
   private final DCMotorSim chute;
 

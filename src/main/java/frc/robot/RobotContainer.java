@@ -122,6 +122,10 @@ public class RobotContainer {
   private final LoggedNetworkNumber shooterAutoAimDisabledSpeed =
       new LoggedNetworkNumber("Shooter/autoAimDisabledSpeed", 60.0);
 
+  /** The angle to set the hood to for lerping purpose */
+  private final LoggedNetworkNumber hoodAngleSet =
+      new LoggedNetworkNumber("Hood/hoodAngleSet", 0.0);
+
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
 
@@ -144,131 +148,131 @@ public class RobotContainer {
       case REAL:
         // Real robot, instantiate hardware IO implementations
         switch (Constants.robotVersion) {
-            case V2:
-                // The version 2 robot with redesigned shooter
+          case V2:
+            // The version 2 robot with redesigned shooter
 
-                // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
-                // a CANcoder
-                drive =
-                    new Drive(
-                        new GyroIOPigeon2(),
-                        new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                        new ModuleIOTalonFX(TunerConstants.FrontRight),
-                        new ModuleIOTalonFX(TunerConstants.BackLeft),
-                        new ModuleIOTalonFX(TunerConstants.BackRight));
-                SmartDashboard.putData(drive);
-                turret = new Turret(new TurretIOTalonFX());
-                shooter = new Shooter(new ShooterIOTalonFXV2(), () -> drive.getPose());
-                intake = new Intake(new IntakeIOTalonFX());
-                flips = new Flips(new FlipsIOTalonFX());
+            // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
+            // a CANcoder
+            drive =
+                new Drive(
+                    new GyroIOPigeon2(),
+                    new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                    new ModuleIOTalonFX(TunerConstants.FrontRight),
+                    new ModuleIOTalonFX(TunerConstants.BackLeft),
+                    new ModuleIOTalonFX(TunerConstants.BackRight));
+            SmartDashboard.putData(drive);
+            turret = new Turret(new TurretIOTalonFX());
+            shooter = new Shooter(new ShooterIOTalonFXV2(), () -> drive.getPose());
+            intake = new Intake(new IntakeIOTalonFX());
+            flips = new Flips(new FlipsIOTalonFX());
 
-                // climber = new Climber(new ClimberIOTalonFX());
-                hood = new Hood(new HoodIOTalonFX());
-                indexer = new Indexer(new IndexerIOTalonFX());
+            // climber = new Climber(new ClimberIOTalonFX());
+            hood = new Hood(new HoodIOTalonFX());
+            indexer = new Indexer(new IndexerIOTalonFX());
 
-                VisionIO[] visionIOs = {
-                new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
-                };
+            VisionIO[] visionIOs = {
+              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+            };
 
-                // these offsets will need to change for V2 + add second LL
-                ArrayList<Function<Time, Transform3d>> offsets =
-                    new ArrayList<>(
-                        List.of(
-                            (lat) -> { 
-                            var transform =
-                                new Transform3d(
-                                    Constants.TURRET_OFFSET_3D
-                                        .plus(
-                                            new Translation3d(
-                                                Constants.TURRET_CAMERA_RADIUS,
-                                                Meters.of(0.0),
-                                                Meters.of(0.0)))
-                                        .rotateAround(
-                                            Constants.TURRET_OFFSET_3D,
-                                            new Rotation3d(
-                                                new Rotation2d(
-                                                    turret
-                                                        .getTurretAngle()
-                                                        .plus(turret.getAngularVelocity().times(lat)))
-                                                /*.plus(drive.getRotation()) */ )),
-                                    new Rotation3d(
-                                            new Rotation2d(
-                                                turret
-                                                    .getTurretAngle()
-                                                    .plus(turret.getAngularVelocity().times(lat)))
-                                            /*.plus(drive.getRotation()) */ )
-                                        .plus(
-                                            new Rotation3d(
-                                                Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
-                            //   System.out.println("camera pose " + test);
-                            Logger.recordOutput("LL/transformOffset", transform);
-                            return transform;
-                            }));
+            // these offsets will need to change for V2 + add second LL
+            ArrayList<Function<Time, Transform3d>> offsets =
+                new ArrayList<>(
+                    List.of(
+                        (lat) -> {
+                          var transform =
+                              new Transform3d(
+                                  Constants.TURRET_OFFSET_3D
+                                      .plus(
+                                          new Translation3d(
+                                              Constants.TURRET_CAMERA_RADIUS,
+                                              Meters.of(0.0),
+                                              Meters.of(0.0)))
+                                      .rotateAround(
+                                          Constants.TURRET_OFFSET_3D,
+                                          new Rotation3d(
+                                              new Rotation2d(
+                                                  turret
+                                                      .getTurretAngle()
+                                                      .plus(turret.getAngularVelocity().times(lat)))
+                                              /*.plus(drive.getRotation()) */ )),
+                                  new Rotation3d(
+                                          new Rotation2d(
+                                              turret
+                                                  .getTurretAngle()
+                                                  .plus(turret.getAngularVelocity().times(lat)))
+                                          /*.plus(drive.getRotation()) */ )
+                                      .plus(
+                                          new Rotation3d(
+                                              Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
+                          //   System.out.println("camera pose " + test);
+                          Logger.recordOutput("LL/transformOffset", transform);
+                          return transform;
+                        }));
 
-                vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
-                break;
-            default:
-                // The version 1 robot with Grey-t turret
+            vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
+            break;
+          default:
+            // The version 1 robot with Grey-t turret
 
-                // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
-                // a CANcoder
-                drive =
-                    new Drive(
-                        new GyroIOPigeon2(),
-                        new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                        new ModuleIOTalonFX(TunerConstants.FrontRight),
-                        new ModuleIOTalonFX(TunerConstants.BackLeft),
-                        new ModuleIOTalonFX(TunerConstants.BackRight));
-                SmartDashboard.putData(drive);
-                turret = new Turret(new TurretIOTalonFX());
-                shooter = new Shooter(new ShooterIOTalonFXV1(), () -> drive.getPose());
-                intake = new Intake(new IntakeIOTalonFX());
-                flips = new Flips(new FlipsIOTalonFX());
+            // ModuleIOTalonFX is intended for modules with TalonFX drive, TalonFX turn, and
+            // a CANcoder
+            drive =
+                new Drive(
+                    new GyroIOPigeon2(),
+                    new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                    new ModuleIOTalonFX(TunerConstants.FrontRight),
+                    new ModuleIOTalonFX(TunerConstants.BackLeft),
+                    new ModuleIOTalonFX(TunerConstants.BackRight));
+            SmartDashboard.putData(drive);
+            turret = new Turret(new TurretIOTalonFX());
+            shooter = new Shooter(new ShooterIOTalonFXV1(), () -> drive.getPose());
+            intake = new Intake(new IntakeIOTalonFX());
+            flips = new Flips(new FlipsIOTalonFX());
 
-                // climber = new Climber(new ClimberIOTalonFX());
-                hood = new Hood(new HoodIOServo());
-                indexer = new Indexer(new IndexerIOTalonFX());
+            // climber = new Climber(new ClimberIOTalonFX());
+            hood = new Hood(new HoodIOServo());
+            indexer = new Indexer(new IndexerIOTalonFX());
 
-                VisionIO[] visionIOs2 = {
-                    new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
-                };
+            VisionIO[] visionIOs2 = {
+              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+            };
 
-                ArrayList<Function<Time, Transform3d>> offsets2 =
-                    new ArrayList<>(
-                        List.of(
-                            (lat) -> { // these offsets will need to change for V2
-                            var transform =
-                                new Transform3d(
-                                    Constants.TURRET_OFFSET_3D
-                                        .plus(
-                                            new Translation3d(
-                                                Constants.TURRET_CAMERA_RADIUS,
-                                                Meters.of(0.0),
-                                                Meters.of(0.0)))
-                                        .rotateAround(
-                                            Constants.TURRET_OFFSET_3D,
-                                            new Rotation3d(
-                                                new Rotation2d(
-                                                    turret
-                                                        .getTurretAngle()
-                                                        .plus(turret.getAngularVelocity().times(lat)))
-                                                /*.plus(drive.getRotation()) */ )),
-                                    new Rotation3d(
-                                            new Rotation2d(
-                                                turret
-                                                    .getTurretAngle()
-                                                    .plus(turret.getAngularVelocity().times(lat)))
-                                            /*.plus(drive.getRotation()) */ )
-                                        .plus(
-                                            new Rotation3d(
-                                                Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
-                            //   System.out.println("camera pose " + test);
-                            Logger.recordOutput("LL/transformOffset", transform);
-                            return transform;
-                            }));
+            ArrayList<Function<Time, Transform3d>> offsets2 =
+                new ArrayList<>(
+                    List.of(
+                        (lat) -> { // these offsets will need to change for V2
+                          var transform =
+                              new Transform3d(
+                                  Constants.TURRET_OFFSET_3D
+                                      .plus(
+                                          new Translation3d(
+                                              Constants.TURRET_CAMERA_RADIUS,
+                                              Meters.of(0.0),
+                                              Meters.of(0.0)))
+                                      .rotateAround(
+                                          Constants.TURRET_OFFSET_3D,
+                                          new Rotation3d(
+                                              new Rotation2d(
+                                                  turret
+                                                      .getTurretAngle()
+                                                      .plus(turret.getAngularVelocity().times(lat)))
+                                              /*.plus(drive.getRotation()) */ )),
+                                  new Rotation3d(
+                                          new Rotation2d(
+                                              turret
+                                                  .getTurretAngle()
+                                                  .plus(turret.getAngularVelocity().times(lat)))
+                                          /*.plus(drive.getRotation()) */ )
+                                      .plus(
+                                          new Rotation3d(
+                                              Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
+                          //   System.out.println("camera pose " + test);
+                          Logger.recordOutput("LL/transformOffset", transform);
+                          return transform;
+                        }));
 
-                vision = new Vision(drive::addVisionMeasurement, visionIOs2, offsets2, turret, drive);
-                break;
+            vision = new Vision(drive::addVisionMeasurement, visionIOs2, offsets2, turret, drive);
+            break;
         }
         break;
 
@@ -276,92 +280,92 @@ public class RobotContainer {
         // Sim robot, instantiate physics sim IO implementations
 
         switch (Constants.simVersion) {
-            case V2:
-                drive =
-                    new Drive(
-                        new GyroIO() {},
-                        new ModuleIOSim(TunerConstants.FrontLeft),
-                        new ModuleIOSim(TunerConstants.FrontRight),
-                        new ModuleIOSim(TunerConstants.BackLeft),
-                        new ModuleIOSim(TunerConstants.BackRight));
+          case V2:
+            drive =
+                new Drive(
+                    new GyroIO() {},
+                    new ModuleIOSim(TunerConstants.FrontLeft),
+                    new ModuleIOSim(TunerConstants.FrontRight),
+                    new ModuleIOSim(TunerConstants.BackLeft),
+                    new ModuleIOSim(TunerConstants.BackRight));
 
-                // outtake = new Outtake(new OuttakeIOTalonFX());
+            // outtake = new Outtake(new OuttakeIOTalonFX());
 
-                turret = new Turret(new TurretIOSim());
-                shooter = new Shooter(new ShooterIOTalonFXV1(), () -> drive.getPose());
-                intake = new Intake(new IntakeIOTalonFX());
-                flips = new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
-                hood = new Hood(new HoodIOSim());
-                indexer = new Indexer(new IndexerIOTalonFX());
+            turret = new Turret(new TurretIOSim());
+            shooter = new Shooter(new ShooterIOTalonFXV2(), () -> drive.getPose());
+            intake = new Intake(new IntakeIOTalonFX());
+            flips =
+                new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
+            hood = new Hood(new HoodIOSim());
+            indexer = new Indexer(new IndexerIOTalonFX());
 
-                VisionIO[] visionIOsSim = {
-                new VisionIOPhotonVision(Constants.FRONT_RIGHT_CAMERA, new Transform3d()),
-                //   new VisionIOPhotonVisionSim(
-                //   Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
-                //   new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
-                //   drive::getPose)
-                };
-                ArrayList<Function<Time, Transform3d>> offsetsSim =
-                    new ArrayList<>(
-                        List.of(
-                            (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
-                            // () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
-                            // () ->
-                            // new Transform3d(
-                            // new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
-                            // .rotateAround(
-                            // new Translation3d(1.0, 2.0, 3.0),
-                            // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
-                            // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
-                            ));
-                vision = new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
-                initFuelSim();
+            VisionIO[] visionIOsSim = {
+              new VisionIOPhotonVision(
+                  Constants.FRONT_RIGHT_CAMERA, new Transform3d()), // can test real cameras
+            };
+            ArrayList<Function<Time, Transform3d>> offsetsSim =
+                new ArrayList<>(
+                    List.of(
+                        (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
+                        // () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points
+                        // */),
+                        // () ->
+                        // new Transform3d(
+                        // new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                        // .rotateAround(
+                        // new Translation3d(1.0, 2.0, 3.0),
+                        // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                        // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
+                        ));
+            vision =
+                new Vision(drive::addVisionMeasurement, visionIOsSim, offsetsSim, turret, drive);
+            initFuelSim();
 
-                break;
-            default:
-                drive =
-                    new Drive(
-                        new GyroIO() {},
-                        new ModuleIOSim(TunerConstants.FrontLeft),
-                        new ModuleIOSim(TunerConstants.FrontRight),
-                        new ModuleIOSim(TunerConstants.BackLeft),
-                        new ModuleIOSim(TunerConstants.BackRight));
+            break;
+          default:
+            drive =
+                new Drive(
+                    new GyroIO() {},
+                    new ModuleIOSim(TunerConstants.FrontLeft),
+                    new ModuleIOSim(TunerConstants.FrontRight),
+                    new ModuleIOSim(TunerConstants.BackLeft),
+                    new ModuleIOSim(TunerConstants.BackRight));
 
-                // outtake = new Outtake(new OuttakeIOTalonFX());
+            // outtake = new Outtake(new OuttakeIOTalonFX());
 
-                turret = new Turret(new TurretIOSim());
-                shooter = new Shooter(new ShooterIOTalonFXV1(), () -> drive.getPose());
-                intake = new Intake(new IntakeIOTalonFX());
-                flips = new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
-                hood = new Hood(new HoodIOSim());
-                indexer = new Indexer(new IndexerIOTalonFX());
+            turret = new Turret(new TurretIOSim());
+            shooter = new Shooter(new ShooterIOTalonFXV1(), () -> drive.getPose());
+            intake = new Intake(new IntakeIOTalonFX());
+            flips =
+                new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
+            hood = new Hood(new HoodIOSim());
+            indexer = new Indexer(new IndexerIOTalonFX());
 
-                VisionIO[] visionIOsSim2 = {
-                new VisionIOPhotonVision(Constants.FRONT_RIGHT_CAMERA, new Transform3d()),
-                //   new VisionIOPhotonVisionSim(
-                //   Constants.CHASSIS_CAMERA_2, new Transform3d(), drive::getPose),
-                //   new VisionIOPhotonVisionSim(Constants.TURRET_CAMERA, new Transform3d(),
-                //   drive::getPose)
-                };
-                ArrayList<Function<Time, Transform3d>> offsetsSim2 =
-                    new ArrayList<>(
-                        List.of(
-                            (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
-                            // () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */),
-                            // () ->
-                            // new Transform3d(
-                            // new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
-                            // .rotateAround(
-                            // new Translation3d(1.0, 2.0, 3.0),
-                            // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
-                            // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
-                            ));
-                vision = new Vision(drive::addVisionMeasurement, visionIOsSim2, offsetsSim2, turret, drive);
-                initFuelSim();
+            VisionIO[] visionIOsSim2 = {
+              new VisionIOPhotonVision(
+                  Constants.FRONT_RIGHT_CAMERA, new Transform3d()), // can test real cameras
+            };
+            ArrayList<Function<Time, Transform3d>> offsetsSim2 =
+                new ArrayList<>(
+                    List.of(
+                        (lat) -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points */)
+                        // () -> new Transform3d(0.0, 0.0, 0.0, new Rotation3d() /* dummy points
+                        // */),
+                        // () ->
+                        // new Transform3d(
+                        // new Translation3d(1.0 + Constants.TURRET_CAMERA_RADIUS, 2.0, 3.0)
+                        // .rotateAround(
+                        // new Translation3d(1.0, 2.0, 3.0),
+                        // new Rotation3d(new Rotation2d(turret.getTurretAngle()))),
+                        // new Rotation3d(new Rotation2d(turret.getTurretAngle())))
+                        ));
+            vision =
+                new Vision(drive::addVisionMeasurement, visionIOsSim2, offsetsSim2, turret, drive);
+            initFuelSim();
 
-                break;
+            break;
         }
-        
+
         break;
 
       default:
@@ -382,10 +386,7 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIO() {});
         flips = new Flips(new FlipsIO() {});
 
-        VisionIO[] visionIOsDef = {
-          new VisionIOLimelight(Constants.FRONT_LEFT_CAMERA, drive::getRotation),
-          new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
-        };
+        VisionIO[] visionIOsDef = {new VisionIO() {}};
         ArrayList<Function<Time, Transform3d>> offsetsDef =
             new ArrayList<>(
                 List.of(
@@ -592,6 +593,9 @@ public class RobotContainer {
         Commands.runOnce(() -> flips.resetFlipPosition(Degrees.of(90)))
             .withName("Reset intake to top")
             .ignoringDisable(true));
+
+    // for relerping
+    SmartDashboard.putData(hood.setHood(hoodAngleSet).withName("Set hood angle"));
   }
 
   /** Initializes fuel simulation */

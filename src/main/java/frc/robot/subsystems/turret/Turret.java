@@ -58,7 +58,7 @@ public class Turret extends TimedSubsystem {
                 (state) -> SignalLogger.writeString("state", state.toString())),
             new SysIdRoutine.Mechanism(
                 (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null, this));
-    
+
     turretAlert = new Alert("Top right shooter motor disconnected!", AlertType.kError);
   }
 
@@ -111,6 +111,12 @@ public class Turret extends TimedSubsystem {
     return startEnd(() -> io.runTurret(dutyCycle.getAsDouble()), () -> io.stopTurret());
   }
 
+  /**
+   * Checks if the turret is at its current setpoint
+   *
+   * @param tolerance The tolerance to use
+   * @return Whether the turret is within the tolerance from its setpoint
+   */
   public boolean isAtSetpoint(Angle tolerance) {
     // return true;
     return io.isAtSetpoint(tolerance);
@@ -147,14 +153,7 @@ public class Turret extends TimedSubsystem {
 
   public AngularVelocity getAngularVelocity() {
     return inputs.velocity;
-    // return io.getAngularVelocity();
   }
-
-  // public double getOptimalVelocity(Pose2d pose, Pose2d target) {
-  //   double xGoal = pose.getTranslation().getDistance(target.getTranslation());
-  //   double yGoal = FieldConstants.HUB_HEIGHT;
-
-  // }
 
   public Command setNeutralMode(NeutralModeValue val) {
     return runOnce(() -> io.setNeutralMode(val)).ignoringDisable(true);

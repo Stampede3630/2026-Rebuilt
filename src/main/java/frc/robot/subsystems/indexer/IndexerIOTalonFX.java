@@ -5,7 +5,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -45,9 +44,6 @@ public class IndexerIOTalonFX implements IndexerIO {
   private final StatusSignal<Current> chuteSupplyCurrent;
   private final StatusSignal<Temperature> chuteTemp;
 
-  private final VelocityTorqueCurrentFOC velocityRequest =
-      new VelocityTorqueCurrentFOC(0).withSlot(0);
-
   private double chuteDutyCycle = 0.0;
   private double spinDutyCycle = 0.0;
 
@@ -79,9 +75,11 @@ public class IndexerIOTalonFX implements IndexerIO {
     chuteStatorCurrent = chute.getStatorCurrent();
     chuteSupplyCurrent = chute.getSupplyCurrent();
     chuteTemp = chute.getDeviceTemp();
-    // add chuteConfig here
-
-    // encoder = new CANcoder(Constants.INDEXER_ENCODER_ID);
+    chuteConfig.withMotorOutput(
+        new MotorOutputConfigs()
+            .withInverted(InvertedValue.CounterClockwise_Positive)
+            .withNeutralMode(NeutralModeValue.Coast));
+    chute.getConfigurator().apply(chuteConfig);
   }
 
   @Override
@@ -167,15 +165,4 @@ public class IndexerIOTalonFX implements IndexerIO {
     spin.stopMotor();
     spinDutyCycle = 0.0;
   }
-
-  // @Override
-  // public boolean isRunning() {
-  // return spin.getVelocity().getValueAsDouble() > 0;
-  // }
-
-  // @Override
-  // public void setShooterMotorsControl(VoltageOut volts) {
-  // spin.setControl(volts);
-  // chute.setControl(volts);
-  // }
 }

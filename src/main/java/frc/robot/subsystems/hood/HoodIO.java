@@ -23,13 +23,15 @@ public interface HoodIO {
 
   default void stopHood() {}
 
-  default double getHoodPos() {
-    return 0.0;
-  }
-
   default void setHoodPos(double pos) {}
 
   default void setMicroseconds(int max) {}
+
+  default void setPosition(Angle pos) {}
+
+  default boolean isAtSetpoint(Angle tol) {
+    return true;
+  }
 
   @AutoLog
   class HoodIOInputs {

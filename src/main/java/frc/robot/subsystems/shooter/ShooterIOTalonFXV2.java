@@ -201,43 +201,10 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
                 topRightSupplyCurrent,
                 topRightTemp)
             .isOK();
-    boolean bottomRightConnected =
-        BaseStatusSignal.refreshAll(
-                bottomRightPosition,
-                bottomRightVelocity,
-                bottomRightTorqueCurrent,
-                bottomRightVoltage,
-                bottomRightStatorCurrent,
-                bottomRightSupplyCurrent,
-                bottomRightTemp)
-            .isOK();
-    boolean topLeftConnected =
-        BaseStatusSignal.refreshAll(
-                topLeftPosition,
-                topLeftVelocity,
-                topLeftTorqueCurrent,
-                topLeftVoltage,
-                topLeftStatorCurrent,
-                topLeftSupplyCurrent,
-                topLeftTemp)
-            .isOK();
-    boolean bottomLeftConnected =
-        BaseStatusSignal.refreshAll(
-                bottomLeftPosition,
-                bottomLeftVelocity,
-                bottomLeftTorqueCurrent,
-                bottomLeftVoltage,
-                bottomLeftStatorCurrent,
-                bottomLeftSupplyCurrent,
-                bottomLeftTemp)
-            .isOK();
-
-    inputs.topRightConnected = topRightConnDebouncer.calculate(topRightConnected);
-    inputs.bottomRightConnected = bottomRightConnDebouncer.calculate(bottomRightConnected);
-    inputs.topLeftConnected = topLeftConnDebouncer.calculate(topLeftConnected);
-    inputs.bottomLeftConnected = bottomLeftConnDebouncer.calculate(bottomLeftConnected);
 
     // topRightLeader
+    inputs.topRightConnected = topRightConnDebouncer.calculate(topRightConnected);
+
     inputs.topRightPosition = topRightPosition.getValue();
     inputs.topRightVelocity = topRightVelocity.getValue();
     inputs.topRightTorqueCurrent = topRightTorqueCurrent.getValue();
@@ -246,32 +213,79 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
     inputs.topRightSupplyCurrent = topRightSupplyCurrent.getValue();
     inputs.topRightTemp = topRightTemp.getValue();
 
-    // bottomRight
-    inputs.bottomRightPosition = bottomRightPosition.getValue();
-    inputs.bottomRightVelocity = bottomRightVelocity.getValue();
-    inputs.bottomRightTorqueCurrent = bottomRightTorqueCurrent.getValue();
-    inputs.bottomRightVoltage = bottomRightVoltage.getValue();
-    inputs.bottomRightStatorCurrent = bottomRightStatorCurrent.getValue();
-    inputs.bottomRightSupplyCurrent = bottomRightSupplyCurrent.getValue();
-    inputs.bottomRightTemp = bottomRightTemp.getValue();
+    if (Constants.V2_SHOOTER_BOTTOM_RIGHT_ON) {
+      boolean bottomRightConnected =
+          BaseStatusSignal.refreshAll(
+                  bottomRightPosition,
+                  bottomRightVelocity,
+                  bottomRightTorqueCurrent,
+                  bottomRightVoltage,
+                  bottomRightStatorCurrent,
+                  bottomRightSupplyCurrent,
+                  bottomRightTemp)
+              .isOK();
 
-    // topLeftLeader
-    inputs.topLeftPosition = topLeftPosition.getValue();
-    inputs.topLeftVelocity = topLeftVelocity.getValue();
-    inputs.topLeftTorqueCurrent = topLeftTorqueCurrent.getValue();
-    inputs.topLeftVoltage = topLeftVoltage.getValue();
-    inputs.topLeftStatorCurrent = topLeftStatorCurrent.getValue();
-    inputs.topLeftSupplyCurrent = topLeftSupplyCurrent.getValue();
-    inputs.topLeftTemp = topLeftTemp.getValue();
+      // bottomRight
+      inputs.bottomRightConnected = bottomRightConnDebouncer.calculate(bottomRightConnected);
 
-    // bottomLeft
-    inputs.bottomLeftPosition = bottomLeftPosition.getValue();
-    inputs.bottomLeftVelocity = bottomLeftVelocity.getValue();
-    inputs.bottomLeftTorqueCurrent = bottomLeftTorqueCurrent.getValue();
-    inputs.bottomLeftVoltage = bottomLeftVoltage.getValue();
-    inputs.bottomLeftStatorCurrent = bottomLeftStatorCurrent.getValue();
-    inputs.bottomLeftSupplyCurrent = bottomLeftSupplyCurrent.getValue();
-    inputs.bottomLeftTemp = bottomLeftTemp.getValue();
+      inputs.bottomRightPosition = bottomRightPosition.getValue();
+      inputs.bottomRightVelocity = bottomRightVelocity.getValue();
+      inputs.bottomRightTorqueCurrent = bottomRightTorqueCurrent.getValue();
+      inputs.bottomRightVoltage = bottomRightVoltage.getValue();
+      inputs.bottomRightStatorCurrent = bottomRightStatorCurrent.getValue();
+      inputs.bottomRightSupplyCurrent = bottomRightSupplyCurrent.getValue();
+      inputs.bottomRightTemp = bottomRightTemp.getValue();
+    }
+
+    if (Constants.V2_SHOOTER_TOP_LEFT_ON) {
+      boolean topLeftConnected =
+          BaseStatusSignal.refreshAll(
+                  topLeftPosition,
+                  topLeftVelocity,
+                  topLeftTorqueCurrent,
+                  topLeftVoltage,
+                  topLeftStatorCurrent,
+                  topLeftSupplyCurrent,
+                  topLeftTemp)
+              .isOK();
+
+      // topLeftLeader
+      inputs.topLeftConnected = topLeftConnDebouncer.calculate(topLeftConnected);
+
+      inputs.topLeftPosition = topLeftPosition.getValue();
+      inputs.topLeftVelocity = topLeftVelocity.getValue();
+      inputs.topLeftTorqueCurrent = topLeftTorqueCurrent.getValue();
+      inputs.topLeftVoltage = topLeftVoltage.getValue();
+      inputs.topLeftStatorCurrent = topLeftStatorCurrent.getValue();
+      inputs.topLeftSupplyCurrent = topLeftSupplyCurrent.getValue();
+      inputs.topLeftTemp = topLeftTemp.getValue();
+    }
+
+    if (Constants.V2_SHOOTER_BOTTOM_LEFT_ON) {
+      boolean bottomLeftConnected =
+          BaseStatusSignal.refreshAll(
+                  bottomLeftPosition,
+                  bottomLeftVelocity,
+                  bottomLeftTorqueCurrent,
+                  bottomLeftVoltage,
+                  bottomLeftStatorCurrent,
+                  bottomLeftSupplyCurrent,
+                  bottomLeftTemp)
+              .isOK();
+
+      // bottomLeft
+      inputs.bottomLeftConnected = bottomLeftConnDebouncer.calculate(bottomLeftConnected);
+
+      inputs.bottomLeftPosition = bottomLeftPosition.getValue();
+      inputs.bottomLeftVelocity = bottomLeftVelocity.getValue();
+      inputs.bottomLeftTorqueCurrent = bottomLeftTorqueCurrent.getValue();
+      inputs.bottomLeftVoltage = bottomLeftVoltage.getValue();
+      inputs.bottomLeftStatorCurrent = bottomLeftStatorCurrent.getValue();
+      inputs.bottomLeftSupplyCurrent = bottomLeftSupplyCurrent.getValue();
+      inputs.bottomLeftTemp = bottomLeftTemp.getValue();
+    }
+
+    // sorry promotFollower :(
 
     // if (promoteFollowerDebouncer.calculate(
     //     inputs.followerVelocity.minus(inputs.topRightVelocity).abs(RotationsPerSecond)

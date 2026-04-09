@@ -1,12 +1,16 @@
 package frc.robot.subsystems.hood;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -32,6 +36,9 @@ public class HoodIOTalonFX implements HoodIO {
   private final StatusSignal<Current> statorCurrent;
   private final StatusSignal<Current> supplyCurrent;
   private final StatusSignal<Temperature> temp;
+
+  private final PositionTorqueCurrentFOC request = new PositionTorqueCurrentFOC(0.0).withSlot(0);
+
   private Angle setpoint = Radians.of(0);
 
   public HoodIOTalonFX() {
@@ -45,10 +52,17 @@ public class HoodIOTalonFX implements HoodIO {
     supplyCurrent = hoodMotor.getSupplyCurrent();
     temp = hoodMotor.getDeviceTemp();
 
-    config.withMotorOutput(
-        new MotorOutputConfigs()
-            .withInverted(InvertedValue.CounterClockwise_Positive)
-            .withNeutralMode(NeutralModeValue.Brake))
+    config
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Brake))
+        .withSoftwareLimitSwitch( // unrealistically large for now
+            new SoftwareLimitSwitchConfigs()
+                .withForwardSoftLimitEnable(true)
+                .withForwardSoftLimitThreshold(Rotations.of(0.5))
+                .withReverseSoftLimitEnable(true)
+                .withReverseSoftLimitThreshold(Rotations.of(-0.25)))
         .withSlot0( // TODO: tune PID
             new Slot0Configs()
                 .withKS(0.0)
@@ -83,5 +97,20 @@ public class HoodIOTalonFX implements HoodIO {
   @Override
   public void stopHood() {
     hoodMotor.stopMotor();
+  }
+
+  @Override
+  public void setPosition(Angle pos) {
+    hoodMotor.setControl(request.withPosition(pos));
+  }
+
+  @Override
+  public boolean isAtSetpoint(Angle tol) {
+    return setpoint.isNear(position.getValue(), tol);
+  }
+
+  @Override
+  public void setHoodPos(double pos) {
+    hoodMotor.setControl(request.withPosition(Degrees.of(pos)));
   }
 }

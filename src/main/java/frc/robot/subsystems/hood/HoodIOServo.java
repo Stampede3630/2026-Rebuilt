@@ -60,11 +60,6 @@ public class HoodIOServo implements HoodIO {
   }
 
   @Override
-  public double getHoodPos() {
-    return hood.getPosition();
-  }
-
-  @Override
   public void setMicroseconds(int max) {
     hood.setPulseTimeMicroseconds(max);
   }

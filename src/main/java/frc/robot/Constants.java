@@ -109,6 +109,9 @@ public final class Constants {
   public static final boolean V2_SHOOTER_TOP_LEFT_ON = true;
   public static final boolean V2_SHOOTER_BOTTOM_LEFT_ON = true;
 
+  public static final int V2_TURRET_BOTTOM_ENCODER_ID = -1;
+  public static final int V2_TURRET_TOP_ENCODER_ID = -1;
+
   // temp
   /***
    * The velocity to apply to balls leaving the outtake

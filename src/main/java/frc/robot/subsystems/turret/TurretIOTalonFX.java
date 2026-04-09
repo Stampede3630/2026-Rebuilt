@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.filter.Debouncer;
@@ -27,7 +28,8 @@ import frc.robot.Constants;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
-  // private final CANcoder cancoder;
+  private final CANcoder bottom;
+  private final CANcoder top;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
@@ -91,6 +93,11 @@ public class TurretIOTalonFX implements TurretIO {
                 .withReverseSoftLimitThreshold(LEFT_LIMIT)); // could be adjusted slightly
     turretMotor.getConfigurator().apply(turretConfig);
     turretMotor.setPosition(0);
+
+    // if (Constants.robotVersion == Version.V2) {
+    bottom = new CANcoder(Constants.V2_TURRET_BOTTOM_ENCODER_ID);
+    top = new CANcoder(Constants.V2_TURRET_TOP_ENCODER_ID);
+    // }
   }
 
   @Override

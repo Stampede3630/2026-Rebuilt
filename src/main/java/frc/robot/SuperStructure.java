@@ -29,7 +29,6 @@ import frc.robot.util.FieldConstants;
 import frc.robot.util.ShooterParameters;
 import frc.robot.util.ShotInfo;
 import frc.robot.util.ShotInfo.ShotQuality;
-import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -52,7 +51,7 @@ public class SuperStructure {
   private final LoggedNetworkNumber turretTolDeg =
       new LoggedNetworkNumber("Turret/turretTolDeg", 4);
   /** The maximum tolerance of the Hood from the calculated value */
-  private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Hood/hoodTol", 0.1);
+  private final LoggedNetworkNumber hoodTol = new LoggedNetworkNumber("Hood/hoodTol", 1.0);
   /** The duty cycle speed to run the spindexer with */
   private final LoggedNetworkNumber spinSpeed = new LoggedNetworkNumber("Indexer/spinSpeed", 0.45);
   /** The duty cycle speed to run the chute with */
@@ -175,12 +174,7 @@ public class SuperStructure {
             ,
             DriveCommands.setOffsets(drive, () -> offsets)); // move up and down intake flips at a
 
-    // period
-    // of 1
-    // seconds
-    // TODO fix turret.isAtSetpoint
     // TODO fix LL offset
-    // TODO change shooter speed adjustment to percent?
   }
 
   public Command justShoot() {
@@ -204,11 +198,13 @@ public class SuperStructure {
                         .onlyWhile(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
-                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
+                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
                         .onlyIf(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
-                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
+                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
                         .repeatedly()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
@@ -224,11 +220,13 @@ public class SuperStructure {
                         .onlyWhile(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
-                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
+                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
                         .onlyIf(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
-                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
+                                    && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
+                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
                         .repeatedly()),
             intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
@@ -241,11 +239,6 @@ public class SuperStructure {
   public Command flipIntakeDown() {
     return flips.setIntakePosition(() -> Degrees.of(intakeDownSetpoint.get()));
   }
-  // return Commands.runOnce(() -> intake.runFlip(intakeFlipSpeed))
-  // .until(
-  // () -> intake.getFlipLeftStatorCurrent().in(Amps) >
-  // intakeFlipMaxCurrent.getAsDouble())
-  // .handleInterrupt(() -> intake.stopFlip());
 
   public Command runIntakeBackwards() {
     return intake
@@ -254,22 +247,13 @@ public class SuperStructure {
   }
 
   public Command runIntake() {
-    // return intake.runIntake(intakeSpeed);
     return flipIntakeDown()
         .andThen(intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
-    // return Commands.runOnce(() -> intake.runIntake(intakeSpeed))
-    // .alongWith(setIntakePos(Degrees.of(0)));
   }
 
   public Command stopIntake() {
     return Commands.runOnce(() -> intake.stopIntake());
-  }
-
-  public BooleanSupplier isHoodAngleRight() {
-    return () ->
-        Math.abs(hood.getHood() - (shotInfo.shooterParameters().hood() + hoodOffset.getAsDouble()))
-            < hoodTol.get();
   }
 
   public void setAutoAimer(AutoAimer newAimer) {
@@ -297,34 +281,6 @@ public class SuperStructure {
       }
     }
   }
-
-  /*
-   *
-   * // if shooting straight would hit hub (i.e. the robot is near the hub
-   * vertically)
-   * if (robot
-   * .getMeasureY()
-   * .isNear(Meters.of(4.0), 0.15)) {
-   * Translation2d corner =
-   * AllianceFlipUtil.apply(
-   * FieldConstants.getHubCorner(robot.getY())); // get the closest hub corner
-   * Rotation2d angle = corner.minus(robot.getTranslation()).getAngle();
-   * target =
-   * new Translation2d(
-   * AllianceFlipUtil.applyX(1),
-   * angle.getTan() * (corner.getX() - AllianceFlipUtil.applyX(1)) +
-   * corner.getY());
-   * // // this adjustment will not work with current pose
-   * // Angle adjustment =
-   * // Radians.of(
-   * // Math.asin(
-   * // (robot.getY() - corner.getY()) /
-   * // corner.getDistance(robot.getTranslation())));
-   * // // System.out.println("adjust1: " + adjustment.baseUnitMagnitude() * 180 /
-   * // // Math.PI);
-   * // target = target.rotateAround(robot.getTranslation(), new
-   * Rotation2d(adjustment));
-   */
 
   public Command runFlipsUntilCurrent() {
     return flips.runFlipsVoltage(Volts.of(12)).withTimeout(Seconds.of(2));
