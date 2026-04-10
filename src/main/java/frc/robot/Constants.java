@@ -38,6 +38,7 @@ public final class Constants {
   public static final String FRONT_RIGHT_CAMERA = "frontRightPhoton";
   public static final String FRONT_LEFT_CAMERA = "frontLeftPhoton";
   public static final String TURRET_CAMERA = "limelight";
+  public static final String CHASSIS_LL = "coolLimelight";
 
   public static final Distance TURRET_CAMERA_RADIUS = Inches.of(7.37063);
 
@@ -85,16 +86,26 @@ public final class Constants {
           Units.inchesToMeters(5.0), Units.inchesToMeters(-4.0), Units.inchesToMeters(21.604500));
 
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
-  public static final DistanceShooterParametersLerpTable SHOT_LOOKUP =
+  // the lerp data
+  public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_HUB =
       DistanceShooterParametersLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + "/shot.csv", "distance", "hood", "shooter");
+          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "shot_hub_v2.csv" : "/shot_hub_v1.csv"), "distance", "hood", "shooter");
 
-  // DistanceShooterParametersLerpTable.fromCSV(
-  // RobotContainer.path.get(), "distMeters", "hoodPerc", "shooterSetpoint");
-  public static final DistanceTimeLerpTable TOF_LOOKUP =
+  public static final DistanceTimeLerpTable TOF_LOOKUP_HUB =
       DistanceTimeLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + "/tof.csv", "distance", "tof");
+          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "tof_hub_v2.csv" : "/tof_hub_v1.csv"), "distance", "tof");
 
+  // note: no neutral data for V1
+  public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_NEUTRAL =
+      DistanceShooterParametersLerpTable.fromCSV(
+          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "shot_neutral_v2.csv" : "/shot_hub_v1.csv"), "distance", "hood", "shooter");
+
+  public static final DistanceTimeLerpTable TOF_LOOKUP_NEUTRAL =
+      DistanceTimeLerpTable.fromCSV(
+          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "tof_neutral_v2.csv" : "/tof_hub_v1.csv"), "distance", "tof");
+
+
+  /** if off, completely turns off vision pose estimation */
   public static final LoggedNetworkBoolean VISION_ENABLED =
       new LoggedNetworkBoolean("Vision/visionEnabled", true);
 

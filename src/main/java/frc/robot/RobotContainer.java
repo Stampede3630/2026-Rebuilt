@@ -171,7 +171,8 @@ public class RobotContainer {
             indexer = new Indexer(new IndexerIOTalonFX());
 
             VisionIO[] visionIOs = {
-              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
+              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation),
+              new VisionIOLimelight(Constants.CHASSIS_LL, drive::getRotation)
             };
 
             // these offsets will need to change for V2 + add second LL
@@ -207,7 +208,8 @@ public class RobotContainer {
                           //   System.out.println("camera pose " + test);
                           Logger.recordOutput("LL/transformOffset", transform);
                           return transform;
-                        }));
+                        },
+                        (lat) -> Transform3d.kZero));
 
             vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
             break;

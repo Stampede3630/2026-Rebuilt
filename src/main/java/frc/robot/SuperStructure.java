@@ -135,8 +135,8 @@ public class SuperStructure {
                           .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
                       drive.getFieldRelSpeeds(),
                       getTarget(),
-                      Constants.SHOT_LOOKUP,
-                      Constants.TOF_LOOKUP);
+                      FieldConstants.checkNeutral(drive.getPose()) ? Constants.SHOT_LOOKUP_NEUTRAL : Constants.SHOT_LOOKUP_HUB,
+                      FieldConstants.checkNeutral(drive.getPose()) ? Constants.TOF_LOOKUP_NEUTRAL : Constants.TOF_LOOKUP_HUB);
               Logger.recordOutput(
                   "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
               Logger.recordOutput("targetShot/hood", shotInfo.shooterParameters().hood());

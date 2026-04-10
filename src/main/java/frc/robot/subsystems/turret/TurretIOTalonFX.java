@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
+import java.util.ArrayList;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -28,8 +30,8 @@ import frc.robot.Constants;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
-  private final CANcoder bottom;
-  private final CANcoder top;
+  private final CANcoder left;
+  private final CANcoder right;
 
   private final Debouncer connDebouncer = new Debouncer(0.5);
 
@@ -54,6 +56,12 @@ public class TurretIOTalonFX implements TurretIO {
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
+
+  public static int LEFT_TEETH = 18;
+  public static int RIGHT_TEETH = 19;
+  /** probably needs to be different */
+  // ratio from encoders to turret (18:48 and 10:100)
+  public static double BIG_TEETH = 4.8;
 
   public TurretIOTalonFX() {
     // init turret motor
@@ -95,8 +103,8 @@ public class TurretIOTalonFX implements TurretIO {
     turretMotor.setPosition(0);
 
     // if (Constants.robotVersion == Version.V2) {
-    bottom = new CANcoder(Constants.V2_TURRET_BOTTOM_ENCODER_ID);
-    top = new CANcoder(Constants.V2_TURRET_TOP_ENCODER_ID);
+    left = new CANcoder(Constants.V2_TURRET_BOTTOM_ENCODER_ID);
+    right = new CANcoder(Constants.V2_TURRET_TOP_ENCODER_ID);
     // }
   }
 
@@ -222,5 +230,30 @@ public class TurretIOTalonFX implements TurretIO {
   @Override
   public boolean isAtSetpoint(Angle tol) {
     return turretSetpoint.isNear(turretPosition.getValue(), tol);
+  }
+
+  @Override
+  public void figureOutAngle() {
+    double absPosRight = right.getAbsolutePosition().getValue().in(Rotations);
+    double absPosLeft = left.getAbsolutePosition().getValue().in(Rotations);
+
+    // ArrayList<Double> topPoss = new ArrayList<>();
+    // ArrayList<Double> bottomPoss = new ArrayList<>();
+
+    // for (int i = 0; i < TOP_TEETH; i++) {
+    //   topPoss.add(i + absPosTop);
+    // }
+
+    // bottomPoss.add(i + absPosBottom);
+
+    // Can avoid using ArrayLists by comparing in real time
+    for (int i = 0; i < LEFT_TEETH; i++) {
+      for (int j = 0; j < RIGHT_TEETH; j++) {
+        if (LEFT_TEETH / BIG_TEETH * (i + absPosLeft) == RIGHT_TEETH / BIG_TEETH * (j + absPosRight)) {
+          turretMotor.setPosition(Rotations.of(i + absPosLeft));
+          return;
+        }
+      }
+    }
   }
 }

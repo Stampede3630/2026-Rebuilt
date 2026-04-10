@@ -48,6 +48,8 @@ public interface TurretIO {
     return false;
   }
 
+  default void figureOutAngle() {}
+
   @AutoLog
   class TurretIOInputs {
     public boolean connected = false;
@@ -61,5 +63,9 @@ public interface TurretIO {
     public Current supplyCurrent = Amps.of(0.0);
     public Temperature temp = Celsius.of(0.0);
     public Angle setpoint = Rotations.of(0.0);
+
+    // encoders
+    public Angle topEncoderPosition = Rotations.of(0.0);
+    public Angle bottomEncoderPosition = Rotations.of(0.0);  
   }
 }
