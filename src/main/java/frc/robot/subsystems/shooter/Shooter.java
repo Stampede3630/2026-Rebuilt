@@ -132,8 +132,8 @@ public class Shooter extends TimedSubsystem {
         "Shooter",
         inputs.topRightConnected ? inputs.topRightSupplyCurrent : Amps.of(0),
         inputs.bottomRightConnected ? inputs.bottomRightSupplyCurrent : Amps.of(0),
-        inputs.topRightConnected ? inputs.topLeftSupplyCurrent : Amps.of(0),
-        inputs.bottomRightConnected ? inputs.bottomLeftSupplyCurrent : Amps.of(0));
+        inputs.topLeftConnected ? inputs.topLeftSupplyCurrent : Amps.of(0),
+        inputs.bottomLeftConnected ? inputs.bottomLeftSupplyCurrent : Amps.of(0));
 
     // Update alerts
     topRightAlert.set(!inputs.topRightConnected);

@@ -50,10 +50,4 @@ public class HoodIOSim implements HoodIO {
     // inputs.temp = 1.0;
     // inputs.setpoint = controller.getSetpoint() / Math.PI * 180 /* convert to degrees */;
   }
-
-  @Override
-  public void stopHood() {
-    hoodActive = false;
-    hoodMotor.setAngularVelocity(0);
-  }
 }

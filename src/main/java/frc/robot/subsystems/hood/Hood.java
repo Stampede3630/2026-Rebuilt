@@ -1,6 +1,8 @@
 package frc.robot.subsystems.hood;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
@@ -8,7 +10,11 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Robot;
+import frc.robot.Constants.Version;
 import frc.robot.util.TimedSubsystem;
+
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -34,6 +40,8 @@ public class Hood extends TimedSubsystem {
     io.updateInputs(inputs);
     Logger.processInputs("Hood", inputs);
 
+    Robot.batteryLogger.reportCurrentUsage("Hood", inputs.connected ? inputs.supplyCurrent : Amps.of(0.0));
+
     // Update alert
     hoodAlert.set(!inputs.connected);
   }
@@ -46,7 +54,11 @@ public class Hood extends TimedSubsystem {
   public Command setHood(DoubleSupplier pos) {
     return runOnce(
         () -> {
-          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
+          if (Constants.robotVersion == Version.V2) {
+            setpointPos = pos.getAsDouble();
+          } else {
+            setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
+          }
           io.setHoodPos(setpointPos);
         });
   }
@@ -59,19 +71,23 @@ public class Hood extends TimedSubsystem {
   public Command runHood(DoubleSupplier pos) {
     return run(
         () -> {
+          if (Constants.robotVersion == Version.V2) {
+            setpointPos = pos.getAsDouble();
+          } else {
           setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
+          }
           io.setHoodPos(setpointPos);
         });
   }
 
   /** Sets the hood once. ONLY WORKS WITH V2 */
   public Command setHoodPos(Supplier<Angle> pos) {
-    return runOnce(() -> io.setPosition(pos.get()));
+    return runOnce(() -> io.setHoodPos(pos.get()));
   }
 
   /** Repeatedly sets the hood. ONLY WORKS WITH V2 */
   public Command runHoodPos(Supplier<Angle> pos) {
-    return run(() -> io.setPosition(pos.get()));
+    return run(() -> io.setHoodPos(pos.get()));
   }
 
   /** Moves the hood down a bit. Works with both V1 and V2 */
@@ -115,11 +131,12 @@ public class Hood extends TimedSubsystem {
   /**
    * Checks if the hood is at its current setpoint
    *
-   * @param tolerance The tolerance to use
+   * @param tolerance The tolerance to use, in degrees
    * @return Whether the hood is within the tolerance from its setpoint
    */
-  public boolean isAtSetpoint(Angle tolerance) {
+  public BooleanSupplier isAtSetpoint(DoubleSupplier tolerance) {
     // return true;
-    return io.isAtSetpoint(tolerance);
+    return () -> inputs.setpoint.minus(inputs.position).abs(Degrees) < tolerance.getAsDouble();
+    // return io.isAtSetpoint(tolerance);
   }
 }

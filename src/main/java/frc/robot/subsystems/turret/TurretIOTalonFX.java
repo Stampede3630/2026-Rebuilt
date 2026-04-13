@@ -27,6 +27,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
+import pabeles.concurrency.IntOperatorTask.Max;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
@@ -59,6 +60,7 @@ public class TurretIOTalonFX implements TurretIO {
 
   public static int LEFT_TEETH = 18;
   public static int RIGHT_TEETH = 19;
+  public static int MAX_TEETH = Math.max(LEFT_TEETH, RIGHT_TEETH);
   /** probably needs to be different */
   // ratio from encoders to turret (18:48 and 10:100)
   public static double BIG_TEETH = 4.8;
@@ -247,12 +249,23 @@ public class TurretIOTalonFX implements TurretIO {
     // bottomPoss.add(i + absPosBottom);
 
     // Can avoid using ArrayLists by comparing in real time
-    for (int i = 0; i < LEFT_TEETH; i++) {
-      for (int j = 0; j < RIGHT_TEETH; j++) {
-        if (LEFT_TEETH / BIG_TEETH * (i + absPosLeft) == RIGHT_TEETH / BIG_TEETH * (j + absPosRight)) {
+
+    ArrayList<Double> leftList = new ArrayList<>();
+    ArrayList<Double> rightList = new ArrayList<>();
+
+    for (int i = 0; i < MAX_TEETH; i++) {
+      leftList.add(LEFT_TEETH / BIG_TEETH * (i + absPosLeft));
+      rightList.add(RIGHT_TEETH / BIG_TEETH * (i + absPosRight));
+    }
+
+    for (int i = 0; i < MAX_TEETH; i++) {
+      for (int j = 0; j < MAX_TEETH; j++) {
+        // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j + absPosRight)) < 0.0001) {
+        if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.0001) {
           turretMotor.setPosition(Rotations.of(i + absPosLeft));
           return;
         }
+        // }
       }
     }
   }

@@ -138,7 +138,17 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
       // set control
       bottomRight.setControl(
           new Follower(Constants.V2_SHOOTER_TOP_RIGHT_ID, MotorAlignmentValue.Aligned));
-    } else bottomRight = null;
+    } else {
+      bottomRight = null;
+
+      bottomRightPosition = null;
+      bottomRightVelocity = null;
+      bottomRightTorqueCurrent = null;
+      bottomRightVoltage = null;
+      bottomRightStatorCurrent = null;
+      bottomRightSupplyCurrent = null;
+      bottomRightTemp = null;
+    }
 
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_TOP_LEFT_ON) {
@@ -158,9 +168,20 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
       topLeft.getConfigurator().apply(config);
 
       // set control
-      bottomRight.setControl(
-          new Follower(Constants.V2_SHOOTER_TOP_RIGHT_ID, MotorAlignmentValue.Opposed));
-    } else bottomRight = null;
+      topLeft.setControl(
+          new Follower(Constants.V2_SHOOTER_TOP_LEFT_ID, MotorAlignmentValue.Opposed));
+    } else {
+      topLeft = null;
+
+      topLeftPosition = null;
+      topLeftVelocity = null;
+      topLeftTorqueCurrent = null;
+      topLeftVoltage = null;
+      topLeftStatorCurrent = null;
+      topLeftSupplyCurrent = null;
+      topLeftTemp = null;
+    }
+
 
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_BOTTOM_LEFT_ON) {
@@ -180,14 +201,21 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
       bottomLeft.getConfigurator().apply(config);
 
       // set control
-      bottomRight.setControl(
-          new Follower(Constants.V2_SHOOTER_TOP_RIGHT_ID, MotorAlignmentValue.Opposed));
-    } else bottomRight = null;
+      bottomLeft.setControl(
+          new Follower(Constants.V2_SHOOTER_BOTTOM_LEFT_ID, MotorAlignmentValue.Opposed));
+    } else {
+      bottomLeft = null;
+
+      bottomLeftPosition = null;
+      bottomLeftVelocity = null;
+      bottomLeftTorqueCurrent = null;
+      bottomLeftVoltage = null;
+      bottomLeftStatorCurrent = null;
+      bottomLeftSupplyCurrent = null;
+      bottomLeftTemp = null;
+    }
+
   }
-
-  private boolean promoteFollower = false;
-
-  private Debouncer promoteFollowerDebouncer = new Debouncer(0.5);
 
   @Override
   public void updateInputs(ShooterIOInputs inputs) {

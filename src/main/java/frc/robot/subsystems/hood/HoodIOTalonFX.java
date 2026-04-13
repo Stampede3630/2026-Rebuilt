@@ -95,18 +95,8 @@ public class HoodIOTalonFX implements HoodIO {
   }
 
   @Override
-  public void stopHood() {
-    hoodMotor.stopMotor();
-  }
-
-  @Override
-  public void setPosition(Angle pos) {
+  public void setHoodPos(Angle pos) {
     hoodMotor.setControl(request.withPosition(pos));
-  }
-
-  @Override
-  public boolean isAtSetpoint(Angle tol) {
-    return setpoint.isNear(position.getValue(), tol);
   }
 
   @Override

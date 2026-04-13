@@ -48,7 +48,7 @@ public final class Constants {
   // Swerve IDs are located in frc.robot.generated.TunerConstants.java
   // IDs with an X should be accurate
   public static final int TURRET_ID = 54; // changed
-  public static final int HOOD_ID = 31; // now defunct
+  public static final int HOOD_ID = 33;
   public static final int SHOOTER_LEADER_ID = 19; // x
   public static final int SHOOTER_FOLLOWER_ID = 20; // x
   public static final int INDEXER_SPIN_ID = 29; // x
@@ -112,12 +112,12 @@ public final class Constants {
   /** V2 Constants */
   public static final int V2_SHOOTER_TOP_RIGHT_ID = -1;
 
-  public static final int V2_SHOOTER_BOTTOM_RIGHT_ID = -1;
+  public static final int V2_SHOOTER_BOTTOM_RIGHT_ID = 28;
   public static final int V2_SHOOTER_TOP_LEFT_ID = -1;
   public static final int V2_SHOOTER_BOTTOM_LEFT_ID = -1;
 
   public static final boolean V2_SHOOTER_BOTTOM_RIGHT_ON = true;
-  public static final boolean V2_SHOOTER_TOP_LEFT_ON = true;
+  public static final boolean V2_SHOOTER_TOP_LEFT_ON = false;
   public static final boolean V2_SHOOTER_BOTTOM_LEFT_ON = true;
 
   public static final int V2_TURRET_BOTTOM_ENCODER_ID = -1;

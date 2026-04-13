@@ -199,12 +199,12 @@ public class SuperStructure {
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
-                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
+                                    && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .onlyIf(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
-                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
+                                    && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .repeatedly()))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
   }
@@ -221,12 +221,12 @@ public class SuperStructure {
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
-                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
+                                    && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .onlyIf(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
-                                    && hood.isAtSetpoint(Degrees.of(hoodTol.get())))
+                                    && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .repeatedly()),
             intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())))
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
