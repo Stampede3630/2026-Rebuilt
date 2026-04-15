@@ -49,6 +49,9 @@ import frc.robot.subsystems.indexer.IndexerIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIO;
+import frc.robot.subsystems.kicker.KickerIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterIO;
 import frc.robot.subsystems.shooter.ShooterIOTalonFXV1;
@@ -91,6 +94,7 @@ public class RobotContainer {
   private final Hood hood;
   private final SuperStructure structure;
   private final Flips flips;
+  private final Kicker kicker;
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
@@ -125,6 +129,9 @@ public class RobotContainer {
   /** The angle to set the hood to for lerping purpose */
   private final LoggedNetworkNumber hoodAngleSet =
       new LoggedNetworkNumber("Hood/hoodAngleSet", 0.0);
+
+  private final LoggedNetworkNumber kickerIdle =
+      new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
 
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
@@ -169,6 +176,7 @@ public class RobotContainer {
             // climber = new Climber(new ClimberIOTalonFX());
             hood = new Hood(new HoodIOTalonFX());
             indexer = new Indexer(new IndexerIOTalonFX());
+            kicker = new Kicker(new KickerIOTalonFX());
 
             VisionIO[] visionIOs = {
               new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation),
@@ -235,6 +243,8 @@ public class RobotContainer {
             hood = new Hood(new HoodIOServo());
             indexer = new Indexer(new IndexerIOTalonFX());
 
+            kicker = new Kicker(new KickerIO() {});
+
             VisionIO[] visionIOs2 = {
               new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
             };
@@ -283,6 +293,8 @@ public class RobotContainer {
 
         switch (Constants.simVersion) {
           case V2:
+            // The version 2 robot with redesigned shooter
+
             drive =
                 new Drive(
                     new GyroIO() {},
@@ -300,6 +312,7 @@ public class RobotContainer {
                 new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
             hood = new Hood(new HoodIOSim());
             indexer = new Indexer(new IndexerIOTalonFX());
+            kicker = new Kicker(new KickerIOTalonFX());
 
             VisionIO[] visionIOsSim = {
               new VisionIOPhotonVision(
@@ -325,6 +338,8 @@ public class RobotContainer {
 
             break;
           default:
+            // The version 1 robot with Grey-t turret
+
             drive =
                 new Drive(
                     new GyroIO() {},
@@ -342,6 +357,7 @@ public class RobotContainer {
                 new Flips(new FlipsIOTalonFX()); // climber = new Climber(new ClimberIOTalonFX());
             hood = new Hood(new HoodIOSim());
             indexer = new Indexer(new IndexerIOTalonFX());
+            kicker = new Kicker(new KickerIO() {});
 
             VisionIO[] visionIOsSim2 = {
               new VisionIOPhotonVision(
@@ -387,6 +403,7 @@ public class RobotContainer {
         hood = new Hood(new HoodIO() {});
         indexer = new Indexer(new IndexerIO() {});
         flips = new Flips(new FlipsIO() {});
+        kicker = new Kicker(new KickerIO() {});
 
         VisionIO[] visionIOsDef = {new VisionIO() {}};
         ArrayList<Function<Time, Transform3d>> offsetsDef =
@@ -403,6 +420,7 @@ public class RobotContainer {
     shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
     intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
     hood.setDefaultCommand(hood.runHood(() -> 0).withName("HoodDefaultCommand"));
+    kicker.setDefaultCommand(kicker.runKickerDutyCycle(kickerIdle));
     structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake, flips);
     new NamedCommands(vision, structure);
 
@@ -458,6 +476,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    Trigger rightTrigger = controller.axisGreaterThan(3, 0.3);
+    Trigger leftTrigger = controller.axisGreaterThan(2, 0.3);
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -487,24 +508,23 @@ public class RobotContainer {
 
     // // auto aim turret and shoot if within tolerance
     // if auto aim is disabled, shoot
-    controller
-        .rightTrigger()
-        .and(controller.leftTrigger().negate())
+    rightTrigger
+        .and(leftTrigger.negate())
         .whileTrue(
             Commands.either(
                 structure.justShoot(),
                 shooter.runVelocity(shooterAutoAimDisabledSpeed),
                 enableAutoAim));
-    controller.rightTrigger().and(controller.leftTrigger()).whileTrue(structure.shootAndIntake());
+
+    rightTrigger.and(leftTrigger).whileTrue(structure.shootAndIntake());
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    controller
-        .leftTrigger()
-        .and(controller.rightTrigger().negate())
+    leftTrigger
+        .and(rightTrigger.negate())
         .whileTrue(structure.runIntake());
 
-    // // flip intake down.
+    // flip intake down.
     controller.x().whileTrue(structure.flipIntakeDown());
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up

@@ -2,7 +2,6 @@ package frc.robot.subsystems.hood;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
@@ -10,10 +9,9 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.Constants.Version;
+import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -40,7 +38,8 @@ public class Hood extends TimedSubsystem {
     io.updateInputs(inputs);
     Logger.processInputs("Hood", inputs);
 
-    Robot.batteryLogger.reportCurrentUsage("Hood", inputs.connected ? inputs.supplyCurrent : Amps.of(0.0));
+    Robot.batteryLogger.reportCurrentUsage(
+        "Hood", inputs.connected ? inputs.supplyCurrent : Amps.of(0.0));
 
     // Update alert
     hoodAlert.set(!inputs.connected);
@@ -74,7 +73,7 @@ public class Hood extends TimedSubsystem {
           if (Constants.robotVersion == Version.V2) {
             setpointPos = pos.getAsDouble();
           } else {
-          setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
+            setpointPos = MathUtil.clamp(pos.getAsDouble(), 0, 0.8);
           }
           io.setHoodPos(setpointPos);
         });

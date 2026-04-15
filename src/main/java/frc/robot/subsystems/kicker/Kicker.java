@@ -1,4 +1,4 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.kicker;
 
 import static edu.wpi.first.units.Units.Amps;
 
@@ -8,32 +8,25 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class Intake extends TimedSubsystem {
-  private final IntakeIO io;
+public class Kicker extends TimedSubsystem {
+  private final KickerIO io;
 
-  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+  private final KickerIOInputsAutoLogged inputs = new KickerIOInputsAutoLogged();
 
   private boolean on = false;
 
-  // private final SysIdRoutine routine;
+  private final Alert kickerAlert;
 
-  // private final VoltageOut req = new VoltageOut(0.0);
-
-  private final Alert intakeAlert;
-
-  public Intake(IntakeIO io) {
+  public Kicker(KickerIO io) {
     super("Intake");
     this.io = io;
 
-    intakeAlert = new Alert("Intake motor disconnected!", AlertType.kError);
+    kickerAlert = new Alert("Kicker motor disconnected!", AlertType.kError);
   }
-
-  // public Command runVelocity(DoubleSupplier velocity) {
-  //   return startEnd(() -> io.runVelocity(velocity.getAsDouble()), io::stop);
-  // }
 
   public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
     return run(() -> io.runVelocity(angularVelocitySupplier.get()));
@@ -52,7 +45,7 @@ public class Intake extends TimedSubsystem {
   public Command idleSpeed(Supplier<AngularVelocity> idleSpeed) {
     return runEnd(
         () -> {
-          if (inputs.intakeVelocity.lt(
+          if (inputs.kickerVelocity.lt(
               idleSpeed.get())) { // turn on idle speed if going slower than idle speed
             idling = true;
             io.runVelocity(idleSpeed.get());
@@ -67,23 +60,19 @@ public class Intake extends TimedSubsystem {
   @Override
   public void timedPeriodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Intake", inputs);
+    Logger.processInputs("Kicker", inputs);
     Robot.batteryLogger.reportCurrentUsage(
-        "Intake/IntakeMotor", inputs.intakeConnected ? inputs.intakeSupplyCurrent : Amps.of(0));
+        "Kicker/KickerMotor", inputs.kickerConnected ? inputs.kickerSupplyCurrent : Amps.of(0));
 
     // Update alert
-    intakeAlert.set(!inputs.intakeConnected);
+    kickerAlert.set(!inputs.kickerConnected);
   }
 
   public boolean isIntaking() {
     return on;
   }
 
-  // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
-  // }
-
-  // public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
-  // }
+  public Command runKickerDutyCycle(DoubleSupplier dutyCycle) {
+    return run(() -> io.runDutyCycle(dutyCycle.getAsDouble()));
+  }
 }

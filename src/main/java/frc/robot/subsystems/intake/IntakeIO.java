@@ -18,19 +18,9 @@ public interface IntakeIO {
 
   default void updateInputs(IntakeIOInputs inputs) {}
 
-  // default boolean setCoastMode(boolean enabled) {
-  //   return true;
-  // }
-
   default void runDutyCycle(double dutyCycle) {}
 
   default void stop() {}
-
-  // default double getShooterSpeed() {
-  //   return 0.0;
-  // }
-
-  // default void setShooterMotorsControl(VoltageOut volts) {}
 
   @AutoLog
   class IntakeIOInputs {

@@ -182,7 +182,6 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
       topLeftTemp = null;
     }
 
-
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_BOTTOM_LEFT_ON) {
       // init bottomLeft motor
@@ -214,7 +213,6 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
       bottomLeftSupplyCurrent = null;
       bottomLeftTemp = null;
     }
-
   }
 
   @Override

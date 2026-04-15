@@ -89,21 +89,34 @@ public final class Constants {
   // the lerp data
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_HUB =
       DistanceShooterParametersLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "shot_hub_v2.csv" : "/shot_hub_v1.csv"), "distance", "hood", "shooter");
+          Filesystem.getDeployDirectory().getPath()
+              + (robotVersion == Version.V2 ? "shot_hub_v2.csv" : "/shot_hub_v1.csv"),
+          "distance",
+          "hood",
+          "shooter");
 
   public static final DistanceTimeLerpTable TOF_LOOKUP_HUB =
       DistanceTimeLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "tof_hub_v2.csv" : "/tof_hub_v1.csv"), "distance", "tof");
+          Filesystem.getDeployDirectory().getPath()
+              + (robotVersion == Version.V2 ? "tof_hub_v2.csv" : "/tof_hub_v1.csv"),
+          "distance",
+          "tof");
 
   // note: no neutral data for V1
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_NEUTRAL =
       DistanceShooterParametersLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "shot_neutral_v2.csv" : "/shot_hub_v1.csv"), "distance", "hood", "shooter");
+          Filesystem.getDeployDirectory().getPath()
+              + (robotVersion == Version.V2 ? "shot_neutral_v2.csv" : "/shot_hub_v1.csv"),
+          "distance",
+          "hood",
+          "shooter");
 
   public static final DistanceTimeLerpTable TOF_LOOKUP_NEUTRAL =
       DistanceTimeLerpTable.fromCSV(
-          Filesystem.getDeployDirectory().getPath() + (robotVersion == Version.V2 ? "tof_neutral_v2.csv" : "/tof_hub_v1.csv"), "distance", "tof");
-
+          Filesystem.getDeployDirectory().getPath()
+              + (robotVersion == Version.V2 ? "tof_neutral_v2.csv" : "/tof_hub_v1.csv"),
+          "distance",
+          "tof");
 
   /** if off, completely turns off vision pose estimation */
   public static final LoggedNetworkBoolean VISION_ENABLED =
@@ -118,10 +131,12 @@ public final class Constants {
 
   public static final boolean V2_SHOOTER_BOTTOM_RIGHT_ON = true;
   public static final boolean V2_SHOOTER_TOP_LEFT_ON = false;
-  public static final boolean V2_SHOOTER_BOTTOM_LEFT_ON = true;
+  public static final boolean V2_SHOOTER_BOTTOM_LEFT_ON = false;
 
   public static final int V2_TURRET_BOTTOM_ENCODER_ID = -1;
   public static final int V2_TURRET_TOP_ENCODER_ID = -1;
+
+  public static final int V2_KICK_ID = -1;
 
   // temp
   /***

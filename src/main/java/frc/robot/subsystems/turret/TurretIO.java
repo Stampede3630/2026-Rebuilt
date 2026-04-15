@@ -66,6 +66,6 @@ public interface TurretIO {
 
     // encoders
     public Angle topEncoderPosition = Rotations.of(0.0);
-    public Angle bottomEncoderPosition = Rotations.of(0.0);  
+    public Angle bottomEncoderPosition = Rotations.of(0.0);
   }
 }

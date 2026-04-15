@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
-import java.util.ArrayList;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -27,7 +25,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
-import pabeles.concurrency.IntOperatorTask.Max;
+import java.util.ArrayList;
 
 public class TurretIOTalonFX implements TurretIO {
   private final TalonFX turretMotor;
@@ -260,7 +258,8 @@ public class TurretIOTalonFX implements TurretIO {
 
     for (int i = 0; i < MAX_TEETH; i++) {
       for (int j = 0; j < MAX_TEETH; j++) {
-        // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j + absPosRight)) < 0.0001) {
+        // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j +
+        // absPosRight)) < 0.0001) {
         if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.0001) {
           turretMotor.setPosition(Rotations.of(i + absPosLeft));
           return;

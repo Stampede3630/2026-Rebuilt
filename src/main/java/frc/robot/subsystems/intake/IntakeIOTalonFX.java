@@ -1,7 +1,5 @@
 package frc.robot.subsystems.intake;
 
-import static edu.wpi.first.units.Units.Rotations;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -27,7 +25,6 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final Debouncer intakeConnDebouncer = new Debouncer(0.5);
 
   // intake motor
-  // private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
   private final StatusSignal<Angle> intakePosition;
   private final StatusSignal<AngularVelocity> intakeVelocity;
   private final StatusSignal<Current> intakeTorqueCurrent;
@@ -37,12 +34,10 @@ public class IntakeIOTalonFX implements IntakeIO {
   private final StatusSignal<Temperature> intakeTemp;
   private final StatusSignal<Double> intakeSetpoint;
 
-  private final TalonFXConfiguration flipConfig = new TalonFXConfiguration();
   private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
 
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
 
-  private Angle setpoint = Rotations.of(0.0);
   private double intakeDutyCycle = 0.0;
 
   public IntakeIOTalonFX() {
@@ -94,11 +89,6 @@ public class IntakeIOTalonFX implements IntakeIO {
     inputs.intakeDutyCycle = intakeDutyCycle;
   }
 
-  // @Override
-  // public void runWithDist(DoubleSupplier dist) {
-  //     runVelocity(getValue(dist));
-  // }
-
   @Override
   public void runVelocity(AngularVelocity vel) {
     intake.setControl(velocityRequest.withVelocity(vel));
@@ -115,15 +105,4 @@ public class IntakeIOTalonFX implements IntakeIO {
     intake.stopMotor();
     intakeDutyCycle = 0.0;
   }
-
-  // @Override
-  // public double getShooterSpeed() {
-  //   return intake.getVelocity().getValueAsDouble() * Intake.WHEEL_RADIUS_METERS;
-  // }
-
-  // @Override
-  // public void setShooterMotorsControl(VoltageOut volts) {
-  //   intake.setControl(volts);
-  //   flipLeft.setControl(volts);
-  // }
 }
