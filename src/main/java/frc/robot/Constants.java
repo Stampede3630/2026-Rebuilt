@@ -69,8 +69,6 @@ public final class Constants {
   public static final int HUB_PORT = 0;
   public static final int SHOOTER_CANRANGE = 0;
 
-  public static final double TURRET_GEAR_RATIO = 48;
-
   // follower-leader alignments
   public static final MotorAlignmentValue SHOOTER_FOLLOWER_ALIGNMENT = MotorAlignmentValue.Opposed;
 
@@ -123,7 +121,7 @@ public final class Constants {
       new LoggedNetworkBoolean("Vision/visionEnabled", true);
 
   /** V2 Constants */
-  public static final int V2_SHOOTER_TOP_RIGHT_ID = -1;
+  public static final int V2_SHOOTER_TOP_RIGHT_ID = 48;
 
   public static final int V2_SHOOTER_BOTTOM_RIGHT_ID = 28;
   public static final int V2_SHOOTER_TOP_LEFT_ID = -1;
@@ -136,7 +134,7 @@ public final class Constants {
   public static final int V2_TURRET_BOTTOM_ENCODER_ID = -1;
   public static final int V2_TURRET_TOP_ENCODER_ID = -1;
 
-  public static final int V2_KICK_ID = -1;
+  public static final int V2_KICK_ID = 47;
 
   // temp
   /***

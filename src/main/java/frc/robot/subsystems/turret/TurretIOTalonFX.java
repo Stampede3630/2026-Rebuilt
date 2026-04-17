@@ -61,7 +61,7 @@ public class TurretIOTalonFX implements TurretIO {
   public static int MAX_TEETH = Math.max(LEFT_TEETH, RIGHT_TEETH);
   /** probably needs to be different */
   // ratio from encoders to turret (18:48 and 10:100)
-  public static double BIG_TEETH = 4.8;
+  public static double BIG_TEETH = (10.0 / 100.0) / 48.0;
 
   public TurretIOTalonFX() {
     // init turret motor
@@ -92,7 +92,7 @@ public class TurretIOTalonFX implements TurretIO {
                 .withKP(0.0)
                 .withKI(0.0)
                 .withKD(0.0))
-        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(Constants.TURRET_GEAR_RATIO))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(40)) // used to be 48
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(true)
@@ -252,8 +252,8 @@ public class TurretIOTalonFX implements TurretIO {
     ArrayList<Double> rightList = new ArrayList<>();
 
     for (int i = 0; i < MAX_TEETH; i++) {
-      leftList.add(LEFT_TEETH / BIG_TEETH * (i + absPosLeft));
-      rightList.add(RIGHT_TEETH / BIG_TEETH * (i + absPosRight));
+      leftList.add(LEFT_TEETH * BIG_TEETH * (i + absPosLeft));
+      rightList.add(RIGHT_TEETH * BIG_TEETH * (i + absPosRight));
     }
 
     for (int i = 0; i < MAX_TEETH; i++) {
@@ -261,7 +261,7 @@ public class TurretIOTalonFX implements TurretIO {
         // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j +
         // absPosRight)) < 0.0001) {
         if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.0001) {
-          turretMotor.setPosition(Rotations.of(i + absPosLeft));
+          turretMotor.setPosition(Rotations.of((i + absPosLeft) * LEFT_TEETH * BIG_TEETH) /* convert to turret rotations*/);
           return;
         }
         // }

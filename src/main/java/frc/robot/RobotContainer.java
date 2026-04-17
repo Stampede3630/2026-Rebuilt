@@ -246,12 +246,14 @@ public class RobotContainer {
             kicker = new Kicker(new KickerIO() {});
 
             VisionIO[] visionIOs2 = {
+              new VisionIOLimelight("limelight", drive::getRotation),
               new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
             };
 
             ArrayList<Function<Time, Transform3d>> offsets2 =
                 new ArrayList<>(
                     List.of(
+                        (lat) -> Transform3d.kZero,
                         (lat) -> { // these offsets will need to change for V2
                           var transform =
                               new Transform3d(
@@ -520,9 +522,7 @@ public class RobotContainer {
     // .andThen(Commands.either(turret.stopTurret(), Commands.none(), enableAutoAim)));
 
     // run intake
-    leftTrigger
-        .and(rightTrigger.negate())
-        .whileTrue(structure.runIntake());
+    leftTrigger.and(rightTrigger.negate()).whileTrue(structure.runIntake());
 
     // flip intake down.
     controller.x().whileTrue(structure.flipIntakeDown());
