@@ -65,7 +65,7 @@ public class TurretIOTalonFX implements TurretIO {
 
   public TurretIOTalonFX() {
     // init turret motor
-    turretMotor = new TalonFX(Constants.TURRET_ID, Constants.SHOOTER_BUS);
+    turretMotor = new TalonFX(Constants.TURRET_ID, Constants.SWERVE_BUS);
     turretPosition = turretMotor.getPosition();
     turretVelocity = turretMotor.getVelocity();
     turretTorqueCurrent = turretMotor.getTorqueCurrent();
@@ -261,7 +261,9 @@ public class TurretIOTalonFX implements TurretIO {
         // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j +
         // absPosRight)) < 0.0001) {
         if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.0001) {
-          turretMotor.setPosition(Rotations.of((i + absPosLeft) * LEFT_TEETH * BIG_TEETH) /* convert to turret rotations*/);
+          turretMotor.setPosition(
+              Rotations.of(
+                  (i + absPosLeft) * LEFT_TEETH * BIG_TEETH) /* convert to turret rotations*/);
           return;
         }
         // }

@@ -48,7 +48,7 @@ public class Hood extends TimedSubsystem {
   /**
    * Sets the hood once. Works with both V1 and V2
    *
-   * <p>FOR V2: IN DEGREES
+   * <p>FOR V2: IN ROTATIONS
    */
   public Command setHood(DoubleSupplier pos) {
     return runOnce(
@@ -65,7 +65,7 @@ public class Hood extends TimedSubsystem {
   /**
    * Repeatedly sets the hood. Works with both V1 and V2
    *
-   * <p>FOR V2: IN DEGREES
+   * <p>FOR V2: IN ROTATIONS
    */
   public Command runHood(DoubleSupplier pos) {
     return run(
@@ -125,6 +125,11 @@ public class Hood extends TimedSubsystem {
               return setpointPos;
             });
     }
+  }
+
+  /** Resets the angle of the hood to angle, in rotations. Works for V2 only! */
+  public void resetHoodAngle(double angle) {
+    io.resetHoodAngle(angle);
   }
 
   /**

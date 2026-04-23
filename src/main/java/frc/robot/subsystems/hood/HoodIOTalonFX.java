@@ -1,11 +1,12 @@
 package frc.robot.subsystems.hood;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -14,6 +15,7 @@ import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -43,7 +45,7 @@ public class HoodIOTalonFX implements HoodIO {
 
   public HoodIOTalonFX() {
     // init hood motor + signals
-    hoodMotor = new TalonFX(Constants.HOOD_ID);
+    hoodMotor = new TalonFX(Constants.HOOD_ID, Constants.SWERVE_BUS);
     position = hoodMotor.getPosition();
     velocity = hoodMotor.getVelocity();
     torqueCurrent = hoodMotor.getTorqueCurrent();
@@ -53,25 +55,32 @@ public class HoodIOTalonFX implements HoodIO {
     temp = hoodMotor.getDeviceTemp();
 
     config
-        .withMotorOutput(
+        .withMotorOutput( // 72
             new MotorOutputConfigs()
                 .withInverted(InvertedValue.CounterClockwise_Positive)
                 .withNeutralMode(NeutralModeValue.Brake))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(9.0 * 3.0)) // prev 72.0
         .withSoftwareLimitSwitch( // unrealistically large for now
             new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(true)
-                .withForwardSoftLimitThreshold(Rotations.of(0.5))
+                .withForwardSoftLimitThreshold(Rotations.of(0.48)) // 0.25 is sideways
                 .withReverseSoftLimitEnable(true)
-                .withReverseSoftLimitThreshold(Rotations.of(-0.25)))
+                .withReverseSoftLimitThreshold(Rotations.of(0)))
+        .withMotionMagic(
+            new MotionMagicConfigs().withMotionMagicExpo_kV(1.0).withMotionMagicExpo_kA(2.0))
         .withSlot0( // TODO: tune PID
             new Slot0Configs()
-                .withKS(0.0)
+                .withKP(130.0)
+                .withKI(0.0)
+                .withKD(2.0)
+                .withKS(5.5)
                 .withKV(0.0)
                 .withKA(0.0)
-                .withKP(0.0)
-                .withKI(0.0)
-                .withKD(0.0)); /* set PID */
+                .withStaticFeedforwardSign(
+                    StaticFeedforwardSignValue.UseClosedLoopSign)); /* set PID */
     hoodMotor.getConfigurator().apply(config);
+
+    hoodMotor.setPosition(Rotations.of(0.0));
   }
 
   @Override
@@ -101,6 +110,11 @@ public class HoodIOTalonFX implements HoodIO {
 
   @Override
   public void setHoodPos(double pos) {
-    hoodMotor.setControl(request.withPosition(Degrees.of(pos)));
+    hoodMotor.setControl(request.withPosition(Rotations.of(pos)));
+  }
+
+  @Override
+  public void resetHoodAngle(double angle) {
+    hoodMotor.setPosition(Rotations.of(angle));
   }
 }

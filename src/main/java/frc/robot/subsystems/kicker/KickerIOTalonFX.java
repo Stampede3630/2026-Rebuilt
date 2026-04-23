@@ -2,6 +2,7 @@ package frc.robot.subsystems.kicker;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -50,10 +51,12 @@ public class KickerIOTalonFX implements KickerIO {
     kickerSupplyCurrent = kicker.getSupplyCurrent();
     kickerTemp = kicker.getDeviceTemp();
     kickerSetpoint = kicker.getClosedLoopReference();
-    kickerConfig.withMotorOutput(
-        new MotorOutputConfigs()
-            .withInverted(InvertedValue.Clockwise_Positive)
-            .withNeutralMode(NeutralModeValue.Coast));
+    kickerConfig
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Coast))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(1.0));
     kicker.getConfigurator().apply(kickerConfig);
   }
 

@@ -130,8 +130,18 @@ public class RobotContainer {
   private final LoggedNetworkNumber hoodAngleSet =
       new LoggedNetworkNumber("Hood/hoodAngleSet", 0.0);
 
-  private final LoggedNetworkNumber kickerIdle =
-      new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
+  /** Whether to use snake mode for driving while intaking (left trigger pressed) */
+  private final LoggedNetworkBoolean useSnakeModeWhileIntaking =
+      new LoggedNetworkBoolean("Drive/useSnakeModeWhileIntaking", true);
+
+  /** Whether to use the left or right stick for drive at an angle while intaking */
+  private final LoggedNetworkBoolean useLeftStickForAngle =
+      new LoggedNetworkBoolean("Drive/useLeftStickForAngle", false);
+
+  private final LoggedNetworkNumber shooterLerpSpeed =
+      new LoggedNetworkNumber("Lerp/shooterSpeed", 60.0);
+
+  private final LoggedNetworkNumber hoodLerpAngle = new LoggedNetworkNumber("Lerp/hoodAngle", 0.1);
 
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
@@ -139,8 +149,11 @@ public class RobotContainer {
   private double speedMult = 1.0;
   private double rotMult = 1.0;
 
+  private Rotation2d latestSnakeAngle = Rotation2d.k180deg; // 180 degrees for intake
+
   // auto aim
   private AutoAimer aimer = new IterativeAutoAim();
+  private AutoAimer passingAimer = new StaticAutoAim();
 
   private ShotInfo shotInfo =
       new ShotInfo(
@@ -212,7 +225,7 @@ public class RobotContainer {
                                           /*.plus(drive.getRotation()) */ )
                                       .plus(
                                           new Rotation3d(
-                                              Degrees.of(0.0), Degrees.of(-40.0), Degrees.of(0))));
+                                              Degrees.of(0.0), Degrees.of(-69.333333), Degrees.of(0))));
                           //   System.out.println("camera pose " + test);
                           Logger.recordOutput("LL/transformOffset", transform);
                           return transform;
@@ -419,26 +432,29 @@ public class RobotContainer {
         break;
     }
 
-    shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
-    intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
-    hood.setDefaultCommand(hood.runHood(() -> 0).withName("HoodDefaultCommand"));
-    kicker.setDefaultCommand(kicker.runKickerDutyCycle(kickerIdle));
-    structure = new SuperStructure(aimer, drive, shooter, turret, hood, indexer, intake, flips);
+    // shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
+    // intake.setDefaultCommand(intake.idleSpeed(() ->
+    // RotationsPerSecond.of(intakeIdleSpeed.get())));
+    // hood.setDefaultCommand(hood.runHood(() -> 0.0).withName("HoodDefaultCommand"));
+    // kicker.setDefaultCommand(kicker.stop());
+    structure =
+        new SuperStructure(
+            aimer, passingAimer, drive, shooter, turret, hood, indexer, intake, flips, kicker);
     new NamedCommands(vision, structure);
 
-    turret.setDefaultCommand(
-        Commands.either(
-            turret.turretAimAtAThingCommand(
-                () -> structure.getTarget(),
-                () ->
-                    new Pose2d(
-                        drive
-                            .getPose()
-                            .getTranslation()
-                            .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-                        drive.getRotation())),
-            Commands.none(),
-            enableTurretTracking));
+    // turret.setDefaultCommand(
+    //     Commands.either(
+    //         turret.turretAimAtAThingCommand(
+    //             () -> structure.getTarget(),
+    //             () ->
+    //                 new Pose2d(
+    //                     drive
+    //                         .getPose()
+    //                         .getTranslation()
+    //                         .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+    //                     drive.getRotation())),
+    //         Commands.none(),
+    //         enableTurretTracking));
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
 
@@ -524,6 +540,29 @@ public class RobotContainer {
     // run intake
     leftTrigger.and(rightTrigger.negate()).whileTrue(structure.runIntake());
 
+    leftTrigger
+        .and(useSnakeModeWhileIntaking)
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> xSlewRateLimiter.calculate(-controller.getLeftY() * speedMult),
+                    () -> ySlewRateLimiter.calculate(-controller.getLeftX() * speedMult),
+                    () -> {
+                      // only move if stick is actually pressed
+                      if (useLeftStickForAngle.getAsBoolean()
+                          ? Math.hypot(controller.getLeftX(), controller.getLeftY()) > 0.05
+                          : Math.hypot(controller.getRightX(), controller.getRightY()) > 0.05) {
+                        latestSnakeAngle =
+                            AllianceFlipUtil.apply(
+                                useLeftStickForAngle.getAsBoolean()
+                                    ? new Rotation2d(controller.getLeftY(), controller.getLeftX())
+                                    : new Rotation2d(
+                                        controller.getRightY(), controller.getRightX()));
+                      }
+                      return latestSnakeAngle;
+                    })
+                .withName("Angle Drive"));
+
     // flip intake down.
     controller.x().whileTrue(structure.flipIntakeDown());
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
@@ -549,7 +588,31 @@ public class RobotContainer {
 
     // force chute to run
     // controller.b().whileTrue(structure.runChute());
-    controller.b().whileTrue(structure.runIndexer());
+    controller
+        .b()
+        .whileTrue(
+            shooter
+                .shoot(() -> RotationsPerSecond.of(shooterLerpSpeed.get()))
+                .alongWith(
+                    structure
+                        .runIndexer()
+                        .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+                        .onlyIf(shooter.meetsSetpoint(() -> 3.0))
+                        .repeatedly(),
+                    kicker
+                        .runKickerDutyCycle(() -> 0.8)
+                        .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+                        .onlyIf(shooter.meetsSetpoint(() -> 3.0))
+                        .repeatedly()));
+    controller
+        .b()
+        .whileFalse(
+            shooter
+                .stop()
+                .alongWith(
+                    indexer.stopChute().asProxy(), indexer.stopSpin().asProxy(), kicker.stop()));
+
+    controller.a().whileTrue(hood.setHood(hoodLerpAngle));
 
     // turn turret if auto aim is disabled
     controller
@@ -576,7 +639,7 @@ public class RobotContainer {
                   rotMult = 0.75;
                 }));
 
-    controller.a().whileTrue(structure.runIntakeBackwards());
+    // controller.a().whileTrue(structure.runIntakeBackwards());
 
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
@@ -604,6 +667,11 @@ public class RobotContainer {
     SmartDashboard.putData(
         Commands.runOnce(() -> turret.resetAnglePos(Degrees.of(0)))
             .withName("Reset turret angle")
+            .ignoringDisable(true));
+
+    SmartDashboard.putData(
+        Commands.runOnce(() -> hood.resetHoodAngle(0.0))
+            .withName("Reset hood angle")
             .ignoringDisable(true));
 
     SmartDashboard.putData(

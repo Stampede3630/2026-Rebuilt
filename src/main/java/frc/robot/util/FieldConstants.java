@@ -47,6 +47,12 @@ public class FieldConstants {
     return AllianceFlipUtil.applyX(pose.getMeasureX().magnitude()) > FieldConstants.NEUTRAL_X_BLUE;
   }
 
+  /** Returns whether the pose is in the opposite alliance zone */
+  public static boolean checkOppAllianceZone(Pose2d pose) {
+    return AllianceFlipUtil.applyX(pose.getMeasureX().magnitude())
+        > fieldLength - FieldConstants.NEUTRAL_X_BLUE;
+  }
+
   public static boolean aboveCenterLine(Pose2d pose) {
     return pose.getY() > fieldWidth / 2;
   }

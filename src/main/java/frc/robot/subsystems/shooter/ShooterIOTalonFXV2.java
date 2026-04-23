@@ -88,23 +88,22 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
     config
         .withMotorOutput(
             new MotorOutputConfigs()
-                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withInverted(InvertedValue.Clockwise_Positive)
                 .withNeutralMode(NeutralModeValue.Coast))
-        .withFeedback(
-            new FeedbackConfigs().withSensorToMechanismRatio(15.0 / 30.0)) // 2:1 ratio - V1
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(18.0 / 30.0))
         .withSlot0(
             new Slot0Configs() // these PID numbers are from V1
-                .withKS(5.5)
-                .withKV(0.05)
+                .withKS(14.0) // 25
+                .withKV(0.3) // 0.6
                 .withKA(0.0)
-                .withKP(8.0)
+                .withKP(24.0) // 15
                 .withKI(0.0)
                 .withKD(0.0))
         .withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(100));
 
     // init regardless because you need at least one
     // init topRightLeader motor
-    topRightLeader = new TalonFX(Constants.V2_SHOOTER_TOP_RIGHT_ID, Constants.SHOOTER_BUS);
+    topRightLeader = new TalonFX(Constants.V2_SHOOTER_TOP_RIGHT_ID, Constants.SWERVE_BUS);
 
     // init signals
     topRightPosition = topRightLeader.getPosition();
@@ -121,7 +120,7 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_BOTTOM_RIGHT_ON) {
       // init bottomRight motor
-      bottomRight = new TalonFX(Constants.V2_SHOOTER_BOTTOM_RIGHT_ID, Constants.SHOOTER_BUS);
+      bottomRight = new TalonFX(Constants.V2_SHOOTER_BOTTOM_RIGHT_ID, Constants.SWERVE_BUS);
 
       // init signals
       bottomRightPosition = bottomRight.getPosition();
@@ -153,7 +152,7 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_TOP_LEFT_ON) {
       // init topLeft motor
-      topLeft = new TalonFX(Constants.V2_SHOOTER_TOP_LEFT_ID, Constants.SHOOTER_BUS);
+      topLeft = new TalonFX(Constants.V2_SHOOTER_TOP_LEFT_ID, Constants.SWERVE_BUS);
 
       // init signals
       topLeftPosition = topLeft.getPosition();
@@ -185,7 +184,7 @@ public class ShooterIOTalonFXV2 implements ShooterIO {
     // only init if exists to save wasted time looking for nonexistent motor
     if (Constants.V2_SHOOTER_BOTTOM_LEFT_ON) {
       // init bottomLeft motor
-      bottomLeft = new TalonFX(Constants.V2_SHOOTER_BOTTOM_LEFT_ID, Constants.SHOOTER_BUS);
+      bottomLeft = new TalonFX(Constants.V2_SHOOTER_BOTTOM_LEFT_ID, Constants.SWERVE_BUS);
 
       // init signals
       bottomLeftPosition = bottomLeft.getPosition();

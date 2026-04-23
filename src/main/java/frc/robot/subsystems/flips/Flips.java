@@ -100,12 +100,4 @@ public class Flips extends TimedSubsystem {
   public Command runFlipsVoltage(Voltage volts) {
     return startEnd(() -> io.runFlipsVoltage(volts), () -> io.stopFlips());
   }
-
-  // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
-  // }
-
-  // public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-  //   return routine.quasistatic(direction);
-  // }
 }

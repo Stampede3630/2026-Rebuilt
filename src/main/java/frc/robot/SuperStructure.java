@@ -21,6 +21,7 @@ import frc.robot.subsystems.flips.Flips;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.kicker.Kicker;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.util.AllianceFlipUtil;
@@ -36,6 +37,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class SuperStructure {
   // subsystems
   private AutoAimer aimer;
+  private AutoAimer passingAimer;
   private ShotInfo shotInfo =
       new ShotInfo(
           new ShooterParameters(0.0, RadiansPerSecond.of(0)), Radians.of(0), ShotQuality.UNKNOWN);
@@ -46,6 +48,7 @@ public class SuperStructure {
   public final Indexer indexer;
   public final Intake intake;
   public final Flips flips;
+  public final Kicker kicker;
   // network data
   /** The maximum tolerance of the Turret from the calculated angle, in degrees */
   private final LoggedNetworkNumber turretTolDeg =
@@ -101,16 +104,22 @@ public class SuperStructure {
   private final LoggedNetworkNumber intakeDownSetpoint =
       new LoggedNetworkNumber("Intake/flipDownSetpoint", 18);
 
+  private final LoggedNetworkNumber kickerIdle =
+      new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
+
   public SuperStructure(
       AutoAimer aimer,
+      AutoAimer passingAimer,
       Drive drive,
       Shooter shooter,
       Turret turret,
       Hood hood,
       Indexer indexer,
       Intake intake,
-      Flips flips) {
+      Flips flips,
+      Kicker kicker) {
     this.aimer = aimer;
+    this.passingAimer = passingAimer;
     this.drive = drive;
     this.shooter = shooter;
     this.turret = turret;
@@ -118,6 +127,7 @@ public class SuperStructure {
     this.indexer = indexer;
     this.intake = intake;
     this.flips = flips;
+    this.kicker = kicker;
     SmartDashboard.putData(turret);
     SmartDashboard.putData(indexer);
   }
@@ -127,20 +137,20 @@ public class SuperStructure {
   public Command shoot() {
     return Commands.run(
             () -> {
-              shotInfo =
-                  aimer.get(
-                      drive
-                          .getPose()
-                          .getTranslation()
-                          .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-                      drive.getFieldRelSpeeds(),
-                      getTarget(),
-                      FieldConstants.checkNeutral(drive.getPose())
-                          ? Constants.SHOT_LOOKUP_NEUTRAL
-                          : Constants.SHOT_LOOKUP_HUB,
-                      FieldConstants.checkNeutral(drive.getPose())
-                          ? Constants.TOF_LOOKUP_NEUTRAL
-                          : Constants.TOF_LOOKUP_HUB);
+              shotInfo = getAutoAimTarget();
+              //   aimer.get(
+              //       drive
+              //           .getPose()
+              //           .getTranslation()
+              //           .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+              //       drive.getFieldRelSpeeds(),
+              //       getTarget(),
+              //       FieldConstants.checkNeutral(drive.getPose())
+              //           ? Constants.SHOT_LOOKUP_NEUTRAL
+              //           : Constants.SHOT_LOOKUP_HUB,
+              //       FieldConstants.checkNeutral(drive.getPose())
+              //           ? Constants.TOF_LOOKUP_NEUTRAL
+              //           : Constants.TOF_LOOKUP_HUB);
               Logger.recordOutput(
                   "targetShot/shooter", shotInfo.shooterParameters().shooterVelocity());
               Logger.recordOutput("targetShot/hood", shotInfo.shooterParameters().hood());
@@ -198,7 +208,8 @@ public class SuperStructure {
                     indexer
                         .runBoth(chuteSpeed, spinSpeed)
                         .alongWith(
-                            intake.runEndIntake(() -> RotationsPerSecond.of((intakeSpeed.get()))))
+                            intake.runEndIntake(() -> RotationsPerSecond.of((intakeSpeed.get()))),
+                            kicker.runKickerDutyCycle(kickerIdle))
                         .onlyWhile(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
@@ -221,6 +232,7 @@ public class SuperStructure {
                 .andThen(
                     indexer
                         .runBoth(chuteSpeed, spinSpeed)
+                        .alongWith(kicker.runKickerDutyCycle(kickerIdle))
                         .onlyWhile(
                             () ->
                                 shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
@@ -296,5 +308,43 @@ public class SuperStructure {
 
   public Command runIndexer() {
     return indexer.runBoth(chuteSpeed, spinSpeed);
+  }
+
+  public ShotInfo getAutoAimTarget() {
+    Pose2d pose = drive.getPose();
+    Translation2d target = getTarget();
+
+    if (FieldConstants.checkOppAllianceZone(pose)) {
+      return passingAimer.get(
+          drive
+              .getPose()
+              .getTranslation()
+              .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+          drive.getFieldRelSpeeds(),
+          target,
+          Constants.SHOT_LOOKUP_OPP,
+          Constants.TOF_LOOKUP_NEUTRAL);
+
+    } else if (FieldConstants.checkNeutral(pose)) {
+      return passingAimer.get(
+          drive
+              .getPose()
+              .getTranslation()
+              .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+          drive.getFieldRelSpeeds(),
+          target,
+          Constants.SHOT_LOOKUP_NEUTRAL,
+          Constants.TOF_LOOKUP_NEUTRAL);
+    } else {
+      return aimer.get(
+          drive
+              .getPose()
+              .getTranslation()
+              .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+          drive.getFieldRelSpeeds(),
+          target,
+          Constants.SHOT_LOOKUP_HUB,
+          Constants.TOF_LOOKUP_HUB);
+    }
   }
 }

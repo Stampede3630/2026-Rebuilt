@@ -27,6 +27,8 @@ public interface HoodIO {
 
   default void setHoodPos(Angle pos) {}
 
+  default void resetHoodAngle(double angle) {}
+
   @AutoLog
   class HoodIOInputs {
     // public boolean connected = false;

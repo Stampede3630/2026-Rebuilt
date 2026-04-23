@@ -28,15 +28,15 @@ public class Kicker extends TimedSubsystem {
     kickerAlert = new Alert("Kicker motor disconnected!", AlertType.kError);
   }
 
-  public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
-    return run(() -> io.runVelocity(angularVelocitySupplier.get()));
-  }
+  // public Command runIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
+  //   return run(() -> io.runVelocity(angularVelocitySupplier.get()));
+  // }
 
-  public Command runEndIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
-    return runEnd(() -> io.runVelocity(angularVelocitySupplier.get()), () -> io.stop());
-  }
+  // public Command runEndIntake(Supplier<AngularVelocity> angularVelocitySupplier) {
+  //   return runEnd(() -> io.runVelocity(angularVelocitySupplier.get()), () -> io.stop());
+  // }
 
-  public Command stopIntake() {
+  public Command stop() {
     return runOnce(() -> io.stop());
   }
 
