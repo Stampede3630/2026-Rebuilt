@@ -42,6 +42,8 @@ public class FlipsIOTalonFX implements FlipsIO {
   private Debouncer flipRightStallDebouncer = new Debouncer(0.5, DebounceType.kRising);
   private Debouncer flipLeftGoingDownDebouncer = new Debouncer(0.5, DebounceType.kRising);
   private Debouncer flipRightGoingDownDebouncer = new Debouncer(0.5, DebounceType.kRising);
+  private Debouncer flipLeftGoingUpDebouncer = new Debouncer(0.5, DebounceType.kRising);
+  private Debouncer flipRightGoingUpDebouncer = new Debouncer(0.5, DebounceType.kRising);
 
   // intake motor
   // private final TalonFXConfiguration intakeConfig = new TalonFXConfiguration();
@@ -203,6 +205,21 @@ public class FlipsIOTalonFX implements FlipsIO {
                 < inputs.flipRightPosition.in(
                     Rotations))) { // if stalling and going down, then turn off
       flipRight.stopMotor();
+    }
+
+    if (inputs.flipLeftStalling
+        && flipLeftGoingUpDebouncer.calculate(
+            inputs.flipLeftSetpoint
+                > inputs.flipLeftPosition.in(
+                    Rotations))) { // if stalling and going up, reset setpoint to be where it is
+      flipLeft.setControl(positionRequest.withPosition(inputs.flipLeftPosition));
+    }
+    if (inputs.flipRightStalling
+        && flipRightGoingUpDebouncer.calculate(
+            inputs.flipRightSetpoint
+                > inputs.flipRightPosition.in(
+                    Rotations))) { // if stalling and going up, reset setpoint to be where it is
+      flipRight.setControl(positionRequest.withPosition(inputs.flipRightPosition));
     }
   }
 

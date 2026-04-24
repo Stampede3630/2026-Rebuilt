@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -60,12 +58,27 @@ public class SuperStructure {
   /** The duty cycle speed to run the chute with */
   private final LoggedNetworkNumber chuteSpeed =
       new LoggedNetworkNumber("Indexer/chuteSpeed", -1.0);
-  /** The minimum difference to block the indexer from running, in rotations per second */
-  private final LoggedNetworkNumber shooterTolRPS =
+  /**
+   * The minimum difference to block the indexer from running when targeting the hub, in rotations
+   * per second
+   */
+  private final LoggedNetworkNumber shooterTolRPSHub =
       new LoggedNetworkNumber("Shooter/shooterTolRPS", 4.0);
   /**
-   * initial tolerance before indexer starts running at all (should be more strict than general
-   * tolerance)
+   * The minimum difference to block the indexer from running when passing from the neutral zone, in
+   * rotations per second
+   */
+  private final LoggedNetworkNumber shooterTolRPSNeutral =
+      new LoggedNetworkNumber("Shooter/shooterTolRPS", 8.0);
+  /**
+   * The minimum difference to block the indexer from running when passing from the opposite
+   * alliance zone, in rotations per second
+   */
+  private final LoggedNetworkNumber shooterTolRPSOpp =
+      new LoggedNetworkNumber("Shooter/shooterTolRPS", 8.0);
+  /**
+   * initial tolerance before indexer starts running at all regardless of what is being targetted
+   * (should be more strict than general tolerance)
    */
   private final LoggedNetworkNumber shooterInitialTolRPS =
       new LoggedNetworkNumber("Shooter/shooterInitialTolRPS", 4.0);
@@ -106,6 +119,9 @@ public class SuperStructure {
 
   private final LoggedNetworkNumber kickerIdle =
       new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
+
+  private LoggedNetworkNumber shooterTargetTolRPS = shooterTolRPSHub;
+  private TargetType targetType = TargetType.HUB;
 
   public SuperStructure(
       AutoAimer aimer,
@@ -212,12 +228,12 @@ public class SuperStructure {
                             kicker.runKickerDutyCycle(kickerIdle))
                         .onlyWhile(
                             () ->
-                                shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
+                                shooter.meetsSetpoint(shooterTargetTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
                                     && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .onlyIf(
                             () ->
-                                shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
+                                shooter.meetsSetpoint(shooterTargetTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
                                     && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .repeatedly()))
@@ -235,12 +251,12 @@ public class SuperStructure {
                         .alongWith(kicker.runKickerDutyCycle(kickerIdle))
                         .onlyWhile(
                             () ->
-                                shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
+                                shooter.meetsSetpoint(shooterTargetTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
                                     && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .onlyIf(
                             () ->
-                                shooter.meetsSetpoint(shooterTolRPS).getAsBoolean()
+                                shooter.meetsSetpoint(shooterTargetTolRPS).getAsBoolean()
                                     && turret.isAtSetpoint(Degrees.of(turretTolDeg.get()))
                                     && hood.isAtSetpoint(hoodTol).getAsBoolean())
                         .repeatedly()),
@@ -265,7 +281,8 @@ public class SuperStructure {
   public Command runIntake() {
     return flipIntakeDown()
         .andThen(intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf)
+        .handleInterrupt(() -> flipIntakeUp()); // once intaking stops, try to lift
   }
 
   public Command stopIntake() {
@@ -298,10 +315,6 @@ public class SuperStructure {
     }
   }
 
-  public Command runFlipsUntilCurrent() {
-    return flips.runFlipsVoltage(Volts.of(12)).withTimeout(Seconds.of(2));
-  }
-
   public Command runChute() {
     return indexer.runEndChute(chuteSpeed);
   }
@@ -315,6 +328,9 @@ public class SuperStructure {
     Translation2d target = getTarget();
 
     if (FieldConstants.checkOppAllianceZone(pose)) {
+      shooterTargetTolRPS = shooterTolRPSOpp;
+      targetType = TargetType.OPPOSITE;
+      SmartDashboard.putString("shootingTargetType", targetType.name());
       return passingAimer.get(
           drive
               .getPose()
@@ -326,6 +342,9 @@ public class SuperStructure {
           Constants.TOF_LOOKUP_NEUTRAL);
 
     } else if (FieldConstants.checkNeutral(pose)) {
+      shooterTargetTolRPS = shooterTolRPSNeutral;
+      targetType = TargetType.NEUTRAL;
+      SmartDashboard.putString("shootingTargetType", targetType.name());
       return passingAimer.get(
           drive
               .getPose()
@@ -336,6 +355,9 @@ public class SuperStructure {
           Constants.SHOT_LOOKUP_NEUTRAL,
           Constants.TOF_LOOKUP_NEUTRAL);
     } else {
+      shooterTargetTolRPS = shooterTolRPSHub;
+      targetType = TargetType.HUB;
+      SmartDashboard.putString("shootingTargetType", targetType.name());
       return aimer.get(
           drive
               .getPose()
@@ -346,5 +368,11 @@ public class SuperStructure {
           Constants.SHOT_LOOKUP_HUB,
           Constants.TOF_LOOKUP_HUB);
     }
+  }
+
+  public enum TargetType {
+    HUB,
+    NEUTRAL,
+    OPPOSITE
   }
 }

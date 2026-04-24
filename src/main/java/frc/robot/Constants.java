@@ -84,7 +84,9 @@ public final class Constants {
 
   public static final Translation3d TURRET_OFFSET_3D =
       new Translation3d(
-          Units.inchesToMeters(5.0), Units.inchesToMeters(-5.0), Units.inchesToMeters(16.0)); // 21.604500 
+          Units.inchesToMeters(5.0),
+          Units.inchesToMeters(-5.0),
+          Units.inchesToMeters(16.0)); // 21.604500
 
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
   // the lerp data

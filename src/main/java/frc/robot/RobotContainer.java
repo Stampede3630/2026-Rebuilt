@@ -225,7 +225,9 @@ public class RobotContainer {
                                           /*.plus(drive.getRotation()) */ )
                                       .plus(
                                           new Rotation3d(
-                                              Degrees.of(0.0), Degrees.of(-69.333333), Degrees.of(0))));
+                                              Degrees.of(0.0),
+                                              Degrees.of(-69.333333),
+                                              Degrees.of(0))));
                           //   System.out.println("camera pose " + test);
                           Logger.recordOutput("LL/transformOffset", transform);
                           return transform;
@@ -587,32 +589,32 @@ public class RobotContainer {
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // force chute to run
-    // controller.b().whileTrue(structure.runChute());
-    controller
-        .b()
-        .whileTrue(
-            shooter
-                .shoot(() -> RotationsPerSecond.of(shooterLerpSpeed.get()))
-                .alongWith(
-                    structure
-                        .runIndexer()
-                        .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
-                        .onlyIf(shooter.meetsSetpoint(() -> 3.0))
-                        .repeatedly(),
-                    kicker
-                        .runKickerDutyCycle(() -> 0.8)
-                        .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
-                        .onlyIf(shooter.meetsSetpoint(() -> 3.0))
-                        .repeatedly()));
-    controller
-        .b()
-        .whileFalse(
-            shooter
-                .stop()
-                .alongWith(
-                    indexer.stopChute().asProxy(), indexer.stopSpin().asProxy(), kicker.stop()));
+    controller.b().whileTrue(structure.runChute());
+    // controller
+    //     .b()
+    //     .whileTrue(
+    //         shooter
+    //             .shoot(() -> RotationsPerSecond.of(shooterLerpSpeed.get()))
+    //             .alongWith(
+    //                 structure
+    //                     .runIndexer()
+    //                     .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+    //                     .onlyIf(shooter.meetsSetpoint(() -> 3.0))
+    //                     .repeatedly(),
+    //                 kicker
+    //                     .runKickerDutyCycle(() -> 0.8)
+    //                     .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
+    //                     .onlyIf(shooter.meetsSetpoint(() -> 3.0))
+    //                     .repeatedly()));
+    // controller
+    //     .b()
+    //     .whileFalse(
+    //         shooter
+    //             .stop()
+    //             .alongWith(
+    //                 indexer.stopChute().asProxy(), indexer.stopSpin().asProxy(), kicker.stop()));
 
-    controller.a().whileTrue(hood.setHood(hoodLerpAngle));
+    // controller.a().whileTrue(hood.setHood(hoodLerpAngle));
 
     // turn turret if auto aim is disabled
     controller
@@ -639,7 +641,7 @@ public class RobotContainer {
                   rotMult = 0.75;
                 }));
 
-    // controller.a().whileTrue(structure.runIntakeBackwards());
+    controller.a().whileTrue(structure.runIntakeBackwards());
 
     new Trigger(() -> DriverStation.isDisabled())
         .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
