@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -120,6 +122,9 @@ public class SuperStructure {
   private final LoggedNetworkNumber kickerIdle =
       new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
 
+    private final LoggedNetworkNumber periodSec = new LoggedNetworkNumber("Flips/periodSec", 0.5);
+    private double lastTime = 0.0;
+
   private LoggedNetworkNumber shooterTargetTolRPS = shooterTolRPSHub;
   private TargetType targetType = TargetType.HUB;
 
@@ -210,15 +215,23 @@ public class SuperStructure {
   public Command justShoot() {
     return shoot()
         .alongWith(
-            flips.runFlips(
-                () ->
-                    Degrees.of(
-                        intakeDownSetpoint.get()
-                            + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
-                                * Math.sin(
-                                    Timer.getFPGATimestamp()
-                                        * (2 * Math.PI)
-                                        / intakeFlipPeriod.get()))),
+            flipIntakeUpIf(
+                () -> {
+                    if (Timer.getFPGATimestamp() + periodSec.getAsDouble() > lastTime) {
+                        lastTime = Timer.getFPGATimestamp();
+                        return true;
+                    }   return false;
+                }
+            ),
+            // flips.runFlips(
+            //     () ->
+            //         Degrees.of(
+            //             intakeDownSetpoint.get()
+            //                 + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
+            //                     * Math.sin(
+            //                         Timer.getFPGATimestamp()
+            //                             * (2 * Math.PI)
+            //                             / intakeFlipPeriod.get()))),
             Commands.waitUntil(shooter.meetsSetpoint(shooterInitialTolRPS))
                 .andThen(
                     indexer
@@ -266,6 +279,11 @@ public class SuperStructure {
 
   public Command flipIntakeUp() {
     return flips.setIntakePosition(() -> Degrees.of(intakeUpSetpoint.get()));
+  }
+
+  public Command flipIntakeUpIf(BooleanSupplier bool) {
+    if (bool.getAsBoolean()) return flipIntakeUp();
+    else return Commands.none();
   }
 
   public Command flipIntakeDown() {
