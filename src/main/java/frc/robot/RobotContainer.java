@@ -101,9 +101,9 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<PathPlannerAuto> autoChooser;
 
-  private final SlewRateLimiter xSlewRateLimiter = new SlewRateLimiter(10);
-  private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(10);
-  private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(10);
+  private final SlewRateLimiter xSlewRateLimiter = new SlewRateLimiter(8);
+  private final SlewRateLimiter ySlewRateLimiter = new SlewRateLimiter(8);
+  private final SlewRateLimiter angularSlewRateLimiter = new SlewRateLimiter(5);
 
   //   /** The amount of time for the indexer to index another fuel, in seconds */
   //   private final LoggedNetworkNumber latency = new LoggedNetworkNumber("Indexer/latency", 0.15);
@@ -118,7 +118,7 @@ public class RobotContainer {
       new LoggedNetworkNumber("Turret/manualDutyCycle", 0.5);
   /** The speed target to set the shooter to while not actively shooting, in m/s */
   private final LoggedNetworkNumber shooterIdleSpeed =
-      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 30);
+      new LoggedNetworkNumber("Shooter/shooterIdleSpeed", 20);
 
   private final LoggedNetworkNumber intakeIdleSpeed =
       new LoggedNetworkNumber("Intake/intakeIdleSpeed", 20);
@@ -132,16 +132,23 @@ public class RobotContainer {
 
   /** Whether to use snake mode for driving while intaking (left trigger pressed) */
   private final LoggedNetworkBoolean useSnakeModeWhileIntaking =
-      new LoggedNetworkBoolean("Drive/useSnakeModeWhileIntaking", true);
+      new LoggedNetworkBoolean("Drive/useSnakeModeWhileIntaking", false);
 
   /** Whether to use the left or right stick for drive at an angle while intaking */
   private final LoggedNetworkBoolean useLeftStickForAngle =
-      new LoggedNetworkBoolean("Drive/useLeftStickForAngle", false);
+      new LoggedNetworkBoolean("Drive/useLeftStickForAngle", true);
 
   private final LoggedNetworkNumber shooterLerpSpeed =
       new LoggedNetworkNumber("Lerp/shooterSpeed", 60.0);
 
   private final LoggedNetworkNumber hoodLerpAngle = new LoggedNetworkNumber("Lerp/hoodAngle", 0.1);
+
+  /** The control input multiplier for driving to use when driving slowly */
+  private final LoggedNetworkNumber slowDriveSpeed =
+      new LoggedNetworkNumber("Drive/slowDriveSpeed", 0.5);
+
+  private final LoggedNetworkNumber slowTurnSpeed =
+      new LoggedNetworkNumber("Drive/slowTurnSpeed", 0.5);
 
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
@@ -226,10 +233,13 @@ public class RobotContainer {
                                       .plus(
                                           new Rotation3d(
                                               Degrees.of(0.0),
-                                              Degrees.of(-69.333333),
+                                              Degrees.of(-20.6666666), // -69.333
                                               Degrees.of(0))));
                           //   System.out.println("camera pose " + test);
                           Logger.recordOutput("LL/transformOffset", transform);
+                          Logger.recordOutput(
+                              "LL/transformPose",
+                              new Pose3d(drive.getPose()).transformBy(transform));
                           return transform;
                         },
                         (lat) -> Transform3d.kZero));
@@ -261,7 +271,13 @@ public class RobotContainer {
             kicker = new Kicker(new KickerIO() {});
 
             VisionIO[] visionIOs2 = {
-              new VisionIOLimelight("limelight", drive::getRotation),
+              new VisionIOPhotonVision(
+                  Constants.FRONT_LEFT_CAMERA,
+                  new Transform3d(
+                      Units.inchesToMeters(1),
+                      Units.inchesToMeters(1),
+                      Units.inchesToMeters(1),
+                      new Rotation3d(0, Units.degreesToRadians(1), Units.degreesToRadians(1)))),
               new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
             };
 
@@ -333,7 +349,7 @@ public class RobotContainer {
 
             VisionIO[] visionIOsSim = {
               new VisionIOPhotonVision(
-                  Constants.FRONT_RIGHT_CAMERA, new Transform3d()), // can test real cameras
+                  Constants.FRONT_LEFT_CAMERA, new Transform3d()), // can test real cameras
             };
             ArrayList<Function<Time, Transform3d>> offsetsSim =
                 new ArrayList<>(
@@ -434,29 +450,28 @@ public class RobotContainer {
         break;
     }
 
-    // shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
-    // intake.setDefaultCommand(intake.idleSpeed(() ->
-    // RotationsPerSecond.of(intakeIdleSpeed.get())));
-    // hood.setDefaultCommand(hood.runHood(() -> 0.0).withName("HoodDefaultCommand"));
-    // kicker.setDefaultCommand(kicker.stop());
+    shooter.setDefaultCommand(shooter.idleSpeed(shooterIdleSpeed));
+    intake.setDefaultCommand(intake.idleSpeed(() -> RotationsPerSecond.of(intakeIdleSpeed.get())));
+    hood.setDefaultCommand(hood.runHood(() -> 0.0).withName("HoodDefaultCommand"));
+    kicker.setDefaultCommand(kicker.stop());
     structure =
         new SuperStructure(
             aimer, passingAimer, drive, shooter, turret, hood, indexer, intake, flips, kicker);
     new NamedCommands(vision, structure);
 
-    // turret.setDefaultCommand(
-    //     Commands.either(
-    //         turret.turretAimAtAThingCommand(
-    //             () -> structure.getTarget(),
-    //             () ->
-    //                 new Pose2d(
-    //                     drive
-    //                         .getPose()
-    //                         .getTranslation()
-    //                         .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-    //                     drive.getRotation())),
-    //         Commands.none(),
-    //         enableTurretTracking));
+    turret.setDefaultCommand(
+        Commands.either(
+            turret.turretAimAtAThingCommand(
+                () -> structure.getTarget(),
+                () ->
+                    new Pose2d(
+                        drive
+                            .getPose()
+                            .getTranslation()
+                            .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
+                        drive.getRotation())),
+            Commands.none(),
+            enableTurretTracking));
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", buildAutoChooser(""));
 
@@ -576,7 +591,7 @@ public class RobotContainer {
     //     .b()
     //     .whileTrue(
     //         indexer
-    //             .runBoth(() -> -0.8, () -> 0.7)
+    // .runBoth(() -> -0.8, () -> 0.7)
     //             .onlyWhile(shooter.meetsSetpoint(() -> 3.0))
     //             // .onlyWhile(() -> turret.isAtSetpoint(Degrees.of(turretTolDeg.get())))
     //             // .onlyIf(isHoodAngleRight())
@@ -589,7 +604,9 @@ public class RobotContainer {
     controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // force chute to run
-    controller.b().whileTrue(structure.runChute());
+    // controller.b().whileTrue(structure.runChute());
+    controller.b().whileTrue(structure.shoot());
+
     // controller
     //     .b()
     //     .whileTrue(
@@ -628,24 +645,30 @@ public class RobotContainer {
 
     controller
         .rightStick()
-        .whileTrue(
+        .onTrue(
             Commands.runOnce(
                 () -> {
-                  speedMult = 0.5;
-                  rotMult = 0.5;
+                  speedMult = slowDriveSpeed.get();
+                  rotMult = slowTurnSpeed.get();
                 }))
-        .whileFalse(
+        .onFalse(
             Commands.runOnce(
                 () -> {
                   speedMult = 1.0;
-                  rotMult = 0.75;
+                  rotMult = 1.0;
                 }));
 
     controller.a().whileTrue(structure.runIntakeBackwards());
 
     new Trigger(() -> DriverStation.isDisabled())
-        .onTrue(turret.setNeutralMode(NeutralModeValue.Coast))
-        .onFalse(turret.setNeutralMode(NeutralModeValue.Brake));
+        .onTrue(
+            turret
+                .setNeutralMode(NeutralModeValue.Coast)
+                .alongWith(hood.setNeutralMode(NeutralModeValue.Coast)))
+        .onFalse(
+            turret
+                .setNeutralMode(NeutralModeValue.Brake)
+                .alongWith(hood.setNeutralMode(NeutralModeValue.Brake)));
   }
 
   /** Add commands for codriver to use in elastic */
@@ -677,7 +700,7 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     SmartDashboard.putData(
-        Commands.runOnce(() -> flips.resetFlipPosition(Rotations.of(0.05)))
+        Commands.runOnce(() -> flips.resetFlipPosition(Rotations.of(-0.05)))
             .withName("Reset intake to bottom")
             .ignoringDisable(true));
 
@@ -687,7 +710,8 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     // for relerping
-    SmartDashboard.putData(hood.setHood(hoodAngleSet).withName("Set hood angle"));
+    SmartDashboard.putData(
+        Commands.runOnce(() -> hood.resetHoodAngle(0.0)).withName("Reset hood angle"));
   }
 
   /** Initializes fuel simulation */

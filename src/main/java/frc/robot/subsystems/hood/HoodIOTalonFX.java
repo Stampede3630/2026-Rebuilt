@@ -117,4 +117,10 @@ public class HoodIOTalonFX implements HoodIO {
   public void resetHoodAngle(double angle) {
     hoodMotor.setPosition(Rotations.of(angle));
   }
+
+  @Override
+  public void setNeutralMode(NeutralModeValue val) {
+    // turretConfig.withMotorOutput(new MotorOutputConfigs().withNeutralMode(val));
+    hoodMotor.getConfigurator().apply(new MotorOutputConfigs().withNeutralMode(val));
+  }
 }

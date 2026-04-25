@@ -80,12 +80,12 @@ public final class Constants {
 
   /** The position of the turret relative to the center of the robot */
   public static final Translation2d TURRET_OFFSET =
-      new Translation2d(Units.inchesToMeters(5.0), Units.inchesToMeters(-5.0));
+      new Translation2d(Units.inchesToMeters(4.89), Units.inchesToMeters(-4.27));
 
   public static final Translation3d TURRET_OFFSET_3D =
       new Translation3d(
-          Units.inchesToMeters(5.0),
-          Units.inchesToMeters(-5.0),
+          Units.inchesToMeters(4.89),
+          Units.inchesToMeters(-4.27), // 5
           Units.inchesToMeters(16.0)); // 21.604500
 
   // lerp data headers: distMeters,tof,hoodPerc,shooterSetpoint,shooterSpeed
@@ -93,7 +93,7 @@ public final class Constants {
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_HUB =
       DistanceShooterParametersLerpTable.fromCSV(
           Filesystem.getDeployDirectory().getPath()
-              + (robotVersion == Version.V2 ? "shot_hub_v2.csv" : "/shot_hub_v1.csv"),
+              + (robotVersion == Version.V2 ? "/shot_hub_v2.csv" : "/shot_hub_v1.csv"),
           "distance",
           "hood",
           "shooter");
@@ -101,7 +101,7 @@ public final class Constants {
   public static final DistanceTimeLerpTable TOF_LOOKUP_HUB =
       DistanceTimeLerpTable.fromCSV(
           Filesystem.getDeployDirectory().getPath()
-              + (robotVersion == Version.V2 ? "tof_hub_v2.csv" : "/tof_hub_v1.csv"),
+              + (robotVersion == Version.V2 ? "/tof_hub_v2.csv" : "/tof_hub_v1.csv"),
           "distance",
           "tof");
 
@@ -110,7 +110,7 @@ public final class Constants {
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_NEUTRAL =
       DistanceShooterParametersLerpTable.fromCSV(
           Filesystem.getDeployDirectory().getPath()
-              + (robotVersion == Version.V2 ? "shot_neutral_v2.csv" : "/shot_hub_v1.csv"),
+              + (robotVersion == Version.V2 ? "/shot_neutral_v2.csv" : "/shot_hub_v1.csv"),
           "distance",
           "hood",
           "shooter");
@@ -118,7 +118,7 @@ public final class Constants {
   public static final DistanceTimeLerpTable TOF_LOOKUP_NEUTRAL =
       DistanceTimeLerpTable.fromCSV(
           Filesystem.getDeployDirectory().getPath()
-              + (robotVersion == Version.V2 ? "tof_hub_v2.csv" : "/tof_hub_v1.csv"),
+              + (robotVersion == Version.V2 ? "/tof_hub_v2.csv" : "/tof_hub_v1.csv"),
           "distance",
           "tof");
 
@@ -127,7 +127,7 @@ public final class Constants {
   public static final DistanceShooterParametersLerpTable SHOT_LOOKUP_OPP =
       DistanceShooterParametersLerpTable.fromCSV(
           Filesystem.getDeployDirectory().getPath()
-              + (robotVersion == Version.V2 ? "shot_opp_alliance_v2.csv" : "/shot_hub_v1.csv"),
+              + (robotVersion == Version.V2 ? "/shot_opp_alliance_v2.csv" : "/shot_hub_v1.csv"),
           "distance",
           "hood",
           "shooter");

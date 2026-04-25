@@ -121,7 +121,7 @@ public class FlipsIOTalonFX implements FlipsIO {
                 .withForwardSoftLimitEnable(true)
                 .withForwardSoftLimitThreshold(0.25)
                 .withReverseSoftLimitEnable(true)
-                .withReverseSoftLimitThreshold(0.05))
+                .withReverseSoftLimitThreshold(-0.05))
         .withCurrentLimits(new CurrentLimitsConfigs().withStatorCurrentLimit(50));
     flipLeft.getConfigurator().apply(flipConfig);
     flipRight

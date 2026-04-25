@@ -1,11 +1,10 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-
-import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -30,6 +29,7 @@ import frc.robot.util.FieldConstants;
 import frc.robot.util.ShooterParameters;
 import frc.robot.util.ShotInfo;
 import frc.robot.util.ShotInfo.ShotQuality;
+import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -71,19 +71,31 @@ public class SuperStructure {
    * rotations per second
    */
   private final LoggedNetworkNumber shooterTolRPSNeutral =
-      new LoggedNetworkNumber("Shooter/shooterTolRPS", 8.0);
+      new LoggedNetworkNumber("Shooter/shooterNeutralRPS", 16.0);
   /**
    * The minimum difference to block the indexer from running when passing from the opposite
    * alliance zone, in rotations per second
    */
   private final LoggedNetworkNumber shooterTolRPSOpp =
-      new LoggedNetworkNumber("Shooter/shooterTolRPS", 8.0);
+      new LoggedNetworkNumber("Shooter/shooterOppRPS", 16.0);
+  /**
+   * The minimum difference to block the indexer from running when passing from the neutral zone, in
+   * rotations per second
+   */
+  private final LoggedNetworkNumber shooterInitTolRPSNeutral =
+      new LoggedNetworkNumber("Shooter/shooterInitNeutralRPS", 8.0);
+  /**
+   * The minimum difference to block the indexer from running when passing from the opposite
+   * alliance zone, in rotations per second
+   */
+  private final LoggedNetworkNumber shooterInitTolRPSOpp =
+      new LoggedNetworkNumber("Shooter/shooterInitOppRPS", 8.0);
   /**
    * initial tolerance before indexer starts running at all regardless of what is being targetted
    * (should be more strict than general tolerance)
    */
-  private final LoggedNetworkNumber shooterInitialTolRPS =
-      new LoggedNetworkNumber("Shooter/shooterInitialTolRPS", 4.0);
+  private final LoggedNetworkNumber shooterInitTolRPSHub =
+      new LoggedNetworkNumber("Shooter/shooterInitTolRPS", 4.0);
   /** The duty cycle speed to use while intaking [-1.0, 1.0] */
   private final LoggedNetworkNumber intakeSpeed =
       new LoggedNetworkNumber("Intake/intakeSpeed", +70.0);
@@ -117,15 +129,21 @@ public class SuperStructure {
   private final LoggedNetworkNumber intakeUpSetpoint =
       new LoggedNetworkNumber("Intake/flipUpSetpoint", 88.2);
   private final LoggedNetworkNumber intakeDownSetpoint =
-      new LoggedNetworkNumber("Intake/flipDownSetpoint", 18);
+      new LoggedNetworkNumber("Intake/flipDownSetpoint", -18); // 18
 
   private final LoggedNetworkNumber kickerIdle =
       new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
 
-    private final LoggedNetworkNumber periodSec = new LoggedNetworkNumber("Flips/periodSec", 0.5);
-    private double lastTime = 0.0;
+  private final LoggedNetworkNumber targetOffsetX = new LoggedNetworkNumber("Offsets/targetX", 0.0);
+  private final LoggedNetworkNumber targetOffsetY = new LoggedNetworkNumber("Offsets/targetY", 0.0);
+
+  /** Period of trying to raise the flips while shooting */
+  private final LoggedNetworkNumber periodSec = new LoggedNetworkNumber("Flips/periodSec", 0.5);
+  /** The last FPGA time that the flips were raised while shooting */
+  private double lastTime = 0.0;
 
   private LoggedNetworkNumber shooterTargetTolRPS = shooterTolRPSHub;
+  private LoggedNetworkNumber shooterTargetInitTolRPS = shooterInitTolRPSHub;
   private TargetType targetType = TargetType.HUB;
 
   public SuperStructure(
@@ -215,24 +233,25 @@ public class SuperStructure {
   public Command justShoot() {
     return shoot()
         .alongWith(
-            flipIntakeUpIf(
-                () -> {
-                    if (Timer.getFPGATimestamp() + periodSec.getAsDouble() > lastTime) {
-                        lastTime = Timer.getFPGATimestamp();
-                        return true;
-                    }   return false;
-                }
-            ),
-            // flips.runFlips(
-            //     () ->
-            //         Degrees.of(
-            //             intakeDownSetpoint.get()
-            //                 + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
-            //                     * Math.sin(
-            //                         Timer.getFPGATimestamp()
-            //                             * (2 * Math.PI)
-            //                             / intakeFlipPeriod.get()))),
-            Commands.waitUntil(shooter.meetsSetpoint(shooterInitialTolRPS))
+            // flipIntakeUpIf(
+            //     () -> {
+            //       System.out.println("TIME: " + Timer.getFPGATimestamp());
+            //       if (Timer.getFPGATimestamp() > lastTime + periodSec.getAsDouble()) {
+            //         lastTime = Timer.getFPGATimestamp();
+            //         return true;
+            //       }
+            //       return false;
+            //     }),
+            flips.runFlips(
+                () ->
+                    Degrees.of(
+                        intakeDownSetpoint.get()
+                            + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
+                                * Math.sin(
+                                    Timer.getFPGATimestamp()
+                                        * (2 * Math.PI)
+                                        / intakeFlipPeriod.get()))),
+            Commands.waitUntil(shooter.meetsSetpoint(shooterTargetInitTolRPS))
                 .andThen(
                     indexer
                         .runBoth(chuteSpeed, spinSpeed)
@@ -257,7 +276,7 @@ public class SuperStructure {
     return shoot()
         .alongWith(
             flips.runFlips(() -> Degrees.of(intakeDownSetpoint.get())),
-            Commands.waitUntil(shooter.meetsSetpoint(shooterInitialTolRPS))
+            Commands.waitUntil(shooter.meetsSetpoint(shooterTargetInitTolRPS))
                 .andThen(
                     indexer
                         .runBoth(chuteSpeed, spinSpeed)
@@ -282,8 +301,7 @@ public class SuperStructure {
   }
 
   public Command flipIntakeUpIf(BooleanSupplier bool) {
-    if (bool.getAsBoolean()) return flipIntakeUp();
-    else return Commands.none();
+    return flips.setIntakePositionIf(() -> Degrees.of(intakeUpSetpoint.get()), bool);
   }
 
   public Command flipIntakeDown() {
@@ -299,8 +317,9 @@ public class SuperStructure {
   public Command runIntake() {
     return flipIntakeDown()
         .andThen(intake.runIntake(() -> RotationsPerSecond.of(intakeSpeed.get())))
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf)
-        .handleInterrupt(() -> flipIntakeUp()); // once intaking stops, try to lift
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    // .fin(flips.setIntakePosition(() -> Degrees.of(intakeUpSetpoint.get()))); // once intaking
+    // stops, try to lift
   }
 
   public Command stopIntake() {
@@ -343,10 +362,14 @@ public class SuperStructure {
 
   public ShotInfo getAutoAimTarget() {
     Pose2d pose = drive.getPose();
-    Translation2d target = getTarget();
+    Translation2d target =
+        getTarget()
+            .plus(
+                new Translation2d(Meters.of(targetOffsetX.get()), Meters.of(targetOffsetY.get())));
 
     if (FieldConstants.checkOppAllianceZone(pose)) {
       shooterTargetTolRPS = shooterTolRPSOpp;
+      shooterTargetInitTolRPS = shooterInitTolRPSOpp;
       targetType = TargetType.OPPOSITE;
       SmartDashboard.putString("shootingTargetType", targetType.name());
       return passingAimer.get(
@@ -361,6 +384,7 @@ public class SuperStructure {
 
     } else if (FieldConstants.checkNeutral(pose)) {
       shooterTargetTolRPS = shooterTolRPSNeutral;
+      shooterTargetInitTolRPS = shooterInitTolRPSNeutral;
       targetType = TargetType.NEUTRAL;
       SmartDashboard.putString("shootingTargetType", targetType.name());
       return passingAimer.get(
@@ -374,6 +398,7 @@ public class SuperStructure {
           Constants.TOF_LOOKUP_NEUTRAL);
     } else {
       shooterTargetTolRPS = shooterTolRPSHub;
+      shooterTargetInitTolRPS = shooterInitTolRPSHub;
       targetType = TargetType.HUB;
       SmartDashboard.putString("shootingTargetType", targetType.name());
       return aimer.get(

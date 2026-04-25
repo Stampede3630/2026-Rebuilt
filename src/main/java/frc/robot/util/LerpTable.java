@@ -63,6 +63,7 @@ public abstract class LerpTable<K extends Comparable<?>, V> implements Function<
     // lerp table
     // precondition: data has at least two KV pairs
     if (data.size() < 2) {
+      System.err.println(data);
       throw new RuntimeException("Not enough data in map. Must have at least 2 entries");
     }
     Map.Entry<K, V> high = data.ceilingEntry(key);

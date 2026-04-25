@@ -278,7 +278,7 @@ public class Vision extends TimedSubsystem {
                   < threshold.in(Meters)) {
             drive.setPose(bestObservation.pose().toPose2d());
           } else {
-            drive.setPose(ppStartingPose);
+            if (ppStartingPose != null) drive.setPose(ppStartingPose);
           }
         });
   }

@@ -24,6 +24,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
 import java.util.ArrayList;
 
@@ -50,8 +52,11 @@ public class TurretIOTalonFX implements TurretIO {
 
   private Angle turretSetpoint = Radians.of(0);
 
-  private final double LEFT_LIMIT = -170.0 / 360.0; // rotations was -0.15; used to -0.75
-  private final double RIGHT_LIMIT = 0.625; // rotations was 1.11
+  private final double LEFT_LIMIT = -0.25; // -170.0 / 360.0; // rotations was -0.15; used to -0.75
+  private final double RIGHT_LIMIT = 1.125; // rotations was 1.11
+
+  private final double LEFT_OFFSET = -0.058;
+  private final double RIGHT_OFFSET = 0.197;
 
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
@@ -92,7 +97,7 @@ public class TurretIOTalonFX implements TurretIO {
                 .withKP(0.0)
                 .withKI(0.0)
                 .withKD(0.0))
-        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(40)) // used to be 48
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(48)) // used to be 48
         .withSoftwareLimitSwitch(
             new SoftwareLimitSwitchConfigs()
                 .withForwardSoftLimitEnable(true)
@@ -105,7 +110,18 @@ public class TurretIOTalonFX implements TurretIO {
     // if (Constants.robotVersion == Version.V2) {
     left = new CANcoder(Constants.V2_TURRET_BOTTOM_ENCODER_ID);
     right = new CANcoder(Constants.V2_TURRET_TOP_ENCODER_ID);
+    SmartDashboard.putData(
+        Commands.runOnce(
+                () -> {
+                  left.setPosition(0.0);
+                  right.setPosition(0.0);
+                  System.out.println("reset turret encoders! :)");
+                })
+            .withName("Reset Turret Encoders")
+            .ignoringDisable(true));
     // }
+
+    // figureOutAngle();
   }
 
   @Override
@@ -144,21 +160,57 @@ public class TurretIOTalonFX implements TurretIO {
 
   @Override
   public void setTurretAngle(Angle angle) {
-    // need to subtract angleInitRad here
-    // System.out.println("set to " + angle.magnitude());
-    Angle currentAngle = turretPosition.getValue();
+    // // need to subtract angleInitRad here
+    // // System.out.println("set to " + angle.magnitude());
+    // Angle currentAngle = turretPosition.getValue();
 
-    // find which rotation the turret is currently in
-    // need to add an extra rotation to account for (-360, 360)
-    int angleRotations = (int) currentAngle.in(Degrees) / 360;
-    if (currentAngle.gte(Degrees.of(0.0))) angleRotations++;
-    else angleRotations--;
+    // // find which rotation the turret is currently in
+    // // need to add an extra rotation to account for (-360, 360)
+    // int angleRotations = (int) currentAngle.in(Degrees) / 360;
+    // if (currentAngle.gte(Degrees.of(0.0))) angleRotations++;
+    // else angleRotations--;
 
-    angle = Rotations.of(angleRotations).plus(angle);
+    // angle = Rotations.of(angleRotations).plus(angle);
+
+    // Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
+    // Angle rightAngle = angle.plus(Degrees.of(360));
+
+    // // find if leftAngle or angle is closer to currentAngle
+    // if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
+    //     && currentAngle.minus(leftAngle).abs(Radians) <
+    // currentAngle.minus(rightAngle).abs(Radians)
+    //     && leftAngle.gt(Rotations.of(LEFT_LIMIT))) {
+    //   // if leftAngle is closer
+    //   angle = leftAngle;
+    //   org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "L");
+    // } else if (currentAngle.minus(rightAngle).abs(Radians) <
+    // currentAngle.minus(angle).abs(Radians)
+    //     && currentAngle.minus(rightAngle).abs(Radians) <
+    // currentAngle.minus(leftAngle).abs(Radians)
+    //     && rightAngle.lt(Rotations.of(RIGHT_LIMIT))) {
+    //   // if rightAngle is closer
+    //   angle = rightAngle;
+    //   org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "R");
+
+    // } else { // middle
+    //   if (angle.lt(Rotations.of(LEFT_LIMIT))) {
+    //     angle = rightAngle;
+    //     org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "R");
+
+    //   } else if (angle.gt(Rotations.of(RIGHT_LIMIT))) {
+    //     angle = rightAngle;
+    //     org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "L");
+    //   } else {
+    //     org.littletonrobotics.junction.Logger.recordOutput("TurretStuff", "M");
+    //   }
+    // }
+
+    // turretSetpoint = angle;
+    // turretMotor.setControl(posRequestVoltage.withPosition(angle.in(Rotations)).withSlot(0));
 
     Angle leftAngle = angle.minus(Degrees.of(360)); // check near left rotation
     Angle rightAngle = angle.plus(Degrees.of(360));
-
+    Angle currentAngle = turretMotor.getPosition().getValue();
     // find if leftAngle or angle is closer to currentAngle
     if (currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(angle).abs(Radians)
         && currentAngle.minus(leftAngle).abs(Radians) < currentAngle.minus(rightAngle).abs(Radians)
@@ -232,10 +284,10 @@ public class TurretIOTalonFX implements TurretIO {
     return turretSetpoint.isNear(turretPosition.getValue(), tol);
   }
 
-  @Override
-  public void figureOutAngle() {
-    double absPosRight = right.getAbsolutePosition().getValue().in(Rotations);
-    double absPosLeft = left.getAbsolutePosition().getValue().in(Rotations);
+  @Deprecated
+  public void figureOutAngleOld() {
+    double absPosRight = right.getAbsolutePosition().getValue().in(Rotations) + RIGHT_OFFSET;
+    double absPosLeft = left.getAbsolutePosition().getValue().in(Rotations) + LEFT_OFFSET;
 
     // ArrayList<Double> topPoss = new ArrayList<>();
     // ArrayList<Double> bottomPoss = new ArrayList<>();
@@ -251,23 +303,39 @@ public class TurretIOTalonFX implements TurretIO {
     ArrayList<Double> leftList = new ArrayList<>();
     ArrayList<Double> rightList = new ArrayList<>();
 
-    for (int i = 0; i < MAX_TEETH; i++) {
+    System.out.println("I'm runnnnnnnnning!");
+
+    for (int i = 1; i <= MAX_TEETH; i++) {
       leftList.add(LEFT_TEETH * BIG_TEETH * (i + absPosLeft));
       rightList.add(RIGHT_TEETH * BIG_TEETH * (i + absPosRight));
     }
+    System.out.println(leftList);
+    System.out.println(rightList);
 
     for (int i = 0; i < MAX_TEETH; i++) {
       for (int j = 0; j < MAX_TEETH; j++) {
         // if (Math.abs(LEFT_TEETH / BIG_TEETH * (i + absPosLeft) - RIGHT_TEETH / BIG_TEETH * (j +
         // absPosRight)) < 0.0001) {
-        if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.0001) {
-          turretMotor.setPosition(
-              Rotations.of(
-                  (i + absPosLeft) * LEFT_TEETH * BIG_TEETH) /* convert to turret rotations*/);
+        if (Math.abs(leftList.get(i) - rightList.get(j)) < 0.01) {
+          turretMotor.setPosition(Rotations.of(leftList.get(i)));
+          // (i + absPosLeft) * LEFT_TEETH * BIG_TEETH) /* convert to turret rotations*/);
+          System.out.println("AHAHAHHAHAHA HEHE " + leftList.get(i));
           return;
         }
         // }
       }
     }
+  }
+
+  @Override
+  /**
+   * NOT DONE
+   */
+  public void figureOutAngle() {
+    //
+    double absPosRight = right.getAbsolutePosition().getValue().in(Rotations) + RIGHT_OFFSET;
+    double absPosLeft = left.getAbsolutePosition().getValue().in(Rotations) + LEFT_OFFSET;
+
+
   }
 }

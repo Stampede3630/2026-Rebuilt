@@ -2,6 +2,7 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -54,8 +55,9 @@ public class IntakeIOTalonFX implements IntakeIO {
     intakeConfig
         .withMotorOutput(
             new MotorOutputConfigs()
-                .withInverted(InvertedValue.Clockwise_Positive)
+                .withInverted(InvertedValue.CounterClockwise_Positive)
                 .withNeutralMode(NeutralModeValue.Coast))
+        .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2.0))
         .withSlot0(new Slot0Configs().withKP(0.1).withKS(0.35).withKV(0.12));
     intake.getConfigurator().apply(intakeConfig);
   }

@@ -2,7 +2,9 @@ package frc.robot.subsystems.hood;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
@@ -95,8 +97,8 @@ public class Hood extends TimedSubsystem {
       case V2:
         return setHoodPos(
             () -> {
-              setpointPos += 1; // 1 degree
-              return Degrees.of(setpointPos);
+              setpointPos += 0.01; // 1 degree
+              return Rotations.of(setpointPos);
             });
       default:
         return setHood(
@@ -114,8 +116,8 @@ public class Hood extends TimedSubsystem {
       case V2:
         return setHoodPos(
             () -> {
-              setpointPos -= 1; // 1 degree
-              return Degrees.of(setpointPos);
+              setpointPos -= 0.01; // 1 degree
+              return Rotations.of(setpointPos);
             });
       default:
         return setHood(
@@ -140,7 +142,12 @@ public class Hood extends TimedSubsystem {
    */
   public BooleanSupplier isAtSetpoint(DoubleSupplier tolerance) {
     // return true;
-    return () -> inputs.setpoint.minus(inputs.position).abs(Degrees) < tolerance.getAsDouble();
+    return () ->
+        Rotations.of(setpointPos).minus(inputs.position).abs(Degrees) < tolerance.getAsDouble();
     // return io.isAtSetpoint(tolerance);
+  }
+
+  public Command setNeutralMode(NeutralModeValue val) {
+    return runOnce(() -> io.setNeutralMode(val)).ignoringDisable(true);
   }
 }

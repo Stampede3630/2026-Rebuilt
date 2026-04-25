@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -72,6 +73,15 @@ public class Flips extends TimedSubsystem {
 
   public Command setIntakePosition(Supplier<Angle> pos) {
     return runOnce(() -> io.setFlipPosition(pos.get()));
+  }
+
+  public Command setIntakePositionIf(Supplier<Angle> pos, BooleanSupplier bool) {
+    return run(
+        () -> {
+          if (bool.getAsBoolean()) {
+            io.setFlipPosition(pos.get());
+          }
+        });
   }
 
   public Command runFlips(Supplier<Angle> pos) {
