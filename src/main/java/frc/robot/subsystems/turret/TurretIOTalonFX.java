@@ -58,6 +58,9 @@ public class TurretIOTalonFX implements TurretIO {
   private final double LEFT_OFFSET = -0.058;
   private final double RIGHT_OFFSET = 0.197;
 
+  private final double LEFT_RATIO = (100.0 / 10.0) * (48.0 / 18.0);
+  private final double RIGHT_RATIO = (100.0 / 10.0) * (48.0 / 19.0);
+
   // whether the angle offset has been set since the robot's code last booted
   private boolean initSet = false;
 
@@ -121,7 +124,7 @@ public class TurretIOTalonFX implements TurretIO {
             .ignoringDisable(true));
     // }
 
-    // figureOutAngle();
+    figureOutAngle();
   }
 
   @Override
@@ -332,10 +335,33 @@ public class TurretIOTalonFX implements TurretIO {
    * NOT DONE
    */
   public void figureOutAngle() {
-    //
+    // read encoder pos
     double absPosRight = right.getAbsolutePosition().getValue().in(Rotations) + RIGHT_OFFSET;
     double absPosLeft = left.getAbsolutePosition().getValue().in(Rotations) + LEFT_OFFSET;
 
+    double bestPos = 0.0;
+    double minError = Double.MAX_VALUE;
 
+    for (int i = 0; i < MAX_TEETH + 1; i++) {
+      // potential angle
+      double cand = (absPosLeft + i) / LEFT_RATIO;
+
+      // what the right encoder reading should be if cand is correct
+      double rightTheoretical = (cand * RIGHT_RATIO) % 1.0;
+      double error = Math.abs(rightTheoretical - absPosRight % 1.0);
+
+      error = Math.min(error, 1.0 - error);
+
+      if (error < minError) {
+        minError = error;
+        bestPos = cand;
+      }
+    }
+    turretMotor.setPosition(bestPos);
+
+    SmartDashboard.putNumber("CRTinfo/pos", bestPos);
+    SmartDashboard.putNumber("CRTinfo/error", minError);
+    System.out.println("CRT pos: " + bestPos);
+    System.out.println("CRT error: " + minError);
   }
 }
