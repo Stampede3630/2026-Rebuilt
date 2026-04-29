@@ -599,11 +599,11 @@ public class RobotContainer {
     // controller.rightBumper().onTrue(hood.hoodDown());
 
     // toggle turret auto aim
-    controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
+    // controller.povUp().onTrue(Commands.runOnce(() -> enableAutoAim.set(!enableAutoAim.get())));
 
     // force chute to run
-    // controller.b().whileTrue(structure.runChute());
-    controller.b().whileTrue(structure.shoot());
+    controller.b().whileTrue(structure.runChute());
+    // controller.b().whileTrue(structure.shoot());
 
     // controller
     //     .b()

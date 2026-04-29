@@ -331,9 +331,7 @@ public class TurretIOTalonFX implements TurretIO {
   }
 
   @Override
-  /**
-   * NOT DONE
-   */
+  /** gemini's method - might not work */
   public void figureOutAngle() {
     // read encoder pos
     double absPosRight = right.getAbsolutePosition().getValue().in(Rotations) + RIGHT_OFFSET;
