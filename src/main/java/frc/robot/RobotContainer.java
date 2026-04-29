@@ -199,8 +199,7 @@ public class RobotContainer {
             kicker = new Kicker(new KickerIOTalonFX());
 
             VisionIO[] visionIOs = {
-              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation),
-              new VisionIOLimelight(Constants.CHASSIS_LL, drive::getRotation)
+              new VisionIOLimelight(Constants.TURRET_CAMERA, drive::getRotation)
             };
 
             // these offsets will need to change for V2 + add second LL
@@ -241,8 +240,7 @@ public class RobotContainer {
                               "LL/transformPose",
                               new Pose3d(drive.getPose()).transformBy(transform));
                           return transform;
-                        },
-                        (lat) -> Transform3d.kZero));
+                        }));
 
             vision = new Vision(drive::addVisionMeasurement, visionIOs, offsets, turret, drive);
             break;
@@ -710,8 +708,8 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     // for relerping
-    SmartDashboard.putData(
-        Commands.runOnce(() -> hood.resetHoodAngle(0.0)).withName("Reset hood angle"));
+    // SmartDashboard.putData(
+    //     Commands.runOnce(() -> hood.resetHoodAngle(0.0)).withName("Reset hood angle"));
   }
 
   /** Initializes fuel simulation */
