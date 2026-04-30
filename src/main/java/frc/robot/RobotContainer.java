@@ -64,6 +64,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.*;
 import frc.robot.util.ShotInfo.ShotQuality;
 import java.util.ArrayList;
@@ -346,8 +347,10 @@ public class RobotContainer {
             kicker = new Kicker(new KickerIOTalonFX());
 
             VisionIO[] visionIOsSim = {
-              new VisionIOPhotonVision(
-                  Constants.FRONT_LEFT_CAMERA, new Transform3d()), // can test real cameras
+              new VisionIOPhotonVisionSim(
+                  Constants.FRONT_LEFT_CAMERA,
+                  Transform3d.kZero,
+                  drive::getPose), // can test real cameras
             };
             ArrayList<Function<Time, Transform3d>> offsetsSim =
                 new ArrayList<>(
@@ -555,6 +558,22 @@ public class RobotContainer {
     // run intake
     leftTrigger.and(rightTrigger.negate()).whileTrue(structure.runIntake());
 
+    rightTrigger
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  System.out.println("DOWN");
+                  speedMult = slowDriveSpeed.get();
+                  rotMult = slowTurnSpeed.get();
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  System.out.println("UP");
+                  speedMult = 1.0;
+                  rotMult = 1.0;
+                }));
+
     leftTrigger
         .and(useSnakeModeWhileIntaking)
         .whileTrue(
@@ -579,10 +598,12 @@ public class RobotContainer {
                 .withName("Angle Drive"));
 
     // flip intake down.
-    controller.x().whileTrue(structure.flipIntakeDown());
+    // controller.x().whileTrue(structure.flipIntakeDown());
     // controller.leftBumper().whileTrue(intake.runFlip(intakeFlipSpeed));
     // // flip intake up
     controller.y().whileTrue(structure.flipIntakeUp());
+    controller.x().whileTrue(structure.weeWeeDoFlips());
+
     // controller.rightBumper().whileTrue(intake.runFlip(() -> -1 * intakeFlipSpeed.getAsDouble()));
 
     // controller

@@ -242,15 +242,6 @@ public class SuperStructure {
             //       }
             //       return false;
             //     }),
-            flips.runFlips(
-                () ->
-                    Degrees.of(
-                        intakeDownSetpoint.get()
-                            + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
-                                * Math.sin(
-                                    Timer.getFPGATimestamp()
-                                        * (2 * Math.PI)
-                                        / intakeFlipPeriod.get()))),
             Commands.waitUntil(shooter.meetsSetpoint(shooterTargetInitTolRPS))
                 .andThen(
                     indexer
@@ -350,6 +341,16 @@ public class SuperStructure {
         return new Translation2d(AllianceFlipUtil.applyX(3.25), 2.5);
       }
     }
+  }
+
+  public Command weeWeeDoFlips() {
+    return flips.runFlips(
+        () ->
+            Degrees.of(
+                intakeDownSetpoint.get()
+                    + (intakeUpSetpoint.get() - intakeDownSetpoint.get())
+                        * Math.sin(
+                            Timer.getFPGATimestamp() * (2 * Math.PI) / intakeFlipPeriod.get())));
   }
 
   public Command runChute() {
