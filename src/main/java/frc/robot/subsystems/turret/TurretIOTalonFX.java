@@ -124,7 +124,7 @@ public class TurretIOTalonFX implements TurretIO {
             .ignoringDisable(true));
     // }
 
-    figureOutAngle();
+    // figureOutAngle();
   }
 
   @Override
