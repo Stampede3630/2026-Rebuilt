@@ -110,7 +110,7 @@ public class FlipsIOTalonFX implements FlipsIO {
         .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(20.0)) //  15.899412
         .withSlot0(
             new Slot0Configs()
-                .withKP(22.0)
+                .withKP(23.0)
                 .withKS(5.0)
                 .withKG(0.72) // 0.72
                 .withKV(2.25) // 2.25
