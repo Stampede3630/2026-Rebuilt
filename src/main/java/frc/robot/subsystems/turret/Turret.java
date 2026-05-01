@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
 import frc.robot.util.TimedSubsystem;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -52,14 +51,15 @@ public class Turret extends TimedSubsystem {
   public Turret(TurretIO io) {
     super("Turret");
     this.io = io;
-    routine = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null,
-            Volts.of(4),
-            null,
-            (state) -> SignalLogger.writeString("state", state.toString())),
-        new SysIdRoutine.Mechanism(
-            (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null, this));
+    routine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                Volts.of(4),
+                null,
+                (state) -> SignalLogger.writeString("state", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (volts) -> io.setTurretMotorControl(req.withOutput(volts.in(Volts))), null, this));
 
     turretAlert = new Alert("Top right shooter motor disconnected!", AlertType.kError);
   }
@@ -126,10 +126,15 @@ public class Turret extends TimedSubsystem {
 
   public Command turretAimAtAThingCommand(
       Supplier<Translation2d> theThing, Supplier<Pose2d> robot, BooleanSupplier keepGoing) {
-       return new FunctionalCommand(() -> {}, () -> {
+    return new FunctionalCommand(
+        () -> {},
+        () -> {
           setpoint = theThing.get().minus(robot.get().getTranslation()).getAngle().getMeasure();
           io.setTurretAngle(setpoint.minus(robot.get().getRotation().getMeasure()));
-        }, (bool) -> {}, () -> !keepGoing.getAsBoolean(), this);
+        },
+        (bool) -> {},
+        () -> !keepGoing.getAsBoolean(),
+        this);
   }
 
   public Command moveTurretRight() {
