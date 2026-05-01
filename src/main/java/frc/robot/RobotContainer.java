@@ -154,6 +154,10 @@ public class RobotContainer {
   /** Used when codriver resets angle */
   private final LoggedNetworkNumber setAngle = new LoggedNetworkNumber("Offsets/setAngle", 0.0);
 
+  /** The time to wait before starting auto, in seconds */
+  private final LoggedNetworkNumber autoWaitTime =
+      new LoggedNetworkNumber("Auto/autoWaitTime", 0.0);
+
   private double speedMult = 1.0;
   private double rotMult = 1.0;
 
@@ -810,6 +814,7 @@ public class RobotContainer {
     hasRunAutoOnceBefore = true;
     return vision
         .seedPoseBeforeAuto(AllianceFlipUtil.apply(auto.getStartingPose()), Meters.of(1))
+        .andThen(Commands.waitSeconds(autoWaitTime.getAsDouble()))
         .andThen(auto)
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming);
   }
