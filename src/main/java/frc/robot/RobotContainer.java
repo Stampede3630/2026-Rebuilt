@@ -474,7 +474,8 @@ public class RobotContainer {
                             .getPose()
                             .getTranslation()
                             .plus(Constants.TURRET_OFFSET.rotateBy(drive.getRotation())),
-                        drive.getRotation())),
+                        drive.getRotation()),  
+                enableTurretTracking),
             Commands.none(),
             enableTurretTracking));
     // Set up auto routines
