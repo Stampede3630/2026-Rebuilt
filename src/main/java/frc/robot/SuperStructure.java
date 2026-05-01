@@ -120,7 +120,7 @@ public class SuperStructure {
   private final LoggedNetworkNumber driveWigglePeriod =
       new LoggedNetworkNumber("Offsets/driveWigglePeriod", 1);
 
-  private final LoggedNetworkNumber driveShake = new LoggedNetworkNumber("Offsets/driveShake", 1);
+  private final LoggedNetworkNumber driveShake = new LoggedNetworkNumber("Offsets/driveShake", 0.0);
   private final LoggedNetworkNumber driveShakePeriod =
       new LoggedNetworkNumber("Offsets/driveShakePeriod", 0.2);
   private final LoggedNetworkNumber intakeFlipPeriod =
@@ -129,7 +129,7 @@ public class SuperStructure {
   private final LoggedNetworkNumber intakeUpSetpoint =
       new LoggedNetworkNumber("Intake/flipUpSetpoint", 88.2);
   private final LoggedNetworkNumber intakeDownSetpoint =
-      new LoggedNetworkNumber("Intake/flipDownSetpoint", -18); // 18
+      new LoggedNetworkNumber("Intake/flipDownSetpoint", -25); // 18
 
   private final LoggedNetworkNumber kickerIdle =
       new LoggedNetworkNumber("Kicker/idleDutyCycle", 0.8);
@@ -242,6 +242,7 @@ public class SuperStructure {
             //       }
             //       return false;
             //     }),
+            weeWeeDoFlips(),
             Commands.waitUntil(shooter.meetsSetpoint(shooterTargetInitTolRPS))
                 .andThen(
                     indexer
